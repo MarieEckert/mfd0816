@@ -1,0 +1,748 @@
+                       MFD-0816 INSTRUCTION SET REFERENCE
+                                 November  2024
+
+CONTENTS
+────────────────────────────────────────────────────────────────────────────────
+
+  1.... INSTRUCTION LISTING
+  2.... INSTRUCTION SPECIFICATIONS
+
+1. INSTRUCTION LISTING
+────────────────────────────────────────────────────────────────────────────────
+
+  0x00..0x0f
+  ‾‾‾‾‾‾‾‾‾‾
+    ┌──────┬─────────────┬─────────────────────────┐
+    │ CODE │ NAME(S)     │ DESCRIPTION             │
+    ├──────┼─────────────┼─────────────────────────┤
+    │ 0x00 │ ADC         │ Add with carry          │
+    │ 0x01 │ ADD         │ Add                     │
+    │ 0x02 │ AND         │ Logical AND             │
+    │ 0x03 │ BIN         │ Read block from I/O Bus │
+    │ 0x04 │ BOT         │ Write block to I/O Bus  │
+    │ 0x05 │ CALL        │ Call subroutine         │
+    │ 0x06 │             │ Reserved                │
+    │ 0x07 │ CMP         │ Compare operands        │
+    │ 0x08 │ DEC         │ Decrement by 1          │
+    │ 0x09 │ DIV         │ Unsigned divide         │
+    │ 0x0a │ IDIV        │ Signed divide           │
+    │ 0x0b │ IMUL        │ Signed multiply         │
+    │ 0x0c │ IN          │ Read byte from I/O Bus  │
+    │ 0x0d │ INC         │ Increment by 1          │
+    │ 0x0e │ INT         │ Trigger interrupt       │
+    │ 0x0f │ IRET        │ Return from interrupt   │
+    └──────┴─────────────┴─────────────────────────┘
+
+  Jcc - Jump (if condition is met)
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ┌──────┬─────────────┬─────────────────────────┐
+    │ CODE │ NAME(S)     │ DESCRIPTION             │
+    ├──────┼─────────────┼─────────────────────────┤
+    │ 0x10 │ JMP         │ Jump                    │
+    │ 0x11 │ JZ/JE       │ Jump if ZF=1            │
+    │ 0x12 │ JG          │ Jump if ZF=0 and NF=OF  │
+    │ 0x13 │ JGE         │ Jump if NF=OF           │
+    │ 0x14 │ JL          │ Jump if NF<>OF          │
+    │ 0x15 │ JLE         │ Jump if ZF=1 or NF<>OF  │
+    │ 0x16 │ JC          │ Jump if CF=1            │
+    │ 0x17 │ JS          │ Jump if NF=1            │
+    │ 0x18 │ JNZ/JNE     │ Jump if ZF=0            │
+    │ 0x19 │ JNC         │ Jump if CF=0            │
+    │ 0x1a │ JNS         │ Jump if NF=0            │
+    └──────┴─────────────┴─────────────────────────┘
+
+  0x1b..0x2a
+  ‾‾‾‾‾‾‾‾‾‾
+    ┌──────┬─────────────┬─────────────────────────┐
+    │ CODE │ NAME(S)     │ DESCRIPTION             │
+    ├──────┼─────────────┼─────────────────────────┤
+    │ 0x1b │ LD          │ Load word into register │
+    │ 0x1c │ MOV         │ Move between registers  │
+    │ 0x1d │ MUL         │ Unsigned multiply       │
+    │ 0x1e │ NEG         │ Negate                  │
+    │ 0x1f │ NOP         │ No operation            │
+    │ 0x20 │ NOT         │ Negate operand (logical)│
+    │ 0x21 │ OR          │ Logical OR              │
+    │ 0x22 │ OUT         │ Write byte to I/O Bus   │
+    │ 0x23 │ POP         │ Pop word from stack     │
+    │ 0x24 │ PUSH        │ Push word to stack      │
+    │ 0x25 │ RET         │ Return from subroutine  │
+    │ 0x26 │ ROL         │ Rotate left             │
+    │ 0x27 │ ROR         │ Rotate right            │
+    │ 0x28 │ SL          │ Shift left              │
+    │ 0x29 │ SR          │ Shift right             │
+    │ 0x2a │ ST          │ Store register to memory│
+    └──────┴─────────────┴─────────────────────────┘
+
+  CLf - Clear flag
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ┌──────┬─────────────┬─────────────────────────┐
+    │ CODE │ NAME(S)     │ DESCRIPTION             │
+    ├──────┼─────────────┼─────────────────────────┤
+    │ 0x2b │ CLO         │ Clear OF in FL Register │
+    │ 0x2c │ CLC         │ Clear CF in FL Register │
+    │ 0x2d │ CLZ         │ Clear ZF in FL Register │
+    │ 0x2e │ CLN         │ Clear NF in FL Register │
+    │ 0x2f │ CLI         │ Clear IE in FL Register │
+    │ 0x30 │ CL?         │ Reserved                │
+    │ 0x31 │ CL?         │ Reserved                │
+    │ 0x32 │ CL?         │ Reserved                │
+    │ 0x33 │ CL?         │ Reserved                │
+    │ 0x34 │ CL?         │ Reserved                │
+    │ 0x35 │ CL?         │ Reserved                │
+    │ 0x36 │ CL?         │ Reserved                │
+    │ 0x37 │ CL?         │ Reserved                │
+    │ 0x38 │ CL?         │ Reserved                │
+    │ 0x39 │ CL?         │ Reserved                │
+    │ 0x3a │ CL?         │ Reserved                │
+    └──────┴─────────────┴─────────────────────────┘
+
+  STf - Set flag
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ┌──────┬─────────────┬─────────────────────────┐
+    │ CODE │ NAME(S)     │ DESCRIPTION             │
+    ├──────┼─────────────┼─────────────────────────┤
+    │ 0x3b │ STO         │ Set OF in FL Register   │
+    │ 0x3c │ STC         │ Set CF in FL Register   │
+    │ 0x3d │ STZ         │ Set ZF in FL Register   │
+    │ 0x3e │ STN         │ Set NF in FL Register   │
+    │ 0x3f │ STI         │ Set IE in FL Register   │
+    │ 0x40 │ ST?         │ Reserved                │
+    │ 0x41 │ ST?         │ Reserved                │
+    │ 0x42 │ ST?         │ Reserved                │
+    │ 0x43 │ ST?         │ Reserved                │
+    │ 0x44 │ ST?         │ Reserved                │
+    │ 0x45 │ ST?         │ Reserved                │
+    │ 0x46 │ ST?         │ Reserved                │
+    │ 0x47 │ ST?         │ Reserved                │
+    │ 0x48 │ ST?         │ Reserved                │
+    │ 0x49 │ ST?         │ Reserved                │
+    │ 0x4a │ ST?         │ Reserved                │
+    └──────┴─────────────┴─────────────────────────┘
+
+  0x4b..0x4d
+  ‾‾‾‾‾‾‾‾‾‾
+    ┌──────┬─────────────┬─────────────────────────┐
+    │ CODE │ NAME(S)     │ DESCRIPTION             │
+    ├──────┼─────────────┼─────────────────────────┤
+    │ 0x4b │ SUB         │ Subtraction             │
+    │ 0x4c │ TEST        │ Logical compare (AND)   │
+    │ 0x4d │ XOR         │ Exclusive OR            │
+    └──────┴─────────────┴─────────────────────────┘
+
+2. INSTRUCTION SPECIFICATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+  0x00 ADC <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Adds the value of ACL with the first operand and the carry flag and stores
+    the result in ACL. SF is modified to indicate if the result is
+    signed (SF = 1) or unsigned (SF = 0). Sets CF on carry for unsigned math,
+    OF on overflow for signed math and NF flag to indicate the sign of the
+    signed result. Sets ZF if the result is 0 (ACL = 0 && CF = 0 && OF = 0).
+
+    The first operand can be immediate, register immediate, direct,
+    register direct, indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL + Operand1 + CF;
+
+  0x01 ADD <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Adds the value of ACL with the first operand and stores the result in ACL.
+    Sets the NF flag to indicate the sign of the signed result.
+    Sets CF on carry for unsigned math, OF on overflow for signed math and the
+    NF flag to indicate the sign of the signed result. Sets ZF if the result
+    is 0 (ACL = 0 && CF = 0 && OF = 0).
+
+    The first operand can be immediate, register immediate, direct,
+    register direct, indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL + Operand1;
+
+    Carry and Overflow example:
+
+      0111b + 0001b = 0_1000b ; Signed int overflow,   OF = 1 CF = 0
+      0111b + 1001b = 1_0000b ; Unsigned int overflow, OF = 0 CF = 1
+      0001b + 0001b = 0010b   ; No overflow/carry,     OF = 0 CF = 0
+
+  0x02 AND <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Executes a logical AND with the current value of ACL and the first operand.
+    The result is then stored in ACL. Sets ZF if the result is 0, clears OF and
+    CF.
+
+    Operation:
+
+      ACL := ACL & Operand1;
+
+  0x03 BIN <r/imm/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Reads n units of data from the I/O Bus starting at the address indicated by
+    Operand 1 and stores it to the destination indicated by Operand 2.
+    The number of units read is indicated by the value of AL.
+
+    Both operand can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      for i := 1 to ACL do
+        io_read(Operand1 + i - 1, Operand2);
+      end
+
+  0x04 BOT <r/imm/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Writes n units of data to the I/O Bus starting at the address indicated by
+    Operand 1 and stores it to the destination indicated by Operand 2.
+    The number of units written is indicated by the value of AL.
+
+    Both operand can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      for i := 1 to ACL do
+        io_write(Operand1 + i - 1, Operand2);
+      end
+
+  0x05 CALL <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Pushes the current value of IP to the stack and jumps to the address located
+    by Operand 1.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      push(IP);
+      IP := Operand1;
+
+  0x07 CMP <r/imm/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Subtracts Operand 1 from Operand 2 and sets the OF, CF and NF flags in the
+    same way as SUB. Discards the actual subtraction result.
+
+    Both operands can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      tmp := Operand1 - Operand2;
+      SUBSetFlags;
+
+  0x08 DEC <r>
+  ‾‾‾‾‾‾‾‾‾‾‾‾
+    Decrements the register given in Operand 1 by one.
+
+    Operation:
+
+      register := register - 1;
+
+  0x09 DIV <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Divides the value of ACL by Operand 1 as an unsigned value and stores the
+    result in ACL.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL / Operand1;
+
+  0x0a IDIV <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Divides the value of ACL by Operand 1 as a signed value and stores the
+    result in ACL.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL / Operand1;
+
+  0x0b IMUL <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Multiplies the value of ACL by Operand 1 as a signed value and stores the
+    result in ACL. CF and OF are set if the most signficant bit,
+    including the sign bit, are carried over into AH. If the result fits into
+    AL, CF and OF are cleared.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL * Operand 1;
+
+      if ACL = AL then
+        CF := 0;
+        OF := 0;
+      else
+        CF := 1;
+        OF := 0;
+      end
+
+  0x0c IN <r/imm/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Reads in one unit of data from the I/O bus at the address indicated by
+    Operand 1 and writes the result to the address indicated by Operand 2.
+
+    Both operands can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      io_read(Operand1, Operand2);
+
+  0x0d INC <r>
+  ‾‾‾‾‾‾‾‾‾‾‾‾
+    Increments the target register indicated by Operand 1 by one.
+
+    Operation:
+
+      register := register + 1;
+
+  0x0e INT <imm>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Triggers an interrupt with the id indicated by Operand1 if the IE flag is
+    set. If IE is clear, this instruction does nothing.
+
+    Operation:
+
+      if not IE then exit;
+
+      Interrupt(Operand1);
+
+  0x0f IRET
+  ‾‾‾‾‾‾‾‾‾
+    Returns from an interrupt and sets IE. IID is also set to 0.
+    This instruction should only be executed from within an interrupt handler.
+
+    Operation:
+
+      IE := 1;
+      IID := 0;
+      pop(IP);
+
+  0x10 JMP <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      IP := Operand1;
+
+  0x11 JZ/JE <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if ZF is set.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if ZF = 1 then
+        IP := Operand1;
+      end
+
+  0x12 JG <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if ZF is not set and NF is the
+    same as OF.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if ZF = 0 and (NF = OF) then
+        IP := Operand1;
+      end
+
+  0x13 JGE <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if NF is the same as OF.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if NF = OF then
+        IP := Operand1;
+      end
+
+  0x14 JL <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if NF is not the same as OF.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if NF <> OF then
+        IP := Operand1;
+      end
+
+  0x15 JLE <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if ZF is set or NF is not the
+    same as OF.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if ZF = 1 or (NF <> OF) then
+        IP := Operand1;
+      end;
+
+  0x16 JC <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if CF is set.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if CF = 1 then
+        IP := Operand1;
+      end
+
+  0x17 JS <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if NF is set.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if NF = 1 then
+        IP := Operand1;
+      end
+
+  0x18 JNZ/JNE <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if ZF is not set.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if ZF = 0 then
+        IP := Operand1;
+      end;
+
+  0x19 JNC <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if CF is not set.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if CF = 0 then
+        IP := Operand1;
+      end;
+
+  0x1a JNS <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Jumps to the address indicated by Operand 1 if NF is not set.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      if NF = 0 then
+        IP := Operand1;
+      end;
+
+  0x1b LD <r> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Loads the value indicated by Operand 2 into the register indicated by
+    Operand 1.
+
+    Operand 2 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      register := Operand2;
+
+  0x1c MOV <r/imm> <r>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Sets the register indicated by Operand 2 to the value indicated by
+    Operand 1.
+
+    Operand 1 can be immediate or register immediate.
+
+  0x1d MUL <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Multiplies (unsigned) the value of ACL by Operand 1 and stores the result in
+    ACL. If the result fits into ACL, CF and OF are cleared otherwise both get
+    set.
+
+    Operand 2 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+  0x1e NEG <r/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+    Negates (Two's Complement) the value of Operand 1 and stores the result
+    in Operand 1.
+
+    Operand 1 can be direct, register direct, indirect or register indirect.
+
+    Operation:
+
+      Operand1 := 0 - Operand1;
+
+  0x1f NOP
+  ‾‾‾‾‾‾‾‾
+
+    Does nothing.
+
+  0x20 NOT <r/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Negates (One's Complement) the value of Operand 1 and stores the result in
+    Operand 1.
+
+    Operand 1 can be direct, register direct, indirect or register indirect.
+
+    Operation:
+
+      Operand1 := 0 - Operand1;
+
+  0x21 OR <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Performs a logical OR with the value of ACL and Operand 1 and stores the
+    result in ACL.
+
+    Operand 1 can be direct, register direct, indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL or Operand1;
+
+  0x22 OUT <r/imm/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Writes in one unit of data to the I/O bus to the address indicated by
+    Operand 2 from the address indicated by Operand 1.
+
+    Both operands can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      io_write(Operand2, Operand1);
+
+  0x23 POP <r/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Pops the top value from the stack and writes it to the location indicated by
+    Operand 1. Increments SP by 2.
+
+    Operand 1 can be register immediate, direct, register direct, indirect
+    or register indirect.
+
+    Operation:
+
+      Operand1 := *SP;
+      SP := SP + 2;
+
+  0x24 PUSH <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Pushes the value indicated by Operand 1 to the top of the stack. Decrements
+    SP by 2.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect  or register indirect.
+
+    Operation:
+
+      SP := SP - 2;
+      *SP := Operand1;
+
+  0x25 RET
+  ‾‾‾‾‾‾‾‾
+    Returns from a subroutine.
+
+    Operation:
+
+      pop(IP);
+
+  0x26 ROL <r/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Rotates the value indicated by Operand 1 left by the amount of times
+    indicated by Operand 2 and stores the result in Operand 1.
+
+    Operand 1 can be register immediate, direct, register direct, indirect or
+    register indirect.
+
+    Operand 2 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      tmp := Operand1 shl Operand2;
+      Operand1 := tmp or (tmp shr 16 and 0xff)
+
+  0x27 ROR <r/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Rotates the value indicated by Operand 1 right by the amount of times
+    indicated by Operand 2 and stores the result in Operand 1.
+
+    Operand 1 can be register immediate, direct, register direct, indirect or
+    register indirect.
+
+    Operand 2 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      tmp := (Operand1 shl 8) shr Operand2;
+      Operand1 := (Operand1 shr Operand2) or ((tmp and 0xff) shl 8)
+
+  0x28 SL <r/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Shifts the value indicated by Operand 1 left by the amount indicated by
+    Operand 2 and stores the result in Operand 1.
+
+    Operand 1 can be register immediate, direct, register direct, indirect or
+    register indirect.
+
+    Operand 2 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      Operand1 := Operand1 shl Operand2;
+
+  0x29 SR <r/m> <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Shifts the value indicated by Operand 1 right by the amount indicated by
+    Operand 2 and stores the result in Operand 1.
+
+    Operand 1 can be register immediate, direct, register direct, indirect or
+    register indirect.
+
+    Operand 2 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      Operand1 := Operand1 shr Operand2;
+
+  0x2a ST <r/imm/m> <m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Stores the value indicated by Operand 1 to the place in memory indicated by
+    Operand 2.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operand 2 can be direct, register direct, indirect or register indirect.
+
+    Operation:
+
+      Operand2 := Operand1;
+
+  0x2b CLO
+  ‾‾‾‾‾‾‾‾
+    Clears the overflow flag.
+
+  0x2c CLC
+  ‾‾‾‾‾‾‾‾
+    Clears the carry flag.
+
+  0x2d CLZ
+  ‾‾‾‾‾‾‾‾
+    Clears the zero flag.
+
+  0x2e CLN
+  ‾‾‾‾‾‾‾‾
+    Clears the negative flag.
+
+  0x2f CLI
+  ‾‾‾‾‾‾‾‾
+    Clears the interrupt enable flag.
+
+  0x30..0x3a CL?
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    This range of instructions is currently invalid.
+
+  0x3b STO
+  ‾‾‾‾‾‾‾‾
+    Sets the overflow flag.
+
+  0x3c STC
+  ‾‾‾‾‾‾‾‾
+    Sets the carry flag.
+
+  0x3d STZ
+  ‾‾‾‾‾‾‾‾
+    Sets the zero flag.
+
+  0x3e STN
+  ‾‾‾‾‾‾‾‾
+    Sets the negative flag.
+
+  0x3f STI
+  ‾‾‾‾‾‾‾‾
+    Sets the interrupt enable flag.
+
+  0x40..0x4a ST?
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    This range of instructions is currently invalid.
+
+  0x4b SUB <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Subtracts the value indacted by Operand 1 from the value of ACL and stores
+    the result in ACL.
+    Sets CF on carry for unsigned math, OF on overflow for signed math and the
+    NF flag to indicate the sign of the signed result. Sets ZF if the result
+    is 0 (ACL = 0 && CF = 0 && OF = 0).
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+  0x4c TEST <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Executes a logical AND with the value indicated by Operand 1 and the value
+    indicated by Operand 2. The result of the AND is discarded. Sets ZF if the
+    result is 0, clears OF and CF.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      ANDSetFlags(ACL & Operand1);
+
+  0x4d XOR <r/imm/m>
+  ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    Executes a XOR operation on the value of ACL with the value indicated by
+    Operand 1. Stores the result in ACL.
+
+    Operand 1 can be immediate, register immediate, direct, register direct,
+    indirect or register indirect.
+
+    Operation:
+
+      ACL := ACL ^ Operand1;

@@ -1,0 +1,11 @@
+MFD0816
+
+The MFD0816 is a 16-bit fantasy cpu roughly based on the intel 8088.
+This repository contains the specification documents and the 
+reference implementation of the MFD0816.
+
+Documents
+
+  * DESIGN – The core specification of the MFD0816
+  * INSTRUCTIONS – The instruction set reference/specification
+  * MFDAS – The specification for the MFD0816 assembler language
