@@ -1,0 +1,11 @@
+---
+BasedOnStyle: Chromium
+AlignAfterOpenBracket: AlwaysBreak
+ColumnLimit: "100"
+PointerAlignment: Right
+SpaceBeforeParens: Never
+SpaceBeforeRangeBasedForLoopColon: "false"
+SortIncludes: CaseInsensitive
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
