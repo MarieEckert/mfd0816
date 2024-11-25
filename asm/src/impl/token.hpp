@@ -4,11 +4,12 @@
 namespace sasm::impl {
 class Token {
 	enum Type {
+		END_OF_FILE,
 		UNKNOWN,
 		COMMA,
 		DOUBLE_QUOTE,
 
-		/* reserved keyword s*/
+		/* reserved keywords */
 		DB,
 		DW,
 		DD,
