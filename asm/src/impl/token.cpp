@@ -14,27 +14,25 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SASM_IMPL_ASSEMBLER_HPP
-#define SASM_IMPL_ASSEMBLER_HPP
-
-#include <impl/asmerror.hpp>
-#include <impl/section.hpp>
 #include <impl/token.hpp>
-#include <result.hpp>
-#include <vector>
+#include <optional>
+#include <string>
 
 namespace sasm::impl {
 
-class Assembler {
-   public:
-	Result<None, AsmError> parseLines(const std::string &source);
+Token::Token(Type type, u32 lineno, std::optional<std::string> value)
+	: m_type(type), m_lineno(lineno), m_maybeValue(value) {}
 
-   private:
-	std::vector<Token> m_tokens;
+Token::Type Token::type() const {
+	return this->m_type;
+}
 
-	std::vector<Section> m_sections;
-};
+u32 Token::lineno() const {
+	return this->m_lineno;
+}
+
+std::optional<std::string> Token::maybeValue() const {
+	return this->m_maybeValue;
+}
 
 }  // namespace sasm::impl
-
-#endif

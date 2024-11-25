@@ -8,7 +8,7 @@ sector config
     str binname 'sasm'
 
     str src 'src/'
-    list str sources 'cli/args', 'main'
+    list str sources 'impl/token', 'impl/assembler', 'impl/section', 'cli/args', 'main'
   end
 
   section mariebuild

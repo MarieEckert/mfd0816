@@ -35,5 +35,7 @@ static const std::string DEBUG_ASM_SOURCE =
 	"	reset_vector:	dw code\n";
 
 int main(void) {
+	sasm::impl::Assembler asem;
+	asem.parseLines(DEBUG_ASM_SOURCE);
 	return 0;
 }
