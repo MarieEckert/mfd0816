@@ -5,6 +5,7 @@
 #include <impl/section.hpp>
 #include <impl/token.hpp>
 #include <result.hpp>
+#include <vector>
 
 namespace sasm::impl {
 
@@ -13,6 +14,8 @@ class Assembler {
 	Result<None, AsmError> parseLines(const std::vector<std::string> &lines);
 
    private:
+	std::vector<Token> m_tokens;
+
 	std::vector<Section> m_sections;
 };
 
