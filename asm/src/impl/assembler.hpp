@@ -3,6 +3,7 @@
 
 #include <impl/asmerror.hpp>
 #include <impl/section.hpp>
+#include <impl/token.hpp>
 #include <result.hpp>
 
 namespace sasm::impl {
