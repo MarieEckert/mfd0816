@@ -1,5 +1,8 @@
 #include <string>
 
+#include <cli/args.hpp>
+#include <impl/assembler.hpp>
+
 static const std::string DEBUG_ASM_SOURCE =
 	"section code at 0x1100\n"
 	"	_entry:		mov 0x1000, sp	; initialise stack pointer\n"

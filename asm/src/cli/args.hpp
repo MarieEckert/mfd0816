@@ -1,5 +1,5 @@
-#ifndef SIBU_CLI_ARGS_HPP
-#define SIBU_CLI_ARGS_HPP
+#ifndef SASM_CLI_ARGS_HPP
+#define SASM_CLI_ARGS_HPP
 
 #include <ios>
 #include <optional>
