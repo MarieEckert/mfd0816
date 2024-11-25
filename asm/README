@@ -1,0 +1,12 @@
+1. PASSES
+
+  The first pass is used to convert the source into a set of tokens.
+  The second pass splits the tokens into multiple sections, errors may already be thrown here.
+  On the third pass:
+    1. All encountered labels get registered with their respective address.
+    2. All instructions are attempted to be assembled.
+    3. All usages of section names and already declared labels are replaced with their address.
+    4. All usages of labels which are not declared at the point where they are used are marked
+       for replacement.
+  After the third pass, every label usage which could previously not be resolved is attempted to
+  be resolved.
