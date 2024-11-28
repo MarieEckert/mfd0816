@@ -15,13 +15,101 @@
  */
 
 #include <impl/token.hpp>
+
+#include <algorithm>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 namespace sasm::impl {
 
+static inline const std::unordered_map<std::string, Token::Type> name_value_map = {
+	{"end_of_file", Token::Type::END_OF_FILE},
+	{"unknown", Token::Type::UNKNOWN},
+	{"label", Token::Type::LABEL},
+	{"comma", Token::Type::COMMA},
+	{"double_quote", Token::Type::DOUBLE_QUOTE},
+	{"semicolon", Token::Type::SEMICOLON},
+	{"left_square_bracket", Token::Type::LEFT_SQUARE_BRACKET},
+	{"right_square_bracket", Token::Type::RIGHT_SQUARE_BRACKET},
+	{"minus", Token::Type::MINUS},
+	{"plus", Token::Type::PLUS},
+	{"slash", Token::Type::SLASH},
+	{"star", Token::Type::STAR},
+	{"db", Token::Type::DB},
+	{"dw", Token::Type::DW},
+	{"dd", Token::Type::DD},
+	{"times", Token::Type::TIMES},
+	{"_here", Token::Type::_HERE},
+	{"section", Token::Type::SECTION},
+	{"sp", Token::Type::SP},
+	{"ip", Token::Type::IP},
+	{"fl", Token::Type::FL},
+	{"al", Token::Type::AL},
+	{"ah", Token::Type::AH},
+	{"acl", Token::Type::ACL},
+	{"bl", Token::Type::BL},
+	{"bh", Token::Type::BH},
+	{"bcl", Token::Type::BCL},
+	{"cl", Token::Type::CL},
+	{"ch", Token::Type::CH},
+	{"ccl", Token::Type::CCL},
+	{"dl", Token::Type::DL},
+	{"dh", Token::Type::DH},
+	{"dcl", Token::Type::DCL},
+	{"addressing", Token::Type::ADDRESSING},
+	{"relative", Token::Type::RELATIVE},
+	{"absolute", Token::Type::ABSOLUTE},
+	{"at", Token::Type::AT},
+	{"binary_number", Token::Type::BINARY_NUMBER},
+	{"decimal_number", Token::Type::DECIMAL_NUMBER},
+	{"hexadecimal_number", Token::Type::HEXADECIMAL_NUMBER},
+	{"string", Token::Type::STRING},
+};
+
+Token::Type Token::typeFromString(const std::string &str) {
+	if(std::isdigit(str[0])) {
+		if(str.length() == 1) {
+			return Type::DECIMAL_NUMBER;
+		}
+
+		/* determine base, supported: base 16 (0x), base 10, base 2 (0b) */
+		switch(str[1]) {
+			case 'x':
+				return Type::HEXADECIMAL_NUMBER;
+			case 'b':
+				return Type::BINARY_NUMBER;
+			default:
+				return Type::DECIMAL_NUMBER;
+		}
+	}
+
+	if(str.back() == ':') {
+		return Type::LABEL;
+	}
+
+	const auto it = std::find_if(
+		name_value_map.cbegin(), name_value_map.cend(),
+		[str](std::pair<std::string, Type> val) { return val.first == str; });
+
+	return it != name_value_map.cend() ? it->second : Type::UNKNOWN;
+}
+
 Token::Token(Type type, u32 lineno, std::optional<std::string> value)
-	: m_type(type), m_lineno(lineno), m_maybeValue(value) {}
+	: m_type(type), m_lineno(lineno) {
+	switch(m_type) {
+		case Type::BINARY_NUMBER:
+		case Type::DECIMAL_NUMBER:
+		case Type::HEXADECIMAL_NUMBER:
+		case Type::STRING:
+		case Type::LABEL:
+		case Type::UNKNOWN:
+			this->m_maybeValue = value;
+			break;
+		default:
+			break;
+	}
+}
 
 Token::Type Token::type() const {
 	return this->m_type;
@@ -33,6 +121,19 @@ u32 Token::lineno() const {
 
 std::optional<std::string> Token::maybeValue() const {
 	return this->m_maybeValue;
+}
+
+std::string Token::toString() const {
+	const auto it = std::find_if(
+		name_value_map.cbegin(), name_value_map.cend(),
+		[type = this->m_type](std::pair<std::string, Type> val) { return val.second == type; });
+	const std::string type_name = it != name_value_map.cend() ? it->first : "unknown";
+
+	const std::string value_string =
+		this->m_maybeValue.has_value() ? "value = " + this->m_maybeValue.value() : "";
+
+	return "[line = " + std::to_string(this->m_lineno) + "; type = " + type_name + "; " +
+		   value_string + "]";
 }
 
 }  // namespace sasm::impl

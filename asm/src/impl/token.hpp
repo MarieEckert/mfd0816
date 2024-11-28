@@ -17,22 +17,31 @@
 #ifndef SASM_IMPL_TOKEN_HPP
 #define SASM_IMPL_TOKEN_HPP
 
-#include <algorithm>
 #include <optional>
 #include <string>
 
 #include <typedefs.hpp>
-#include <unordered_map>
 
 namespace sasm::impl {
 class Token {
    public:
 	enum Type {
+		/* misc */
 		END_OF_FILE,
 		UNKNOWN,
+		LABEL,
+
+		/* characters */
+
 		COMMA,
 		DOUBLE_QUOTE,
-		SEMICOLON,
+		SEMICOLON, /* used for comments */
+		LEFT_SQUARE_BRACKET,
+		RIGHT_SQUARE_BRACKET,
+		MINUS,
+		PLUS,
+		SLASH,
+		STAR,
 
 		/* reserved keywords */
 		DB,
@@ -59,46 +68,27 @@ class Token {
 		ADDRESSING,
 		RELATIVE,
 		ABSOLUTE,
-		AT
+		AT,
+
+		/* data literals */
+		BINARY_NUMBER,
+		DECIMAL_NUMBER,
+		HEXADECIMAL_NUMBER,
+		STRING,
 	};
 
-	static inline Type typeFromString(const std::string &str) {
-		static const std::unordered_map<std::string, Type> vals = {
-			{"comma", COMMA},
-			{"double_quote", DOUBLE_QUOTE},
-			{";", SEMICOLON},
-			{"db", DB},
-			{"dw", DW},
-			{"dd", DD},
-			{"times", TIMES},
-			{"_here", _HERE},
-			{"section", SECTION},
-			{"sp", SP},
-			{"ip", IP},
-			{"fl", FL},
-			{"al", AL},
-			{"ah", AH},
-			{"acl", ACL},
-			{"bl", BL},
-			{"bh", BH},
-			{"bcl", BCL},
-			{"cl", CL},
-			{"ch", CH},
-			{"ccl", CCL},
-			{"dl", DL},
-			{"dh", DH},
-			{"dcl", DCL},
-			{"addressing", ADDRESSING},
-			{"relative", RELATIVE},
-			{"absolute", ABSOLUTE},
-			{"at", AT},
-		};
+	static Type typeFromString(const std::string &str);
 
-		const auto it = std::find_if(
-			vals.cbegin(), vals.cend(),
-			[str](std::pair<std::string, Type> val) { return val.first == str; });
-		return it != vals.cend() ? it->second : Type::UNKNOWN;
-	}
+	static inline bool isNumberType(Type type) {
+		switch(type) {
+			case BINARY_NUMBER:
+			case DECIMAL_NUMBER:
+			case HEXADECIMAL_NUMBER:
+				return true;
+			default:
+				return false;
+		}
+	};
 
 	Token(Type type, u32 lineno, std::optional<std::string> value = std::nullopt);
 
@@ -107,6 +97,8 @@ class Token {
 	u32 lineno() const;
 
 	std::optional<std::string> maybeValue() const;
+
+	std::string toString() const;
 
    private:
 	Type m_type;

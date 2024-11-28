@@ -30,6 +30,8 @@ class Assembler {
 	Result<None, AsmError> parseLines(const std::string &source);
 
    private:
+	u32 parseStringLiteral(const std::string &source);
+
 	std::vector<Token> m_tokens;
 
 	std::vector<Section> m_sections;

@@ -23,7 +23,7 @@ static const std::string DEBUG_ASM_SOURCE =
 	"section code at 0x1100\n"
 	"	_entry:		mov 0x1000, sp	; initialise stack pointer\n"
 	"			ld  acl, [sp]   ; load the word from the top of the\n"
-	"					  stack into acl\n"
+	"					        ; stack into acl\n"
 	"			ld  bcl, [[0x1330]]\n"
 	"\n"
 	"section data at 0xd000\n"
