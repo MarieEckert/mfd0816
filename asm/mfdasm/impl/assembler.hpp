@@ -27,8 +27,15 @@
 
 namespace mfdasm::impl {
 
+/**
+ * @brief Main interface for assembling some source code into machine code.
+ */
 class Assembler {
    public:
+	/**
+	 * @brief Lexes and parses the given input into an AST.
+	 * @param source The complete source code to be parsed.
+	 */
 	Result<None, AsmError> parseLines(const std::string &source);
 
    private:

@@ -18,7 +18,7 @@
 #define MFDASM_IMPL_ASMERROR_HPP
 
 namespace mfdasm::impl {
-enum AsmError { SyntaxError, InvalidInstruction, IllegalOperand };
+enum AsmError { SYNTAX_ERROR, INVALID_INSTRUCTION, ILLEGAL_OPERAND };
 }
 
 #endif
