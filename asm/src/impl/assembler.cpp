@@ -30,7 +30,7 @@ static bool isCharReserved(char c) {
 		case '*':
 		case '/':
 		case '\'':
-		case '\"':
+		case '"':
 		case ',':
 			return true;
 		default:
@@ -49,46 +49,45 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 			case ';': /* Comment */
 				ix = source.find('\n', ix) + 1;
 				lineno++;
-				continue;
-			case '\'': /* String opening */
-				continue;
+				break;
+			case '\'':
+				this->m_tokens.emplace_back(Token::SINGLE_QUOTE, lineno);
+				break;
 			case '[':
-				this->m_tokens.emplace_back(Token::Type::LEFT_SQUARE_BRACKET, lineno);
+				this->m_tokens.emplace_back(Token::LEFT_SQUARE_BRACKET, lineno);
 				break;
 			case ']':
-				this->m_tokens.emplace_back(Token::Type::RIGHT_SQUARE_BRACKET, lineno);
+				this->m_tokens.emplace_back(Token::RIGHT_SQUARE_BRACKET, lineno);
 				break;
 			case '\n':
 				lineno++;
 				break;
 			case '-':
-				this->m_tokens.emplace_back(Token::Type::MINUS, lineno);
+				this->m_tokens.emplace_back(Token::MINUS, lineno);
 				break;
 			case '+':
-				this->m_tokens.emplace_back(Token::Type::PLUS, lineno);
+				this->m_tokens.emplace_back(Token::PLUS, lineno);
 				break;
 			case '/':
-				this->m_tokens.emplace_back(Token::Type::SLASH, lineno);
+				this->m_tokens.emplace_back(Token::SLASH, lineno);
 				break;
 			case '*':
-				this->m_tokens.emplace_back(Token::Type::TIMES, lineno);
+				this->m_tokens.emplace_back(Token::TIMES, lineno);
 				break;
 			case ',':
-				this->m_tokens.emplace_back(Token::Type::COMMA, lineno);
+				this->m_tokens.emplace_back(Token::COMMA, lineno);
+				break;
+			case '\"':
+				this->m_tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
+				ix += this->parseStringLiteral(source.substr(ix + 1), lineno);
 				break;
 			default: /* Character has no special handling */
 				if(std::isspace(source[ix])) {
 					continue;
 				}
 
-				u32 consumed_lines = 0;
-
 				const usize space_pos = std::distance(
-					source.cbegin(),
-					std::find_if(source.cbegin() + ix, source.cend(), [&consumed_lines](char c) {
-						if(c == '\n') {
-							consumed_lines++;
-						}
+					source.cbegin(), std::find_if(source.cbegin() + ix, source.cend(), [](char c) {
 						return std::isspace(c) || isCharReserved(c);
 					})); /* yucky */
 				const u32 word_len =
@@ -104,7 +103,6 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 
 				this->m_tokens.emplace_back(token_type, lineno, word);
 				ix += word.length() - 1;
-				lineno += consumed_lines;
 
 				break;
 		}
@@ -115,6 +113,57 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 	}
 
 	return Ok(None());
+}
+
+u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
+	if(source.length() == 0) {
+		return 0;
+	}
+
+	usize ix = 0;
+	std::string output;
+
+	for(; ix < source.length(); ix++) {
+		if(source[ix] == '\n') {
+			lineno++;
+			continue;
+		}
+
+		if(source[ix] == '"') {
+			this->m_tokens.emplace_back(Token::STRING, lineno, output);
+			this->m_tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
+			ix++;
+			break;
+		}
+
+		if(source[ix] != '\\') {
+			output += source[ix];
+			continue;
+		}
+
+		if(ix + 1 == source.length()) {
+			output += '\\';
+			continue;
+		}
+
+		switch(source[ix + 1]) {
+			case 'n':
+				output += '\n';
+				break;
+			case '"':
+				output += '"';
+				break;
+			case '\\':
+				output += '\\';
+				break;
+			default:
+				output += '?';
+				break;
+		}
+		ix++;
+	}
+
+	return ix;
 }
 
 }  // namespace sasm::impl

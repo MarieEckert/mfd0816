@@ -34,8 +34,9 @@ class Token {
 		/* characters */
 
 		COMMA,
-		DOUBLE_QUOTE,
-		SEMICOLON, /* used for comments */
+		SINGLE_QUOTE, /* used for characters */
+		DOUBLE_QUOTE, /* used for opening/closing strings */
+		SEMICOLON,	  /* used for comments */
 		LEFT_SQUARE_BRACKET,
 		RIGHT_SQUARE_BRACKET,
 		MINUS,

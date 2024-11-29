@@ -28,6 +28,7 @@ static inline const std::unordered_map<std::string, Token::Type> name_value_map 
 	{"unknown", Token::Type::UNKNOWN},
 	{"label", Token::Type::LABEL},
 	{"comma", Token::Type::COMMA},
+	{"single_quote", Token::Type::SINGLE_QUOTE},
 	{"double_quote", Token::Type::DOUBLE_QUOTE},
 	{"semicolon", Token::Type::SEMICOLON},
 	{"left_square_bracket", Token::Type::LEFT_SQUARE_BRACKET},
