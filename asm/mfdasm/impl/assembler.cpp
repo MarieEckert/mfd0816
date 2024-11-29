@@ -19,6 +19,7 @@
 #include <iterator>
 
 #include <mfdasm/impl/assembler.hpp>
+#include <mfdasm/impl/ast.hpp>
 
 namespace mfdasm::impl {
 

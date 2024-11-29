@@ -8,7 +8,7 @@ sector config
     str binname 'sasm'
 
     str src 'mfdasm/'
-    list str sources 'impl/token', 'impl/assembler', 'impl/section', 'cli/args', 'main'
+    list str sources 'impl/token', 'impl/assembler', 'impl/ast', 'cli/args', 'main'
     list str includes '.', '3rdparty'
   end
 

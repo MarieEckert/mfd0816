@@ -22,7 +22,6 @@
 #include <3rdparty/result.hpp>
 
 #include <mfdasm/impl/asmerror.hpp>
-#include <mfdasm/impl/section.hpp>
 #include <mfdasm/impl/token.hpp>
 
 namespace mfdasm::impl {
@@ -44,8 +43,6 @@ class Assembler {
 	u32 parseStringLiteral(const std::string &source, u32 &lineno);
 
 	std::vector<Token> m_tokens;
-
-	std::vector<Section> m_sections;
 };
 
 }  // namespace mfdasm::impl
