@@ -132,7 +132,7 @@ namespace mfdasm::impl {
 
 struct ResovalContext {
 	std::unordered_map<std::string, std::vector<u8>> identifiers;
-	usize currentBytes;
+	usize currentAddress;
 };
 
 class ExpressionBase {
@@ -158,6 +158,26 @@ class StatementBase {
 	virtual std::vector<u8> toBytes(ResovalContext &resolval_context) const = 0;
 
 	virtual std::string toString() const = 0;
+};
+
+class Literal : public ExpressionBase {
+   public:
+	Literal(std::vector<u8> value);
+};
+
+class Identifier : public ExpressionBase {
+   public:
+	enum Kind {
+		LABEL,
+		SECTION,
+	};
+
+	Identifier(Kind kind, std::string name);
+};
+
+class Expression : public ExpressionBase {
+   public:
+	Expression(Kind kind, std::vector<ExpressionBase> expressions);
 };
 
 class Instruction : public StatementBase {
@@ -242,6 +262,10 @@ class Instruction : public StatementBase {
 		TEST = 0x4c,
 		XOR = 0x4d,
 	};
+
+	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
+
+	std::string toString() const override;
 };
 
 class Directive : public StatementBase {
@@ -249,28 +273,11 @@ class Directive : public StatementBase {
 	enum Kind {
 		/* directives */
 	};
+
+	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
+
+	std::string toString() const override;
 };
-
-class Literal : public ExpressionBase {
-   public:
-	Literal(std::vector<u8> value);
-};
-
-class Identifier : public ExpressionBase {
-   public:
-	enum Kind {
-		LABEL,
-		SECTION,
-	};
-
-	Identifier(Kind kind, std::string name);
-};
-
-class Expression : public ExpressionBase {
-   public:
-	Expression(Kind kind, std::vector<ExpressionBase> expressions);
-};
-
 class Statement : public StatementBase {
    public:
 	enum Kind {
@@ -298,9 +305,9 @@ class Statement : public StatementBase {
 
 	Kind kind() const;
 
-	std::vector<u8> toBytes() const;
+	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
 
-	std::string toString() const;
+	std::string toString() const override;
 
    private:
 	Kind m_kind;
