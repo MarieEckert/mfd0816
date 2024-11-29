@@ -14,6 +14,8 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <fstream>
+#include <sstream>
 #include <string>
 
 #include <cli/args.hpp>
@@ -29,13 +31,18 @@ static const std::string DEBUG_ASM_SOURCE =
 	"section data at 0xd000\n"
 	"	buffer:		times 1024 db 0\n"
 	"	buffer_size:	dw _here - buffer\n"
-	"	text:		'hello, world!' db 0\n"
+	"	text:		\"hello, world! \\\\ \\\" \\\\\\\"\" db 0\n"
 	"\n"
 	"section reset_vector at 0xfffe\n"
 	"	reset_vector:	dw code\n";
 
 int main(void) {
+	std::stringstream buffer;
+	std::ifstream instream("test.asm");
+
+	buffer << instream.rdbuf();
+
 	sasm::impl::Assembler asem;
-	asem.parseLines(DEBUG_ASM_SOURCE);
+	asem.parseLines(buffer.str());
 	return 0;
 }
