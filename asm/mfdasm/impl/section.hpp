@@ -14,17 +14,18 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SASM_IMPL_SECTION_HPP
-#define SASM_IMPL_SECTION_HPP
+#ifndef MFDASM_IMPL_SECTION_HPP
+#define MFDASM_IMPL_SECTION_HPP
 
 #include <vector>
 
-#include <impl/asmerror.hpp>
-#include <impl/token.hpp>
-#include <result.hpp>
-#include <typedefs.hpp>
+#include <3rdparty/result.hpp>
 
-namespace sasm::impl {
+#include <mfdasm/impl/asmerror.hpp>
+#include <mfdasm/impl/token.hpp>
+#include <mfdasm/typedefs.hpp>
+
+namespace mfdasm::impl {
 
 class Section {
    public:
@@ -40,6 +41,6 @@ class Section {
 	std::vector<Token> m_tokens;
 };
 
-}  // namespace sasm::impl
+}  // namespace mfdasm::impl
 
 #endif

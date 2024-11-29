@@ -16,10 +16,11 @@
 
 #include <algorithm>
 #include <cctype>
-#include <impl/assembler.hpp>
 #include <iterator>
 
-namespace sasm::impl {
+#include <mfdasm/impl/assembler.hpp>
+
+namespace mfdasm::impl {
 
 static bool isCharReserved(char c) {
 	switch(c) {
@@ -175,4 +176,4 @@ u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
 	return ix;
 }
 
-}  // namespace sasm::impl
+}  // namespace mfdasm::impl

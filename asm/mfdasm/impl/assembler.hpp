@@ -14,11 +14,33 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SASM_IMPL_ASMERROR_HPP
-#define SASM_IMPL_ASMERROR_HPP
+#ifndef MFDASM_IMPL_ASSEMBLER_HPP
+#define MFDASM_IMPL_ASSEMBLER_HPP
 
-namespace sasm::impl {
-enum AsmError { SyntaxError, InvalidInstruction, IllegalOperand };
-}
+#include <vector>
+
+#include <3rdparty/result.hpp>
+
+#include <mfdasm/impl/asmerror.hpp>
+#include <mfdasm/impl/section.hpp>
+#include <mfdasm/impl/token.hpp>
+
+namespace mfdasm::impl {
+
+class Assembler {
+   public:
+	Result<None, AsmError> parseLines(const std::string &source);
+
+   private:
+	Result<None, AsmError> lexInput(const std::string &source);
+
+	u32 parseStringLiteral(const std::string &source, u32 &lineno);
+
+	std::vector<Token> m_tokens;
+
+	std::vector<Section> m_sections;
+};
+
+}  // namespace mfdasm::impl
 
 #endif

@@ -14,12 +14,17 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SIBU_TYPEDEFS
-#define SIBU_TYPEDEFS
+/**
+ * @file Shared integer type defintions for MFDASM.
+ */
 
-#include <sys/types.h>
+#ifndef MFDASM_TYPEDEFS
+#define MFDASM_TYPEDEFS
+
 #include <cstddef>
 #include <cstdint>
+
+#include <sys/types.h>
 
 using usize = std::size_t;
 using isize = ssize_t;

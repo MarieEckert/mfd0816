@@ -18,8 +18,8 @@
 #include <sstream>
 #include <string>
 
-#include <cli/args.hpp>
-#include <impl/assembler.hpp>
+#include <mfdasm/cli/args.hpp>
+#include <mfdasm/impl/assembler.hpp>
 
 static const std::string DEBUG_ASM_SOURCE =
 	"section code at 0x1100\n"
@@ -42,7 +42,7 @@ int main(void) {
 
 	buffer << instream.rdbuf();
 
-	sasm::impl::Assembler asem;
+	mfdasm::impl::Assembler asem;
 	asem.parseLines(buffer.str());
 	return 0;
 }

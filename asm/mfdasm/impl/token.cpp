@@ -14,14 +14,14 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <impl/token.hpp>
-
 #include <algorithm>
 #include <optional>
 #include <string>
 #include <unordered_map>
 
-namespace sasm::impl {
+#include <mfdasm/impl/token.hpp>
+
+namespace mfdasm::impl {
 
 static inline const std::unordered_map<std::string, Token::Type> name_value_map = {
 	{"end_of_file", Token::Type::END_OF_FILE},
@@ -137,4 +137,4 @@ std::string Token::toString() const {
 		   value_string + "]";
 }
 
-}  // namespace sasm::impl
+}  // namespace mfdasm::impl

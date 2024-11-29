@@ -14,15 +14,15 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SASM_IMPL_TOKEN_HPP
-#define SASM_IMPL_TOKEN_HPP
+#ifndef MFDASM_IMPL_TOKEN_HPP
+#define MFDASM_IMPL_TOKEN_HPP
 
 #include <optional>
 #include <string>
 
-#include <typedefs.hpp>
+#include <mfdasm/typedefs.hpp>
 
-namespace sasm::impl {
+namespace mfdasm::impl {
 class Token {
    public:
 	enum Type {
@@ -108,6 +108,6 @@ class Token {
 
 	std::optional<std::string> m_maybeValue;
 };
-}  // namespace sasm::impl
+}  // namespace mfdasm::impl
 
 #endif

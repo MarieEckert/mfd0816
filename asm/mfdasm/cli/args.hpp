@@ -14,8 +14,8 @@
  * MFDASM. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SASM_CLI_ARGS_HPP
-#define SASM_CLI_ARGS_HPP
+#ifndef MFDASM_CLI_ARGS_HPP
+#define MFDASM_CLI_ARGS_HPP
 
 #include <ios>
 #include <optional>
