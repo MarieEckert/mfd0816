@@ -30,6 +30,8 @@ class Assembler {
 	Result<None, AsmError> parseLines(const std::string &source);
 
    private:
+	Result<None, AsmError> lexInput(const std::string &source);
+
 	u32 parseStringLiteral(const std::string &source, u32 &lineno);
 
 	std::vector<Token> m_tokens;

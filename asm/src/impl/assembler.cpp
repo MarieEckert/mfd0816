@@ -43,6 +43,15 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 		return Ok(None());
 	}
 
+	Result<None, AsmError> lex_result = this->lexInput(source);
+	if(lex_result.isErr()) {
+		return Err(lex_result.unwrapErr());
+	}
+
+	return Ok(None());
+}
+
+Result<None, AsmError> Assembler::lexInput(const std::string &source) {
 	u32 lineno = 0;
 	for(u32 ix = 0; ix < source.size(); ix++) {
 		switch(source[ix]) {
