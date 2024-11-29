@@ -55,19 +55,113 @@
  *    (|> token (]))
  *    (|> token (]))
  * ```
+ *
+ * # Parsed example
+ * @note This part is really just a note to myself.
+ *
+ * Input:
+ * ```asm
+ * section code at 0x1000
+ * _entry: jmp _entry
+ * ```
+ *
+ * Output:
+ * ```
+ * [
+ *    Statement {
+ *        kind: section
+ *        expressions: [
+ *            Expression {
+ *                kind: identifier
+ *                Identifier {
+ *                    kind: section
+ *                    name: "code"
+ *                }
+ *            }
+ *            Expression {
+ *                kind: literal
+ *                Literal {
+ *                    value: bytes [0x10, 0x00]
+ *                }
+ *            }
+ *        ]
+ *    }
+ *    Statement {
+ *        kind: label
+ *        expressions: [
+ *            Expression {
+ *                kind: identifier
+ *                Identifier {
+ *                    kind: label
+ *                    name: "_entry"
+ *                }
+ *            }
+ *        ]
+ *    },
+ *    Statement {
+ *        kind: instruction
+ *        Instruction {
+ *            kind: JMP
+ *            expressions: [
+ *                Expression {
+ *                    kind: identifier
+ *                    Identifier {
+ *                        kind: label
+ *                        name: "_entry"
+ *                    }
+ *                }
+ *            ]
+ *        }
+ *    }
+ * ]
+ * ```
  */
 
 #ifndef MFDASM_IMPL_AST_HPP
 #define MFDASM_IMPL_AST_HPP
 
+#include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <mfdasm/typedefs.hpp>
 
 namespace mfdasm::impl {
 
-class Instruction {
+struct ResovalContext {
+	std::unordered_map<std::string, std::vector<u8>> identifiers;
+	usize currentBytes;
+};
+
+class ExpressionBase {
+   public:
+	enum Kind {
+		LITERAL,
+		IDENTIFIER,
+		DIRECT_ADDRESS,
+		INDIRECT_ADDRESS,
+	};
+
+	virtual std::optional<std::vector<u8>> resolveValue(
+		const ResovalContext &resolval_context) const = 0;
+
+	inline Kind kind() const { return this->m_kind; }
+
+   protected:
+	Kind m_kind;
+};
+
+class StatementBase {
+   public:
+	virtual std::vector<u8> toBytes(ResovalContext &resolval_context) const = 0;
+
+	virtual std::string toString() const = 0;
+};
+
+class Instruction : public StatementBase {
+   public:
 	enum Kind {
 		ADC = 0x00,
 		ADD = 0x01,
@@ -150,55 +244,68 @@ class Instruction {
 	};
 };
 
-class Directive {
+class Directive : public StatementBase {
+   public:
 	enum Kind {
 		/* directives */
 	};
 };
 
-class ExpressionBase {};
-
 class Literal : public ExpressionBase {
-	enum Kind {
-		HEXADECIMAL_LITERAL,
-		DECIMAL_LITERAL,
-		BINARY_LITERAL,
-		STRING_LITERAL,
-	};
-
-	Literal(Kind kind, std::vector<u8> value);
+   public:
+	Literal(std::vector<u8> value);
 };
 
 class Identifier : public ExpressionBase {
+   public:
 	enum Kind {
 		LABEL,
 		SECTION,
 	};
 
-	Identifier(Kind kind, std::string name, std::vector<u8> value);
+	Identifier(Kind kind, std::string name);
 };
 
 class Expression : public ExpressionBase {
-	enum Kind {
-		LITERAL,
-		IDENTIFIER,
-		DIRECT_ADDRESS,
-		INDIRECT_ADDRESS,
-	};
-
+   public:
 	Expression(Kind kind, std::vector<ExpressionBase> expressions);
 };
 
-class Statement {
+class Statement : public StatementBase {
+   public:
 	enum Kind {
 		SECTION,
 		ADDRESSING_ABSOLUTE,
 		ADDRESSING_RELATIVE,
 		INSTRUCTION,
 		DIRECTIVE,
+		LABEL,
 	};
 
-	Statement(Kind kind, std::vector<Expression> expressions);
+	/**
+	 * @brief Construct a new statement.
+	 * @param kind The kind of statement.
+	 * @param expressions The expressions needed for that statement.
+	 * @param statement The concrete statement.
+	 * @note While the statement parameter is allowed to be nullptr some of the time, it is a fatal
+	 * error to not set it if kind is either INSTRUCTION or DIRECTIVE. If this is not done, the
+	 * constructor whil cause the program to panic.
+	 */
+	Statement(
+		Kind kind,
+		std::vector<Expression> expressions,
+		std::unique_ptr<StatementBase> statement = nullptr);
+
+	Kind kind() const;
+
+	std::vector<u8> toBytes() const;
+
+	std::string toString() const;
+
+   private:
+	Kind m_kind;
+
+	std::unique_ptr<StatementBase> m_subStatement;
 };
 }  // namespace mfdasm::impl
 

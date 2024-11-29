@@ -1,0 +1,18 @@
+-- Label resoval
+
+for(statement : statements) {
+    output << statement.toBytes(resolval_context)
+}
+
+statement.toBytes(resolval_context) {
+    if(this->m_subStatement != nullptr) {
+        return this->m_subStatement->toBytes(resolval_context)
+    }
+
+    switch(this->m_kind) {
+        case Kind::LABEL:
+            Identifier id = cast<Identifier>(this->expressions[0]);
+            resolval_context.identifers.emplace(id.name, resolval_context.current_address);
+            return empty;
+    }
+}
