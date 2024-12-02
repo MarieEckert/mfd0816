@@ -21,6 +21,7 @@
 #include <mfdasm/cli/args.hpp>
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/log.hpp>
 
 static const std::string DEBUG_ASM_SOURCE =
 	"section code at 0x1100\n"
@@ -45,8 +46,13 @@ int main(void) {
 
 	mfdasm::impl::Assembler asem;
 
-	// mfdasm::impl::Instruction test_instruction(mfdasm::impl::Instruction::_RESERVED_00, {});
-	// mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
+	logDebug() << "test\n";
+	logInfo() << "info test\n";
+	logWarning() << "this is a warning\n";
+	logError() << "this is an error\n";
+
+	mfdasm::impl::Instruction test_instruction(mfdasm::impl::Instruction::_RESERVED_00, {});
+	mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
 	asem.parseLines(buffer.str());
 	return 0;
 }

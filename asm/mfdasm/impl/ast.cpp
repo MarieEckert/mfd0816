@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 #include <mfdasm/typedefs.hpp>
 
@@ -62,8 +63,8 @@ bool Instruction::isReserved(Kind kind) {
 Instruction::Instruction(Kind kind, std::vector<ExpressionBase> expressions)
 	: m_kind(kind), m_expressions(expressions) {
 	if(Instruction::isReserved(kind)) {
-		std::cerr << "WARNING: Instruction constructed with reserved opcode 0x" << std::hex
-				  << static_cast<i32>(kind) << std::dec << "\n";
+		logWarning() << "Instruction constructed with reserved opcode 0x" << std::hex
+					 << static_cast<i32>(kind) << std::dec << "\n";
 	}
 }
 
