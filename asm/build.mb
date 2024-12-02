@@ -18,21 +18,33 @@ sector config
     str cc 'clang++'
     str cflags '-fno-exceptions -std=c++20 -stdlib=libc++ -Wall -Wextra -I$(/config/files/includes)'
 
-    list str targets 'clean', 'debug', 'release'
+    list str targets 'clean-all', 'clean-release', 'clean-debug', 'debug', 'release'
     str default 'debug'
   end
 end
 
 sector targets
-  section clean
+  section clean-all
+    list str required_targets 'clean-debug', 'clean-release'
+  end
+
+  section clean-release
     str exec '#!/bin/bash
-              COMMAND="rm -rf $(/config/files/build_root)"
-              echo "  $COMMAND"
-              $COMMAND
-              COMMAND="mkdir -p $(/config/files/debug_dir)$(/config/files/obj_dir)"
+              COMMAND="rm -rf $(/config/files/release_dir)"
               echo "  $COMMAND"
               $COMMAND
               COMMAND="mkdir -p $(/config/files/release_dir)$(/config/files/obj_dir)"
+              echo "  $COMMAND"
+              $COMMAND
+    '
+  end
+
+  section clean-debug
+    str exec '#!/bin/bash
+              COMMAND="rm -rf $(/config/files/debug_dir)"
+              echo "  $COMMAND"
+              $COMMAND
+              COMMAND="mkdir -p $(/config/files/debug_dir)$(/config/files/obj_dir)"
               echo "  $COMMAND"
               $COMMAND
     '
@@ -53,7 +65,7 @@ sector targets
     str target_builddir '$(/config/files/release_dir)'
     str target_objdir '$(/config/files/release_dir)$(/config/files/obj_dir)'
 
-    list str required_targets 'clean'
+    list str required_targets 'clean-release'
 
     list str c_rules 'compile', 'link'
 
