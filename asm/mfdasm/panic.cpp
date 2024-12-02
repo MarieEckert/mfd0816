@@ -39,6 +39,7 @@ static void backtrace() {
 	const int n = ::backtrace(addresses, std::extent<decltype(addresses)>::value);
 	const std::unique_ptr<char *, decltype(&std::free)> symbols(
 		::backtrace_symbols(addresses, n), &std::free);
+
 	for(int i = 0; i < n; ++i) {
 		/* we parse the symbols retrieved from backtrace_symbols() to
 		 * extract the "real" symbols that represent the mangled names.

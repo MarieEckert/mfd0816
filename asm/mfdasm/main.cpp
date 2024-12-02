@@ -44,7 +44,9 @@ int main(void) {
 	buffer << instream.rdbuf();
 
 	mfdasm::impl::Assembler asem;
-	mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
+
+	// mfdasm::impl::Instruction test_instruction(mfdasm::impl::Instruction::_RESERVED_00, {});
+	// mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
 	asem.parseLines(buffer.str());
 	return 0;
 }

@@ -130,7 +130,7 @@
 
 namespace mfdasm::impl {
 
-struct ResovalContext {
+struct ResolvalContext {
 	std::unordered_map<std::string, std::vector<u8>> identifiers;
 	usize currentAddress;
 };
@@ -144,10 +144,9 @@ class ExpressionBase {
 		INDIRECT_ADDRESS,
 	};
 
-	virtual ~ExpressionBase() = default;
+	~ExpressionBase() = default;
 
-	virtual std::optional<std::vector<u8>> resolveValue(
-		const ResovalContext &resolval_context) const = 0;
+	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
 
 	inline Kind kind() const { return this->m_kind; }
 
@@ -159,7 +158,7 @@ class StatementBase {
    public:
 	virtual ~StatementBase() = default;
 
-	virtual std::vector<u8> toBytes(ResovalContext &resolval_context) const = 0;
+	virtual std::vector<u8> toBytes(ResolvalContext &resolval_context) const = 0;
 
 	virtual std::string toString() const = 0;
 };
@@ -168,8 +167,7 @@ class Literal : public ExpressionBase {
    public:
 	Literal(std::vector<u8> value);
 
-	std::optional<std::vector<u8>> resolveValue(
-		const ResovalContext &resolval_context) const override;
+	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
 };
 
 class Identifier : public ExpressionBase {
@@ -181,13 +179,12 @@ class Identifier : public ExpressionBase {
 
 	Identifier(Kind kind, std::string name);
 
-	std::optional<std::vector<u8>> resolveValue(
-		const ResovalContext &resolval_context) const override;
+	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
 };
 
 class Instruction : public StatementBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		ADC = 0x00,
 		ADD = 0x01,
 		AND = 0x02,
@@ -268,9 +265,18 @@ class Instruction : public StatementBase {
 		XOR = 0x4d,
 	};
 
-	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
+	static bool isReserved(Kind kind);
+
+	Instruction(Kind kind, std::vector<ExpressionBase> expressions);
+
+	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString() const override;
+
+   private:
+	Kind m_kind;
+
+	std::vector<ExpressionBase> m_expressions;
 };
 
 class Directive : public StatementBase {
@@ -282,7 +288,7 @@ class Directive : public StatementBase {
 		TIMES,
 	};
 
-	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
+	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString() const override;
 };
@@ -314,12 +320,14 @@ class Statement : public StatementBase {
 
 	Kind kind() const;
 
-	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
+	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString() const override;
 
    private:
 	Kind m_kind;
+
+	std::vector<ExpressionBase> m_expressions;
 
 	std::unique_ptr<StatementBase> m_subStatement;
 };
