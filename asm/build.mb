@@ -40,6 +40,7 @@ sector targets
 
   section debug
     str target_cflags '-O0 -g'
+    str target_ldflags '-rdynamic -g'
     str target_builddir '$(/config/files/debug_dir)'
     str target_objdir '$(/config/files/debug_dir)$(/config/files/obj_dir)'
 
@@ -48,6 +49,7 @@ sector targets
 
   section release
     str target_cflags '-Oz'
+    str target_ldflags ''
     str target_builddir '$(/config/files/release_dir)'
     str target_objdir '$(/config/files/release_dir)$(/config/files/obj_dir)'
 
@@ -93,10 +95,10 @@ sector c_rules
     str input_format '$(%target_objdir%)$(%element%).o'
     str output_format '$(%target_builddir%)$(/config/files/binname)'
 
-    str ldflags '-stdlib=libc++ -rdynamic -g'
+    str ldflags '-stdlib=libc++'
 
     str exec '#!/bin/bash
-              COMMAND="$(/config/mariebuild/cc) -o $(%output%) $(%input%) $(ldflags)"
+              COMMAND="$(/config/mariebuild/cc) -o $(%output%) $(%input%) $(ldflags) $(%target_ldflags%)"
               echo "  $COMMAND"
               $COMMAND
     '
