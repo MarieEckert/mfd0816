@@ -43,12 +43,12 @@
  * expression (identifier, Expression::IDENTIFIER)
  *     |> <identifier name>
  *
- * expression (direct addressing, EXPRESSION::DIRECT_ADDRESS)
+ * expression (direct addressing, Expression::DIRECT_ADDRESS)
  *    (|> token ([))
  *     |> expression (literal OR identifer)
  *    (|> token (]))
  *
- * expression (indirect addressing, EXPRESSION::INDIRECT_ADDRESS)
+ * expression (indirect addressing, Expression::INDIRECT_ADDRESS)
  *    (|> token ([))
  *    (|> token ([))
  *     |> expression (literal OR identifer)
@@ -144,6 +144,8 @@ class ExpressionBase {
 		INDIRECT_ADDRESS,
 	};
 
+	virtual ~ExpressionBase() = default;
+
 	virtual std::optional<std::vector<u8>> resolveValue(
 		const ResovalContext &resolval_context) const = 0;
 
@@ -155,6 +157,8 @@ class ExpressionBase {
 
 class StatementBase {
    public:
+	virtual ~StatementBase() = default;
+
 	virtual std::vector<u8> toBytes(ResovalContext &resolval_context) const = 0;
 
 	virtual std::string toString() const = 0;
@@ -163,6 +167,9 @@ class StatementBase {
 class Literal : public ExpressionBase {
    public:
 	Literal(std::vector<u8> value);
+
+	std::optional<std::vector<u8>> resolveValue(
+		const ResovalContext &resolval_context) const override;
 };
 
 class Identifier : public ExpressionBase {
@@ -173,11 +180,9 @@ class Identifier : public ExpressionBase {
 	};
 
 	Identifier(Kind kind, std::string name);
-};
 
-class Expression : public ExpressionBase {
-   public:
-	Expression(Kind kind, std::vector<ExpressionBase> expressions);
+	std::optional<std::vector<u8>> resolveValue(
+		const ResovalContext &resolval_context) const override;
 };
 
 class Instruction : public StatementBase {
@@ -271,13 +276,17 @@ class Instruction : public StatementBase {
 class Directive : public StatementBase {
    public:
 	enum Kind {
-		/* directives */
+		DB,
+		DW,
+		DD,
+		TIMES,
 	};
 
 	std::vector<u8> toBytes(ResovalContext &resolval_context) const override;
 
 	std::string toString() const override;
 };
+
 class Statement : public StatementBase {
    public:
 	enum Kind {
@@ -300,7 +309,7 @@ class Statement : public StatementBase {
 	 */
 	Statement(
 		Kind kind,
-		std::vector<Expression> expressions,
+		std::vector<ExpressionBase> expressions,
 		std::unique_ptr<StatementBase> statement = nullptr);
 
 	Kind kind() const;

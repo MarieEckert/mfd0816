@@ -20,6 +20,7 @@
 
 #include <mfdasm/cli/args.hpp>
 #include <mfdasm/impl/assembler.hpp>
+#include <mfdasm/impl/ast.hpp>
 
 static const std::string DEBUG_ASM_SOURCE =
 	"section code at 0x1100\n"
@@ -43,6 +44,7 @@ int main(void) {
 	buffer << instream.rdbuf();
 
 	mfdasm::impl::Assembler asem;
+	mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
 	asem.parseLines(buffer.str());
 	return 0;
 }
