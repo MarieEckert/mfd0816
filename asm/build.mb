@@ -8,7 +8,7 @@ sector config
     str binname 'sasm'
 
     str src 'mfdasm/'
-    list str sources 'impl/token', 'impl/assembler', 'impl/ast', 'cli/args', 'main'
+    list str sources 'impl/token', 'impl/assembler', 'impl/ast', 'cli/args', 'panic', 'main'
     list str includes '.', '3rdparty'
   end
 
@@ -39,7 +39,7 @@ sector targets
   end
 
   section debug
-    str target_cflags '-ggdb'
+    str target_cflags '-O0 -g'
     str target_builddir '$(/config/files/debug_dir)'
     str target_objdir '$(/config/files/debug_dir)$(/config/files/obj_dir)'
 
@@ -93,7 +93,7 @@ sector c_rules
     str input_format '$(%target_objdir%)$(%element%).o'
     str output_format '$(%target_builddir%)$(/config/files/binname)'
 
-    str ldflags '-stdlib=libc++'
+    str ldflags '-stdlib=libc++ -rdynamic -g'
 
     str exec '#!/bin/bash
               COMMAND="$(/config/mariebuild/cc) -o $(%output%) $(%input%) $(ldflags)"
