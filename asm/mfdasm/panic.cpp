@@ -79,6 +79,6 @@ static void backtrace() {
 	std::cerr << "mfdasm panic'd: " << error << "\n";
 	std::cerr << "backtrace:\n";
 	backtrace();
-	std::exit(1);
+	std::exit(100);
 }
 }  // namespace mfdasm

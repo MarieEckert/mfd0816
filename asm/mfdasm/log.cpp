@@ -50,8 +50,7 @@ void Logger::stringSetLogLevel(const std::string &level) {
 	auto iter = levels.find(level);
 
 	if(iter == levels.cend()) {
-		logError() << "Invalid log level \"" << level << "\"\n";
-		std::exit(1);
+		panic("Invalid log level \"" + level + "\"\n");
 	}
 
 	setLogLevel(iter->second);

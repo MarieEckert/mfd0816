@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 
 	if(asm_res.isErr()) {
 		logError() << "Assembler: " << asm_res.unwrapErr().toString() << "\n";
-		std::exit(100);
+		std::exit(1);
 	}
 
 	impl::Instruction test_instruction(impl::Instruction::_RESERVED_00, {});
