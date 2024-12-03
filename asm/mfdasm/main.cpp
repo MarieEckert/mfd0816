@@ -56,8 +56,7 @@ int main(int argc, char **argv) {
 	Result<None, mfdasm::impl::AsmError> asm_res = asem.parseLines(buffer.str());
 
 	if(asm_res.isErr()) {
-		logError() << "An error occured whilst assembling: " << asm_res.unwrapErr().toString()
-				   << "\n";
+		logError() << "Assembler: " << asm_res.unwrapErr().toString() << "\n";
 		std::exit(100);
 	}
 

@@ -37,6 +37,10 @@ void Logger::setLogLevel(Level level) {
 }
 
 void Logger::stringSetLogLevel(const std::string &level) {
+	if(level.empty()) {
+		return;
+	}
+
 	static const std::unordered_map<std::string, Level> levels = {
 		{"debug", Level::DEBUG}, {"info", Level::INFO},	  {"warn", Level::WARNING},
 		{"error", Level::ERROR}, {"panic", Level::PANIC},

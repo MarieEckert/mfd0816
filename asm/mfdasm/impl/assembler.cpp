@@ -200,9 +200,17 @@ Result<None, AsmError> Assembler::parseTokens() {
 				const Token at_token = this->m_tokens[ix + 2];
 				const Token literal_value = this->m_tokens[ix + 3];
 
-				if(literal_name.type() != Token::UNKNOWN || at_token.type() != Token::AT ||
-				   !Token::isNumberType(literal_value.type())) {
-					return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
+				if(literal_name.type() != Token::UNKNOWN) {
+					return Err(
+						AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected section name"));
+				}
+				if(at_token.type() != Token::AT) {
+					return Err(AsmError(
+						AsmError::SYNTAX_ERROR, token.lineno(), "Expected keyword \"at\""));
+				}
+				if(!Token::isNumberType(literal_value.type())) {
+					return Err(
+						AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected a number"));
 				}
 
 				if(!literal_name.maybeValue().has_value() ||
@@ -234,6 +242,7 @@ Result<None, AsmError> Assembler::parseTokens() {
 					)
 				);
 				/* clang-format on */
+				ix += 3;
 				break;
 			}
 			case Token::LABEL: {
@@ -281,11 +290,18 @@ Result<None, AsmError> Assembler::parseTokens() {
 					)
 				);
 				/* clang-format on */
+
+				ix += 1;
+				break;
+			}
+			case Token::UNKNOWN: {
+				logInfo()
+					<< "TODO: implement handling for unknown tokens (instructions or directives)\n";
 				break;
 			}
 			default:
-				logWarning() << "Unhandled token " << token.type() << "\n";
-				break;
+				return Err(AsmError(
+					AsmError::SYNTAX_ERROR, token.lineno(), "Unexpected keyword or token"));
 		}
 	}
 
