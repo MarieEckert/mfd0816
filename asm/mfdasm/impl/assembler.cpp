@@ -16,10 +16,12 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <iterator>
 
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/log.hpp>
 
 namespace mfdasm::impl {
 
@@ -49,6 +51,8 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 	if(lex_result.isErr()) {
 		return Err(lex_result.unwrapErr());
 	}
+
+	Result<None, AsmError> parse_result = this->parseTokens();
 
 	return Ok(None());
 }
@@ -120,7 +124,7 @@ Result<None, AsmError> Assembler::lexInput(const std::string &source) {
 	}
 
 	for(auto &tk: this->m_tokens) {
-		std::cout << tk.toString() << "\n";
+		logDebug() << "lexer: " << tk.toString() << "\n";
 	}
 
 	return Ok(None());
@@ -175,6 +179,62 @@ u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
 	}
 
 	return ix;
+}
+
+Result<None, AsmError> Assembler::parseTokens() {
+	for(u32 ix = 0; ix < this->m_tokens.size(); ix++) {
+		const Token token = this->m_tokens[ix];
+
+		switch(token.type()) {
+			case Token::SECTION: {
+				if(this->m_tokens.size() <= ix + 3) {
+					return Err(AsmError::SYNTAX_ERROR);
+				}
+
+				const Token literal_name = this->m_tokens[ix + 1];
+				const Token at_token = this->m_tokens[ix + 2];
+				const Token literal_value = this->m_tokens[ix + 3];
+
+				if(literal_name.type() != Token::UNKNOWN || at_token.type() != Token::AT ||
+				   !Token::isNumberType(literal_value.type())) {
+					return Err(AsmError::SYNTAX_ERROR);
+				}
+
+				if(!literal_name.maybeValue().has_value() ||
+				   !literal_value.maybeValue().has_value()) {
+					return Err(AsmError::SYNTAX_ERROR);
+				}
+
+				const u16 value = std::stoi(
+					literal_value.maybeValue().value(), 0,
+					Token::numberTypeBase(literal_value.type()));
+
+				/* clang-format off */
+				this->m_ast.push_back(Statement(
+					Statement::SECTION,
+					{
+							Identifier(
+								Identifier::SECTION,
+								literal_name.maybeValue().value()
+							),
+							Literal(
+								{
+									static_cast<u8>((value >> 8) & 0xFF),
+									static_cast<u8>(value & 0xFF)
+								}
+							)
+						}
+					)
+				);
+				/* clang-format on */
+				break;
+			}
+			default:
+				logWarning() << "Unhandled token " << token.type() << "\n";
+				break;
+		}
+	}
+	return Ok(None());
 }
 
 }  // namespace mfdasm::impl

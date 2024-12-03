@@ -91,6 +91,19 @@ class Token {
 		}
 	};
 
+	static inline int numberTypeBase(Type type) {
+		switch(type) {
+			case BINARY_NUMBER:
+				return 2;
+			case DECIMAL_NUMBER:
+				return 10;
+			case HEXADECIMAL_NUMBER:
+				return 16;
+			default:
+				return 0;
+		}
+	}
+
 	Token(Type type, u32 lineno, std::optional<std::string> value = std::nullopt);
 
 	Type type() const;

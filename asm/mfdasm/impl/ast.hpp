@@ -168,6 +168,9 @@ class Literal : public ExpressionBase {
 	Literal(std::vector<u8> value);
 
 	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
+
+   private:
+	std::vector<u8> m_value;
 };
 
 class Identifier : public ExpressionBase {
@@ -180,6 +183,11 @@ class Identifier : public ExpressionBase {
 	Identifier(Kind kind, std::string name);
 
 	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
+
+   private:
+	Kind m_kind;
+
+	std::string m_name;
 };
 
 class Instruction : public StatementBase {

@@ -45,14 +45,9 @@ int main(void) {
 	buffer << instream.rdbuf();
 
 	mfdasm::impl::Assembler asem;
-
-	logDebug() << "test\n";
-	logInfo() << "info test\n";
-	logWarning() << "this is a warning\n";
-	logError() << "this is an error\n";
+	asem.parseLines(buffer.str());
 
 	mfdasm::impl::Instruction test_instruction(mfdasm::impl::Instruction::_RESERVED_00, {});
 	mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
-	asem.parseLines(buffer.str());
 	return 0;
 }

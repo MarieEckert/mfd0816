@@ -27,6 +27,14 @@
 
 namespace mfdasm::impl {
 
+/* class Literal */
+
+Literal::Literal(std::vector<u8> value) : m_value(value) {}
+
+/* class Identifier */
+
+Identifier::Identifier(Kind kind, std::string name) : m_kind(kind), m_name(name) {}
+
 /* class Instruction */
 
 bool Instruction::isReserved(Kind kind) {
