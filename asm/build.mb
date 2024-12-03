@@ -16,6 +16,7 @@ sector config
           'impl/asmerror',
           'impl/assembler',
           'impl/ast',
+          'impl/instruction_operand',
           'impl/token',
           'log',
           'main',
