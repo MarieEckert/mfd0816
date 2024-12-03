@@ -10,6 +10,7 @@ sector config
     str src 'mfdasm/'
     list str sources
           'cli/args',
+          'impl/asmerror',
           'impl/assembler',
           'impl/ast',
           'impl/token',

@@ -45,7 +45,13 @@ int main(void) {
 	buffer << instream.rdbuf();
 
 	mfdasm::impl::Assembler asem;
-	asem.parseLines(buffer.str());
+	Result<None, mfdasm::impl::AsmError> asm_res = asem.parseLines(buffer.str());
+
+	if(asm_res.isErr()) {
+		logError() << "An error occured whilst assembling: " << asm_res.unwrapErr().toString()
+				   << "\n";
+		std::exit(100);
+	}
 
 	mfdasm::impl::Instruction test_instruction(mfdasm::impl::Instruction::_RESERVED_00, {});
 	mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});

@@ -16,12 +16,12 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstddef>
 #include <iterator>
 
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/log.hpp>
+#include <mfdasm/panic.hpp>
 
 namespace mfdasm::impl {
 
@@ -53,6 +53,9 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 	}
 
 	Result<None, AsmError> parse_result = this->parseTokens();
+	if(parse_result.isErr()) {
+		return Err(parse_result.unwrapErr());
+	}
 
 	return Ok(None());
 }
@@ -188,7 +191,7 @@ Result<None, AsmError> Assembler::parseTokens() {
 		switch(token.type()) {
 			case Token::SECTION: {
 				if(this->m_tokens.size() <= ix + 3) {
-					return Err(AsmError::SYNTAX_ERROR);
+					return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
 				}
 
 				const Token literal_name = this->m_tokens[ix + 1];
@@ -197,12 +200,14 @@ Result<None, AsmError> Assembler::parseTokens() {
 
 				if(literal_name.type() != Token::UNKNOWN || at_token.type() != Token::AT ||
 				   !Token::isNumberType(literal_value.type())) {
-					return Err(AsmError::SYNTAX_ERROR);
+					return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
 				}
 
 				if(!literal_name.maybeValue().has_value() ||
 				   !literal_value.maybeValue().has_value()) {
-					return Err(AsmError::SYNTAX_ERROR);
+					panic(
+						"illegal state: literal_name.maybeValue() || literal_value.maybeValue() is "
+						"nullopt");
 				}
 
 				const u16 value = std::stoi(
@@ -211,8 +216,8 @@ Result<None, AsmError> Assembler::parseTokens() {
 
 				/* clang-format off */
 				this->m_ast.push_back(Statement(
-					Statement::SECTION,
-					{
+						Statement::SECTION,
+						{
 							Identifier(
 								Identifier::SECTION,
 								literal_name.maybeValue().value()
@@ -229,11 +234,41 @@ Result<None, AsmError> Assembler::parseTokens() {
 				/* clang-format on */
 				break;
 			}
+			case Token::LABEL: {
+				if(!token.maybeValue().has_value()) {
+					panic(
+						"illegal state: token.type() == Token::LABEL && "
+						"!token.maybeValue().has_value()");
+				}
+
+				/* clang-format off */
+				this->m_ast.push_back(Statement(
+						Statement::LABEL,
+						{
+							Identifier(
+								Identifier::LABEL,
+								token.maybeValue().value()
+							)
+						}
+					)
+				);
+				/* clang-format on */
+				break;
+			}
+			case Token::ADDRESSING: {
+				if(ix + 1 >= this->m_tokens.size()) {
+					logDebug() << "INVALID ADDRESSING TOKEN\n";
+					return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
+				}
+				break;
+			}
 			default:
 				logWarning() << "Unhandled token " << token.type() << "\n";
 				break;
 		}
 	}
+
+	logDebug() << "FUCK\n";
 	return Ok(None());
 }
 

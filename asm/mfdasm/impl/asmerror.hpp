@@ -17,8 +17,39 @@
 #ifndef MFDASM_IMPL_ASMERROR_HPP
 #define MFDASM_IMPL_ASMERROR_HPP
 
+#include <optional>
+#include <string>
+
+#include <mfdasm/typedefs.hpp>
+
 namespace mfdasm::impl {
-enum AsmError { SYNTAX_ERROR, INVALID_INSTRUCTION, ILLEGAL_OPERAND };
-}
+class AsmError {
+   public:
+	enum Type : u8 {
+		SYNTAX_ERROR,
+		INVALID_INSTRUCTION,
+		ILLEGAL_OPERAND,
+	};
+
+	static std::string errorName(Type type);
+
+	AsmError(Type type, u32 lineno, std::optional<std::string> message = std::nullopt);
+
+	std::string toString() const;
+
+	Type type() const;
+
+	u32 lineno() const;
+
+	std::optional<std::string> maybeMessage() const;
+
+   private:
+	Type m_type;
+
+	u32 m_lineno;
+
+	std::optional<std::string> m_message;
+};
+}  // namespace mfdasm::impl
 
 #endif
