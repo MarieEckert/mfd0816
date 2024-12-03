@@ -18,6 +18,7 @@
 #define VERSION "0.0 (develop)"
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -26,47 +27,57 @@
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/log.hpp>
 
-static const std::string DEBUG_ASM_SOURCE =
-	"section code at 0x1100\n"
-	"	_entry:		mov 0x1000, sp	; initialise stack pointer\n"
-	"			ld  acl, [sp]   ; load the word from the top of the\n"
-	"					        ; stack into acl\n"
-	"			ld  bcl, [[0x1330]]\n"
-	"\n"
-	"section data at 0xd000\n"
-	"	buffer:		times 1024 db 0\n"
-	"	buffer_size:	dw _here - buffer\n"
-	"	text:		\"hello, world! \\\\ \\\" \\\\\\\"\" db 0\n"
-	"\n"
-	"section reset_vector at 0xfffe\n"
-	"	reset_vector:	dw code\n";
+using namespace mfdasm;
+
+[[noreturn]] static void licenses() {
+	std::cerr
+		<< "MFDASM -------------------------------------------------------------------------\n\n"
+		<< "Copyright (C) 2024  Marie Eckert\n"
+		<< "Licensed under the GPL v3 License.\n"
+		<< "See <https://www.gnu.org/licenses/>.\n";
+	std::cerr
+		<< "\nresult.hpp ---------------------------------------------------------------------\n\n"
+		<< "Mathieu Stefani, 03 mai 2016\n"
+		<< "Marie Eckert, 2024 (Modified for use in MFDASM)\n"
+		<< "Licensed under the Apache License, Version 2.0.\n"
+		<< "See <http://www.apache.org/licenses/>\n";
+	std::exit(0);
+}
 
 int main(int argc, char **argv) {
-	std::cerr << "MFDASM, assembler for the mfd0816 fantasy architecture\n"
-			  << "Copyright (C) 2024  Marie Eckert\n\n";
+	cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
+	cli::Argument<bool> arg_licenses("-l", "--licenses", true);
 
-	mfdasm::cli::Argument<std::string> verbosity("-v", "--verbosity");
-
-	mfdasm::cli::ArgumentParser parser;
-	parser.addArgument(&verbosity);
+	cli::ArgumentParser parser;
+	parser.addArgument(&arg_verbosity);
+	parser.addArgument(&arg_licenses);
 	parser.parse(argc, argv);
 
-	mfdasm::Logger::stringSetLogLevel(verbosity.get().value_or(""));
+	if(arg_licenses.get().value_or(false)) {
+		licenses();
+	}
+
+	Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
+
+	/* start */
+
+	std::cerr << "MFDASM, assembler for the mfd0816 fantasy architecture\n"
+			  << "Copyright (C) 2024  Marie Eckert\n\n";
 
 	std::stringstream buffer;
 	std::ifstream instream("test.asm");
 
 	buffer << instream.rdbuf();
 
-	mfdasm::impl::Assembler asem;
-	Result<None, mfdasm::impl::AsmError> asm_res = asem.parseLines(buffer.str());
+	impl::Assembler asem;
+	Result<None, impl::AsmError> asm_res = asem.parseLines(buffer.str());
 
 	if(asm_res.isErr()) {
 		logError() << "Assembler: " << asm_res.unwrapErr().toString() << "\n";
 		std::exit(100);
 	}
 
-	mfdasm::impl::Instruction test_instruction(mfdasm::impl::Instruction::_RESERVED_00, {});
-	mfdasm::impl::Statement test(mfdasm::impl::Statement::INSTRUCTION, {});
+	impl::Instruction test_instruction(impl::Instruction::_RESERVED_00, {});
+	impl::Statement test(impl::Statement::INSTRUCTION, {});
 	return 0;
 }

@@ -296,6 +296,12 @@ Result<None, AsmError> Assembler::parseTokens() {
 				break;
 			}
 			case Token::UNKNOWN: {
+				Result<u32, AsmError> parse_result = Ok(0u);
+				if(parse_result.isErr()) {
+					return Err(parse_result.unwrapErr());
+				}
+
+				ix += parse_result.unwrap();
 				logInfo()
 					<< "TODO: implement handling for unknown tokens (instructions or directives)\n";
 				break;

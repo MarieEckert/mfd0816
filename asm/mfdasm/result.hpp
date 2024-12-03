@@ -1,19 +1,28 @@
 /*
    Mathieu Stefani, 03 mai 2016
+   Marie Eckert, 2024 (Modified for use in MFDASM)
+
+   Licensed under the Apache License Version 2.0
+   See <http://www.apache.org/licenses/>
 
    This header provides a Result type that can be used to replace exceptions in code
    that has to handle error.
 
    Result<T, E> can be used to return and propagate an error to the caller. Result<T, E> is an
    algebraic data type that can either Ok(T) to represent success or Err(E) to represent an error.
+
+   See the original repository for this header file here: <https://github.com/oktal/result>
 */
 
-#pragma once
+#ifndef MFDASM_THIRDPARTY_RESULT_HPP
+#define MFDASM_THIRDPARTY_RESULT_HPP
 
 #include <functional>
-#include <iostream>
 #include <type_traits>
 
+#include <mfdasm/panic.hpp>
+
+namespace mfdasm {
 struct None {};
 
 namespace types {
@@ -734,8 +743,7 @@ struct Result {
 
 	T expect(const char *str) const {
 		if(!isOk()) {
-			std::fprintf(stderr, "%s\n", str);
-			std::terminate();
+			panic(str);
 		}
 		return expect_impl(std::is_same<T, void>());
 	}
@@ -796,8 +804,7 @@ struct Result {
 			return storage().template get<U>();
 		}
 
-		std::fprintf(stderr, "Attempting to unwrap an error Result\n");
-		std::terminate();
+		panic("Attempting to unwrap an error Result");
 	}
 
 	E unwrapErr() const {
@@ -805,8 +812,7 @@ struct Result {
 			return storage().template get<E>();
 		}
 
-		std::fprintf(stderr, "Attempting to unwrapErr an ok Result\n");
-		std::terminate();
+		panic("Attempting to unwrapErr an ok Result");
 	}
 
    private:
@@ -872,3 +878,7 @@ bool operator==(const Result<T, E> &lhs, types::Err<E> err) {
 		typedef details::ResultOkType<decltype(res)>::type T;      \
 		res.storage().get<T>();                                    \
 	})
+
+}  // namespace mfdasm
+
+#endif
