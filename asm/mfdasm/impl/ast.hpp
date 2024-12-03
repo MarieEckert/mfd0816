@@ -1,17 +1,18 @@
-/* This file is part of MFDASM.
+/*
+ * Copyright (C) 2024  Marie Eckert
  *
- * MFDASM is free software: you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * MFDASM is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MFDASM. If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -130,6 +131,10 @@
 
 namespace mfdasm::impl {
 
+/**
+ * @brief Used to hold information about the absolute associated addresses
+ * of all identifiers alongside the current address.
+ */
 struct ResolvalContext {
 	std::unordered_map<std::string, std::vector<u8>> identifiers;
 	usize currentAddress;
@@ -148,7 +153,7 @@ class ExpressionBase {
 
 	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
 
-	inline Kind kind() const { return this->m_kind; }
+	Kind kind() const;
 
    protected:
 	Kind m_kind;

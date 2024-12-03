@@ -1,17 +1,18 @@
-/* This file is part of MFDASM.
+/*
+ * Copyright (C) 2024  Marie Eckert
  *
- * MFDASM is free software: you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * MFDASM is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MFDASM. If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <algorithm>
@@ -94,6 +95,30 @@ Token::Type Token::typeFromString(const std::string &str) {
 		[str](std::pair<std::string, Type> val) { return val.first == str; });
 
 	return it != name_value_map.cend() ? it->second : Type::UNKNOWN;
+}
+
+bool Token::isNumberType(Type type) {
+	switch(type) {
+		case BINARY_NUMBER:
+		case DECIMAL_NUMBER:
+		case HEXADECIMAL_NUMBER:
+			return true;
+		default:
+			return false;
+	}
+};
+
+int Token::numberTypeBase(Type type) {
+	switch(type) {
+		case BINARY_NUMBER:
+			return 2;
+		case DECIMAL_NUMBER:
+			return 10;
+		case HEXADECIMAL_NUMBER:
+			return 16;
+		default:
+			return 0;
+	}
 }
 
 Token::Token(Type type, u32 lineno, std::optional<std::string> value)

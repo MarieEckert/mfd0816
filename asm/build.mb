@@ -1,12 +1,15 @@
 sector config
   section files
+    ; Directories
     str build_root 'build/'
     str debug_dir '$(/config/files/build_root)debug/'
     str release_dir '$(/config/files/build_root)release/'
     str obj_dir 'obj/'
 
+    ; Binaries
     str binname 'sasm'
 
+    ; Source Info
     str src 'mfdasm/'
     list str sources
           'cli/args',
@@ -20,11 +23,15 @@ sector config
     list str includes '.', '3rdparty'
   end
 
-  section mariebuild
-    u8 default_log_level 2
-
+  section tools
     str cc 'clang++'
     str cflags '-fno-exceptions -std=c++20 -stdlib=libc++ -Wall -Wextra -I$(/config/files/includes)'
+
+    str ldflags '-stdlib=libc++'
+  end
+
+  section mariebuild
+    u8 default_log_level 2
 
     list str targets 'clean-all', 'clean-release', 'clean-debug', 'debug', 'release'
     str default 'debug'
@@ -100,7 +107,7 @@ sector c_rules
                 echo "  $COMMAND"
                 $COMMAND
               fi
-              COMMAND="$(/config/mariebuild/cc) $(/config/mariebuild/cflags) $(%target_cflags%) -c $(%input%) -o $(%output%)"
+              COMMAND="$(/config/tools/cc) $(/config/tools/cflags) $(%target_cflags%) -c $(%input%) -o $(%output%)"
               echo "  $COMMAND"
               $COMMAND
     '
@@ -115,10 +122,8 @@ sector c_rules
     str input_format '$(%target_objdir%)$(%element%).o'
     str output_format '$(%target_builddir%)$(/config/files/binname)'
 
-    str ldflags '-stdlib=libc++'
-
     str exec '#!/bin/bash
-              COMMAND="$(/config/mariebuild/cc) -o $(%output%) $(%input%) $(ldflags) $(%target_ldflags%)"
+              COMMAND="$(/config/tools/cc) -o $(%output%) $(%input%) $(/config/tools/ldflags) $(%target_ldflags%)"
               echo "  $COMMAND"
               $COMMAND
     '
