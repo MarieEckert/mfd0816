@@ -45,6 +45,18 @@ class Assembler {
 
 	Result<None, AsmError> parseTokens();
 
+	Result<u32, AsmError> tryParseSectionAt(u32 ix);
+
+	Result<u32, AsmError> tryParseLabelAt(u32 ix);
+
+	Result<u32, AsmError> tryParseAddressingStatementAt(u32 ix);
+
+	/**
+	 * @brief Attempts to parse a singular instruction or directive statement
+	 * from m_tokens tarting at index ix.
+	 */
+	Result<u32, AsmError> tryParseUnknownAt(u32 ix);
+
 	std::vector<Token> m_tokens;
 
 	std::vector<Statement> m_ast;

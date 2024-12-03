@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iterator>
+#include <string>
 
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
@@ -193,115 +194,39 @@ Result<None, AsmError> Assembler::parseTokens() {
 
 		switch(token.type()) {
 			case Token::SECTION: {
-				if(this->m_tokens.size() <= ix + 3) {
-					return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
-				}
-
-				const Token literal_name = this->m_tokens[ix + 1];
-				const Token at_token = this->m_tokens[ix + 2];
-				const Token literal_value = this->m_tokens[ix + 3];
-
-				if(literal_name.type() != Token::UNKNOWN) {
-					return Err(
-						AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected section name"));
-				}
-				if(at_token.type() != Token::AT) {
-					return Err(AsmError(
-						AsmError::SYNTAX_ERROR, token.lineno(), "Expected keyword \"at\""));
-				}
-				if(!Token::isNumberType(literal_value.type())) {
-					return Err(
-						AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected a number"));
-				}
-
-				if(!literal_name.maybeValue().has_value() ||
-				   !literal_value.maybeValue().has_value()) {
-					panic(
-						"illegal state: literal_name.maybeValue() || literal_value.maybeValue() is "
-						"nullopt");
-				}
-
-				const u16 value = std::stoi(
-					literal_value.maybeValue().value(), 0,
-					Token::numberTypeBase(literal_value.type()));
-
-				/* clang-format off */
-				this->m_ast.push_back(Statement(
-						Statement::SECTION,
-						{
-							Identifier(
-								Identifier::SECTION,
-								literal_name.maybeValue().value()
-							),
-							Literal(
-								{
-									static_cast<u8>((value >> 8) & 0xFF),
-									static_cast<u8>(value & 0xFF)
-								}
-							)
-						}
-					)
-				);
-				/* clang-format on */
-				ix += 3;
-				break;
-			}
-			case Token::LABEL: {
-				if(!token.maybeValue().has_value()) {
-					panic(
-						"illegal state: token.type() == Token::LABEL && "
-						"!token.maybeValue().has_value()");
-				}
-
-				/* clang-format off */
-				this->m_ast.push_back(Statement(
-						Statement::LABEL,
-						{
-							Identifier(
-								Identifier::LABEL,
-								token.maybeValue().value()
-							)
-						}
-					)
-				);
-				/* clang-format on */
-				break;
-			}
-			case Token::ADDRESSING: {
-				if(ix + 1 >= this->m_tokens.size()) {
-					return Err(AsmError(
-						AsmError::SYNTAX_ERROR, token.lineno(),
-						"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
-				}
-
-				const Token addressing_type_token = this->m_tokens[ix + 1];
-				if(addressing_type_token.type() != Token::ABSOLUTE &&
-				   addressing_type_token.type() != Token::RELATIVE) {
-					return Err(AsmError(
-						AsmError::SYNTAX_ERROR, token.lineno(),
-						"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
-				}
-
-				const bool relative = addressing_type_token.type() == Token::RELATIVE;
-
-				/* clang-format off */
-				this->m_ast.push_back(Statement(
-						relative ? Statement::ADDRESSING_RELATIVE : Statement::ADDRESSING_ABSOLUTE,
-						{}
-					)
-				);
-				/* clang-format on */
-
-				ix += 1;
-				break;
-			}
-			case Token::UNKNOWN: {
-				Result<u32, AsmError> parse_result = Ok(0u);
+				Result<u32, AsmError> parse_result = this->tryParseSectionAt(ix);
 				if(parse_result.isErr()) {
 					return Err(parse_result.unwrapErr());
 				}
 
-				ix += parse_result.unwrap();
+				ix = parse_result.unwrap();
+				break;
+			}
+			case Token::LABEL: {
+				Result<u32, AsmError> parse_result = this->tryParseLabelAt(ix);
+				if(parse_result.isErr()) {
+					return Err(parse_result.unwrapErr());
+				}
+
+				ix = parse_result.unwrap();
+				break;
+			}
+			case Token::ADDRESSING: {
+				Result<u32, AsmError> parse_result = this->tryParseAddressingStatementAt(ix);
+				if(parse_result.isErr()) {
+					return Err(parse_result.unwrapErr());
+				}
+
+				ix = parse_result.unwrap();
+				break;
+			}
+			case Token::UNKNOWN: {
+				Result<u32, AsmError> parse_result = this->tryParseUnknownAt(ix);
+				if(parse_result.isErr()) {
+					return Err(parse_result.unwrapErr());
+				}
+
+				ix = parse_result.unwrap();
 				logInfo()
 					<< "TODO: implement handling for unknown tokens (instructions or directives)\n";
 				break;
@@ -313,6 +238,121 @@ Result<None, AsmError> Assembler::parseTokens() {
 	}
 
 	return Ok(None());
+}
+
+Result<u32, AsmError> Assembler::tryParseSectionAt(u32 ix) {
+	const Token token = this->m_tokens[ix];
+
+	if(this->m_tokens.size() <= ix + 3) {
+		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
+	}
+
+	const Token literal_name = this->m_tokens[ix + 1];
+	const Token at_token = this->m_tokens[ix + 2];
+	const Token literal_value = this->m_tokens[ix + 3];
+
+	if(literal_name.type() != Token::UNKNOWN) {
+		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected section name"));
+	}
+	if(at_token.type() != Token::AT) {
+		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected keyword \"at\""));
+	}
+	if(!Token::isNumberType(literal_value.type())) {
+		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected a number"));
+	}
+
+	if(!literal_name.maybeValue().has_value() || !literal_value.maybeValue().has_value()) {
+		panic(
+			"illegal state: literal_name.maybeValue() || literal_value.maybeValue() is "
+			"nullopt");
+	}
+
+	const u16 value = std::stoi(
+		literal_value.maybeValue().value(), 0, Token::numberTypeBase(literal_value.type()));
+
+	/* clang-format off */
+	this->m_ast.push_back(Statement(
+			Statement::SECTION,
+			{
+				Identifier(
+					Identifier::SECTION,
+					literal_name.maybeValue().value()
+				),
+				Literal(
+					{
+						static_cast<u8>((value >> 8) & 0xFF),
+						static_cast<u8>(value & 0xFF)
+					}
+				)
+			}
+		)
+	);
+	/* clang-format on */
+	return Ok(ix + 3);
+}
+
+Result<u32, AsmError> Assembler::tryParseLabelAt(u32 ix) {
+	const Token token = this->m_tokens[ix];
+
+	if(!token.maybeValue().has_value()) {
+		panic(
+			"illegal state: token.type() == Token::LABEL && "
+			"!token.maybeValue().has_value()");
+	}
+
+	/* clang-format off */
+	this->m_ast.push_back(Statement(
+			Statement::LABEL,
+			{
+				Identifier(
+					Identifier::LABEL,
+					token.maybeValue().value()
+				)
+			}
+		)
+	);
+	/* clang-format on */
+	return Ok(ix);
+}
+
+Result<u32, AsmError> Assembler::tryParseAddressingStatementAt(u32 ix) {
+	const Token &token = this->m_tokens[ix];
+
+	if(ix + 1 >= this->m_tokens.size()) {
+		return Err(AsmError(
+			AsmError::SYNTAX_ERROR, token.lineno(),
+			"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
+	}
+
+	const Token &addressing_type_token = this->m_tokens[ix + 1];
+	if(addressing_type_token.type() != Token::ABSOLUTE &&
+	   addressing_type_token.type() != Token::RELATIVE) {
+		return Err(AsmError(
+			AsmError::SYNTAX_ERROR, token.lineno(),
+			"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
+	}
+
+	const bool relative = addressing_type_token.type() == Token::RELATIVE;
+
+	/* clang-format off */
+	this->m_ast.push_back(Statement(
+			relative ? Statement::ADDRESSING_RELATIVE : Statement::ADDRESSING_ABSOLUTE,
+			{}
+		)
+	);
+	/* clang-format on */
+	return Ok(ix + 1);
+}
+
+Result<u32, AsmError> Assembler::tryParseUnknownAt(u32 ix) {
+	const Token &token = this->m_tokens[ix];
+
+	if(!token.maybeValue().has_value()) {
+		panic(
+			"illegal state: token.type() == Token::UNKNOWN && "
+			"!token.maybeValue().has_value()");
+	}
+	return Ok(ix);
 }
 
 }  // namespace mfdasm::impl
