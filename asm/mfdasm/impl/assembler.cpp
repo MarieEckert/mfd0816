@@ -61,7 +61,7 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 }
 
 Result<None, AsmError> Assembler::lexInput(const std::string &source) {
-	u32 lineno = 0;
+	u32 lineno = 1;
 	for(u32 ix = 0; ix < source.size(); ix++) {
 		switch(source[ix]) {
 			case ';': /* Comment */
@@ -129,6 +129,8 @@ Result<None, AsmError> Assembler::lexInput(const std::string &source) {
 	for(auto &tk: this->m_tokens) {
 		logDebug() << "lexer: " << tk.toString() << "\n";
 	}
+
+	logInfo() << "lexed input into " << this->m_tokens.size() << " tokens\n";
 
 	return Ok(None());
 }
@@ -257,9 +259,28 @@ Result<None, AsmError> Assembler::parseTokens() {
 			}
 			case Token::ADDRESSING: {
 				if(ix + 1 >= this->m_tokens.size()) {
-					logDebug() << "INVALID ADDRESSING TOKEN\n";
-					return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
+					return Err(AsmError(
+						AsmError::SYNTAX_ERROR, token.lineno(),
+						"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
 				}
+
+				const Token addressing_type_token = this->m_tokens[ix + 1];
+				if(addressing_type_token.type() != Token::ABSOLUTE &&
+				   addressing_type_token.type() != Token::RELATIVE) {
+					return Err(AsmError(
+						AsmError::SYNTAX_ERROR, token.lineno(),
+						"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
+				}
+
+				const bool relative = addressing_type_token.type() == Token::RELATIVE;
+
+				/* clang-format off */
+				this->m_ast.push_back(Statement(
+						relative ? Statement::ADDRESSING_RELATIVE : Statement::ADDRESSING_ABSOLUTE,
+						{}
+					)
+				);
+				/* clang-format on */
 				break;
 			}
 			default:
@@ -268,7 +289,6 @@ Result<None, AsmError> Assembler::parseTokens() {
 		}
 	}
 
-	logDebug() << "FUCK\n";
 	return Ok(None());
 }
 
