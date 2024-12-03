@@ -57,6 +57,10 @@ class Assembler {
 	 */
 	Result<u32, AsmError> tryParseUnknownAt(u32 ix);
 
+	Result<u32, AsmError> tryParseInstruction(u32 ix, Instruction::Kind kind);
+
+	Result<u32, AsmError> tryParseDirective(u32 ix, Directive::Kind kind);
+
 	std::vector<Token> m_tokens;
 
 	std::vector<Statement> m_ast;

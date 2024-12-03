@@ -280,6 +280,8 @@ class Instruction : public StatementBase {
 
 	static bool isReserved(Kind kind);
 
+	static std::optional<Kind> kindFromString(const std::string &str);
+
 	Instruction(Kind kind, std::vector<ExpressionBase> expressions);
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
@@ -300,6 +302,8 @@ class Directive : public StatementBase {
 		DD,
 		TIMES,
 	};
+
+	static std::optional<Kind> kindFromString(const std::string &str);
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
 

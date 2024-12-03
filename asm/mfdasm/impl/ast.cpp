@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <mfdasm/impl/ast.hpp>
@@ -74,6 +75,38 @@ bool Instruction::isReserved(Kind kind) {
 	}
 }
 
+static const std::unordered_map<std::string, Instruction::Kind> instruction_name_map = {
+	{"adc", Instruction::ADC},	 {"add", Instruction::ADD},	  {"and", Instruction::AND},
+	{"bin", Instruction::BIN},	 {"bot", Instruction::BOT},	  {"call", Instruction::CALL},
+	{"cmp", Instruction::CMP},	 {"dec", Instruction::DEC},	  {"div", Instruction::DIV},
+	{"idiv", Instruction::IDIV}, {"imul", Instruction::IMUL}, {"in", Instruction::IN},
+	{"inc", Instruction::INC},	 {"int", Instruction::INT},	  {"iret", Instruction::IRET},
+	{"jmp", Instruction::JMP},	 {"jz", Instruction::JZ},	  {"jg", Instruction::JG},
+	{"jge", Instruction::JGE},	 {"jl", Instruction::JL},	  {"jle", Instruction::JLE},
+	{"jc", Instruction::JC},	 {"js", Instruction::JS},	  {"jnz", Instruction::JNZ},
+	{"jnc", Instruction::JNC},	 {"jns", Instruction::JNS},	  {"ld", Instruction::LD},
+	{"mov", Instruction::MOV},	 {"mul", Instruction::MUL},	  {"neg", Instruction::NEG},
+	{"nop", Instruction::NOP},	 {"not", Instruction::NOT},	  {"or", Instruction::OR},
+	{"out", Instruction::OUT},	 {"pop", Instruction::POP},	  {"push", Instruction::PUSH},
+	{"ret", Instruction::RET},	 {"rol", Instruction::ROL},	  {"ror", Instruction::ROR},
+	{"sl", Instruction::SL},	 {"sr", Instruction::SR},	  {"st", Instruction::ST},
+	{"clo", Instruction::CLO},	 {"clc", Instruction::CLC},	  {"clz", Instruction::CLZ},
+	{"cln", Instruction::CLN},	 {"cli", Instruction::CLI},	  {"sto", Instruction::STO},
+	{"stc", Instruction::STC},	 {"stz", Instruction::STZ},	  {"stn", Instruction::STN},
+	{"sti", Instruction::STI},	 {"sub", Instruction::SUB},	  {"test", Instruction::TEST},
+	{"xor", Instruction::XOR},
+};
+
+std::optional<Instruction::Kind> Instruction::kindFromString(const std::string &str) {
+	const auto res = instruction_name_map.find(str);
+
+	if(res == instruction_name_map.cend()) {
+		return std::nullopt;
+	}
+
+	return res->second;
+}
+
 Instruction::Instruction(Kind kind, std::vector<ExpressionBase> expressions)
 	: m_kind(kind), m_expressions(expressions) {
 	if(Instruction::isReserved(kind)) {
@@ -93,6 +126,25 @@ std::vector<u8> Instruction::toBytes(ResolvalContext &resolval_context) const {
 
 std::string Instruction::toString() const {
 	return "";
+}
+
+/* class Directive */
+
+static const std::unordered_map<std::string, Directive::Kind> directive_name_map = {
+	{"db", Directive::DB},
+	{"dw", Directive::DW},
+	{"dd", Directive::DD},
+	{"times", Directive::TIMES},
+};
+
+std::optional<Directive::Kind> Directive::kindFromString(const std::string &str) {
+	const auto res = directive_name_map.find(str);
+
+	if(res == directive_name_map.cend()) {
+		return std::nullopt;
+	}
+
+	return res->second;
 }
 
 /* class Statement */

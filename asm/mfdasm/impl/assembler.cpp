@@ -190,7 +190,7 @@ u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
 
 Result<None, AsmError> Assembler::parseTokens() {
 	for(u32 ix = 0; ix < this->m_tokens.size(); ix++) {
-		const Token token = this->m_tokens[ix];
+		const Token &token = this->m_tokens[ix];
 
 		switch(token.type()) {
 			case Token::SECTION: {
@@ -233,7 +233,8 @@ Result<None, AsmError> Assembler::parseTokens() {
 			}
 			default:
 				return Err(AsmError(
-					AsmError::SYNTAX_ERROR, token.lineno(), "Unexpected keyword or token"));
+					AsmError::SYNTAX_ERROR, token.lineno(),
+					"Unexpected keyword or token: " + token.toString()));
 		}
 	}
 
@@ -241,15 +242,15 @@ Result<None, AsmError> Assembler::parseTokens() {
 }
 
 Result<u32, AsmError> Assembler::tryParseSectionAt(u32 ix) {
-	const Token token = this->m_tokens[ix];
+	const Token &token = this->m_tokens[ix];
 
 	if(this->m_tokens.size() <= ix + 3) {
 		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
 	}
 
-	const Token literal_name = this->m_tokens[ix + 1];
-	const Token at_token = this->m_tokens[ix + 2];
-	const Token literal_value = this->m_tokens[ix + 3];
+	const Token &literal_name = this->m_tokens[ix + 1];
+	const Token &at_token = this->m_tokens[ix + 2];
+	const Token &literal_value = this->m_tokens[ix + 3];
 
 	if(literal_name.type() != Token::UNKNOWN) {
 		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected section name"));
@@ -292,7 +293,7 @@ Result<u32, AsmError> Assembler::tryParseSectionAt(u32 ix) {
 }
 
 Result<u32, AsmError> Assembler::tryParseLabelAt(u32 ix) {
-	const Token token = this->m_tokens[ix];
+	const Token &token = this->m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
 		panic(
@@ -340,6 +341,8 @@ Result<u32, AsmError> Assembler::tryParseAddressingStatementAt(u32 ix) {
 			{}
 		)
 	);
+
+	logDebug() << "added addressing (relative|absolute) statement\n";
 	/* clang-format on */
 	return Ok(ix + 1);
 }
@@ -352,6 +355,28 @@ Result<u32, AsmError> Assembler::tryParseUnknownAt(u32 ix) {
 			"illegal state: token.type() == Token::UNKNOWN && "
 			"!token.maybeValue().has_value()");
 	}
+
+	const std::string token_value = token.maybeValue().value();
+
+	if(const auto maybe_instruction = Instruction::kindFromString(token_value);
+	   maybe_instruction.has_value()) {
+		return this->tryParseInstruction(ix + 1, maybe_instruction.value());
+	}
+
+	if(const auto maybe_directive = Directive::kindFromString(token_value)) {
+		return this->tryParseDirective(ix + 1, maybe_directive.value());
+	}
+
+	return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
+}
+
+Result<u32, AsmError> Assembler::tryParseInstruction(u32 ix, Instruction::Kind kind) {
+	/** @todo implement */
+	return Ok(ix);
+}
+
+Result<u32, AsmError> Assembler::tryParseDirective(u32 ix, Directive::Kind kind) {
+	/** @todo implement */
 	return Ok(ix);
 }
 
