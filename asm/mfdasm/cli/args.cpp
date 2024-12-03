@@ -16,7 +16,7 @@
 
 #include "args.hpp"
 
-namespace sibu::cli {
+namespace mfdasm::cli {
 
 /* class ArgumentBase */
 
@@ -57,4 +57,4 @@ void ArgumentParser::parse(int argc, char **argv) {
 	}
 }
 
-}  // namespace sibu::cli
+}  // namespace mfdasm::cli

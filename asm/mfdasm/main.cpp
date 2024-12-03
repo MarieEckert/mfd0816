@@ -38,7 +38,15 @@ static const std::string DEBUG_ASM_SOURCE =
 	"section reset_vector at 0xfffe\n"
 	"	reset_vector:	dw code\n";
 
-int main(void) {
+int main(int argc, char **argv) {
+	mfdasm::cli::Argument<std::string> verbosity("-v", "--verbosity");
+
+	mfdasm::cli::ArgumentParser parser;
+	parser.addArgument(&verbosity);
+	parser.parse(argc, argv);
+
+	mfdasm::Logger::stringSetLogLevel(verbosity.get().value_or(""));
+
 	std::stringstream buffer;
 	std::ifstream instream("test.asm");
 

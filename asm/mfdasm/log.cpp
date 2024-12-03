@@ -17,17 +17,39 @@
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <string>
+#include <unordered_map>
 
 #include <3rdparty/ansi.h>
 
 #include <mfdasm/log.hpp>
+#include <mfdasm/panic.hpp>
 
 namespace mfdasm {
 
 static Logger::Level _log_level = Logger::Level::DEBUG;
 
 void Logger::setLogLevel(Level level) {
+	if(level > Level::ERROR) {
+		panic("invalid log level: " + std::to_string(static_cast<u8>(level)));
+	}
 	_log_level = level;
+}
+
+void Logger::stringSetLogLevel(const std::string &level) {
+	static const std::unordered_map<std::string, Level> levels = {
+		{"debug", Level::DEBUG}, {"info", Level::INFO},	  {"warn", Level::WARNING},
+		{"error", Level::ERROR}, {"panic", Level::PANIC},
+	};
+
+	auto iter = levels.find(level);
+
+	if(iter == levels.cend()) {
+		logError() << "Invalid log level \"" << level << "\"\n";
+		std::exit(1);
+	}
+
+	setLogLevel(iter->second);
 }
 
 std::ostream &Logger::getStream(Level level) {
@@ -49,6 +71,9 @@ std::ostream &Logger::getStream(Level level) {
 		case Level::ERROR:
 			std::cerr << ANSI_FG_RED "ERROR:   " ANSI_RESET;
 			break;
+		case Level::PANIC: /* this is more of a "symbolic" level, since you cant disable logging of
+							  panic messages */
+			return void_stream;
 	}
 
 	return std::cerr;

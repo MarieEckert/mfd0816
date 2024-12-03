@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-namespace sibu::cli {
+namespace mfdasm::cli {
 
 /**
  * @brief Helper tempalte for converting a string to the generic type T
@@ -117,6 +117,6 @@ class ArgumentParser {
 	std::vector<ArgumentBase *> args;
 };
 
-}  // namespace sibu::cli
+}  // namespace mfdasm::cli
 
 #endif

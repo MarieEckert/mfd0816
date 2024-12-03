@@ -22,24 +22,26 @@
 #include <mfdasm/typedefs.hpp>
 
 /* clang-format off */
-#define logDebug()   mfdasm::Logger::getStream(mfdasm::Logger::Level::DEBUG)
-#define logInfo()    mfdasm::Logger::getStream(mfdasm::Logger::Level::INFO)
-#define logWarning() mfdasm::Logger::getStream(mfdasm::Logger::Level::WARNING)
-#define logError()   mfdasm::Logger::getStream(mfdasm::Logger::Level::ERROR)
+#define logDebug()   mfdasm::Logger::getStream(mfdasm::Logger::DEBUG)
+#define logInfo()    mfdasm::Logger::getStream(mfdasm::Logger::INFO)
+#define logWarning() mfdasm::Logger::getStream(mfdasm::Logger::WARNING)
+#define logError()   mfdasm::Logger::getStream(mfdasm::Logger::ERROR)
 /* clang-format on */
 
 namespace mfdasm {
 
 class Logger {
    public:
-	enum class Level : u8 {
+	enum Level : u8 {
 		DEBUG,
 		INFO,
 		WARNING,
 		ERROR,
+		PANIC,
 	};
 
 	static void setLogLevel(Level level);
+	static void stringSetLogLevel(const std::string &level);
 	static std::ostream &getStream(Level level);
 };
 
