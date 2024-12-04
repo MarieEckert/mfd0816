@@ -1,11 +1,45 @@
-MFD0816
+                                    MFD0816
 
 The MFD0816 is a 16-bit fantasy cpu roughly based on the intel 8088.
-This repository contains the specification documents and the 
-reference implementation of the MFD0816.
+This repository contains the specification documents and the
+reference implementation of the MFD0816 and tools surrounding it.
 
-Documents
+DOCUMENTS
+────────────────────────────────────────────────────────────────────────────────
 
-  * DESIGN – The core specification of the MFD0816
-  * INSTRUCTIONS – The instruction set reference/specification
-  * MFDAS – The specification for the MFD0816 assembler language
+  ► DESIGN – The core specification of the MFD0816
+  ► INSTRUCTIONS – The instruction set reference/specification
+  ► [TODO] MFDAS – The specification for the MFD0816 assembler language
+
+REPOSITORY STRUCTURE
+────────────────────────────────────────────────────────────────────────────────
+
+  /
+  ├── asm            : Sources for MFDASM
+  │   ├── 3rdparty   : External / Third Party Components used in MFDASM
+  │   └── mfdasm     : Implementation
+  ├── emu            : MFD0816 emulator implementation
+  │   ├── 3rdparty   : External / Third Party Components used
+  │   └── mfdasm     : Implementation
+  ├── DESIGN         : MFD0816 design/specficiation
+  ├── INSTRUCTIONS   : MFD0816 instruction set reference
+  └── README
+
+LICENSES
+────────────────────────────────────────────────────────────────────────────────
+
+  This section is intended as a quick overview of licenses. A directory marked
+  with one License may still contain files licensed under another license, make
+  sure to look into the files to be sure.
+
+  License: CC BY-SA 4.0
+  Link...: <https://creativecommons.org/licenses/by-sa/4.0/>
+  Files / Directories:
+    ► /DESIGN
+    ► /INSTRUCTIONS
+
+  License: GNU GPL v3
+  Link...: <https://www.gnu.org/licenses/>
+  Files / Directories:
+    ► /asm
+    ► /emu
