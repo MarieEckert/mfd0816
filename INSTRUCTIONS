@@ -509,7 +509,8 @@ CONTENTS
     Negates (Two's Complement) the value of Operand 1 and stores the result
     in Operand 1.
 
-    Operand 1 can be direct, register direct, indirect or register indirect.
+    Operand 1 can be register immediate, direct, register direct,
+    indirect or register indirect.
 
     Operation:
 
