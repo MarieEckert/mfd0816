@@ -21,6 +21,7 @@ CONTENTS
   6.1... HARDWARE INTERRUPTS
   6.2... SOFTWARE INTERRUPTS
   7..... RESET
+  ...... LICENSE
 
 1. INTRODUCTION & OVERVIEW
 ────────────────────────────────────────────────────────────────────────────────
@@ -559,3 +560,9 @@ CONTENTS
   Note that resetting does not clear any registers or memories except for the
   FL register. Interrupts also have no effect whilst resetting, regardless of
   the state of the IE flag.
+
+LICENSE
+────────────────────────────────────────────────────────────────────────────────
+
+ MFD0816 DESIGN by Marie Eckert is licensed under CC BY-SA 4.0,
+ see <https://creativecommons.org/licenses/by-sa/4.0/>

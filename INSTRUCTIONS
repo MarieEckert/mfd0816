@@ -6,6 +6,7 @@ CONTENTS
 
   1.... INSTRUCTION LISTING
   2.... INSTRUCTION SPECIFICATIONS
+  ..... LICENSE
 
 1. INSTRUCTION LISTING
 ────────────────────────────────────────────────────────────────────────────────
@@ -746,3 +747,9 @@ CONTENTS
     Operation:
 
       ACL := ACL ^ Operand1;
+
+LICENSE
+────────────────────────────────────────────────────────────────────────────────
+
+ MFD0816 INSTRUCTIONS by Marie Eckert is licensed under CC BY-SA 4.0,
+ see <https://creativecommons.org/licenses/by-sa/4.0/>
