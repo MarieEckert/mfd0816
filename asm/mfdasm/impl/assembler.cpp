@@ -15,13 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <3rdparty/map.hpp>
 #include <algorithm>
 #include <cctype>
 #include <iterator>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/impl/instruction_operand.hpp>
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
@@ -371,13 +375,96 @@ Result<u32, AsmError> Assembler::tryParseUnknownAt(u32 ix) {
 }
 
 Result<u32, AsmError> Assembler::tryParseInstruction(u32 ix, Instruction::Kind kind) {
-	/** @todo implement */
-	return Ok(ix);
+	const std::vector<InstructionOperand> required_operands = InstructionOperand::operandsFor(kind);
+	const Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> parse_operands_result =
+		this->tryParseOperands(ix);
+
+	if(parse_operands_result.isErr()) {
+		return Err(parse_operands_result.unwrapErr());
+	}
+
+	const std::pair<u32, std::vector<ExpressionBase>> &parse_operands_unwrapped =
+		parse_operands_result.unwrap();
+
+	const std::vector<ExpressionBase> &operand_expressions = parse_operands_unwrapped.second;
+
+	if(operand_expressions.size() != required_operands.size()) {
+		return Err(AsmError(
+			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			"Expected " + std::to_string(required_operands.size()) + " operands, got " +
+				std::to_string(operand_expressions.size())));
+	}
+
+	const auto given_operands =
+		map(operand_expressions, [](ExpressionBase expr) -> InstructionOperand::Kind {
+			switch(expr.kind()) {
+				case ExpressionBase::DIRECT_ADDRESS: {
+					const DirectAddress &tmp_directaddress = static_cast<DirectAddress &>(expr);
+					return tmp_directaddress.kind() == DirectAddress::MEMORY
+							   ? InstructionOperand::DIRECT
+							   : InstructionOperand::REGISTER_DIRECT;
+				}
+				case ExpressionBase::INDIRECT_ADDRESS: {
+					const IndirectAddress &tmp_indirectaddress =
+						static_cast<IndirectAddress &>(expr);
+					return tmp_indirectaddress.kind() == IndirectAddress::MEMORY
+							   ? InstructionOperand::DIRECT
+							   : InstructionOperand::REGISTER_DIRECT;
+				}
+				case ExpressionBase::REGISTER:
+					return InstructionOperand::REGISTER_IMMEDIATE;
+				case ExpressionBase::IDENTIFIER:
+				case ExpressionBase::LITERAL:
+					return InstructionOperand::IMMEDIATE;
+			}
+		}).to<std::vector<InstructionOperand::Kind>>();
+
+	for(u32 operand_ix = 0; operand_ix < required_operands.size(); operand_ix++) {
+		if(required_operands[operand_ix].isAllowed(given_operands[operand_ix])) {
+			continue;
+		}
+
+		return Err(AsmError(
+			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			"Invalid operand of type " + std::to_string(given_operands[operand_ix])));
+	}
+
+	/* clang-format off */
+	this->m_ast.push_back(Statement(
+			Statement::INSTRUCTION,
+			{},
+			std::make_unique<Instruction>(
+				kind,
+				operand_expressions
+			)
+		)
+	);
+	/* clang-format on */
+	return Ok(parse_operands_unwrapped.first);
 }
 
 Result<u32, AsmError> Assembler::tryParseDirective(u32 ix, Directive::Kind kind) {
 	/** @todo implement */
 	return Ok(ix);
+}
+
+Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Assembler::tryParseOperands(u32 ix) {
+	if(ix >= this->m_tokens.size()) {
+		return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, std::vector<ExpressionBase>{}));
+	}
+
+	std::vector<ExpressionBase> expressions;
+
+	/**
+	 * @todo Parse the following expressions:
+	 * 1. Identifiers
+	 * 2. Literals
+	 * 3. Registers
+	 * 4. Direct Addressing ([<expression>])
+	 * 5. Indirect Addressing ([[<expression>]])
+	 */
+
+	return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, expressions));
 }
 
 }  // namespace mfdasm::impl

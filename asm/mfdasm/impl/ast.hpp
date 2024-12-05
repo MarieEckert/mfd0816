@@ -113,6 +113,33 @@
  *                }
  *            ]
  *        }
+ *    },
+ *    Statement {
+ *        kind: directive
+ *        Directive {
+ *            kind: TIMES
+ *            expressions: [
+ *                Expression {
+ *                    kind: literal
+ *                    value: 10
+ *                },
+ *                Expression {
+ *                    kind: statement
+ *                    value: Statement {
+ *                        kind: directive
+ *                        Directive {
+ *                            kind: DW
+ *                            expressions: [
+ *                                Expression {
+ *                                    kind: literal
+ *                                    value: 0
+ *                                }
+ *                            ]
+ *                        }
+ *                    }
+ *                }
+ *            ]
+ *        }
  *    }
  * ]
  * ```
@@ -145,6 +172,7 @@ class ExpressionBase {
 	enum Kind {
 		LITERAL,
 		IDENTIFIER,
+		REGISTER,
 		DIRECT_ADDRESS,
 		INDIRECT_ADDRESS,
 	};
@@ -193,6 +221,30 @@ class Identifier : public ExpressionBase {
 	Kind m_kind;
 
 	std::string m_name;
+};
+
+class DirectAddress : public ExpressionBase {
+   public:
+	enum Kind {
+		MEMORY,
+		REGISTER,
+	};
+
+	DirectAddress(Kind kind, std::vector<u8> value);
+
+	Kind kind() const;
+};
+
+class IndirectAddress : public ExpressionBase {
+   public:
+	enum Kind {
+		MEMORY,
+		REGISTER,
+	};
+
+	IndirectAddress(Kind kind, std::vector<u8> value);
+
+	Kind kind() const;
 };
 
 class Instruction : public StatementBase {

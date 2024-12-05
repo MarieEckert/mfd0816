@@ -37,10 +37,10 @@ class InstructionOperand {
 
 	static std::vector<InstructionOperand> operandsFor(Instruction::Kind instruction);
 
+	bool isAllowed(Kind kind) const;
+
    private:
 	InstructionOperand(std::vector<Kind> allowed_kinds);
-
-	bool isAllowed(Kind kind) const;
 
 	static const std::unordered_map<Instruction::Kind, std::vector<InstructionOperand>>
 		m_instructionOperandsMap;
