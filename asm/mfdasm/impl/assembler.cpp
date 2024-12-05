@@ -48,25 +48,33 @@ static bool isCharReserved(char c) {
 	}
 }
 
+/* class Assembler */
+
 Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 	if(source.empty()) {
 		return Ok(None());
 	}
 
-	Result<None, AsmError> lex_result = this->lexInput(source);
+	Result<std::vector<Token>, AsmError> lex_result = Lexer::process(source);
 	if(lex_result.isErr()) {
 		return Err(lex_result.unwrapErr());
 	}
 
-	Result<None, AsmError> parse_result = this->parseTokens();
+	Result<Parser, AsmError> parse_result = Parser::process(lex_result.unwrap());
 	if(parse_result.isErr()) {
 		return Err(parse_result.unwrapErr());
 	}
 
+	this->m_ast = parse_result.unwrap().ast();
+
 	return Ok(None());
 }
 
-Result<None, AsmError> Assembler::lexInput(const std::string &source) {
+/* class Lexer */
+
+Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {
+	std::vector<Token> tokens;
+
 	u32 lineno = 1;
 	for(u32 ix = 0; ix < source.size(); ix++) {
 		switch(source[ix]) {
@@ -75,35 +83,35 @@ Result<None, AsmError> Assembler::lexInput(const std::string &source) {
 				lineno++;
 				break;
 			case '\'':
-				this->m_tokens.emplace_back(Token::SINGLE_QUOTE, lineno);
+				tokens.emplace_back(Token::SINGLE_QUOTE, lineno);
 				break;
 			case '[':
-				this->m_tokens.emplace_back(Token::LEFT_SQUARE_BRACKET, lineno);
+				tokens.emplace_back(Token::LEFT_SQUARE_BRACKET, lineno);
 				break;
 			case ']':
-				this->m_tokens.emplace_back(Token::RIGHT_SQUARE_BRACKET, lineno);
+				tokens.emplace_back(Token::RIGHT_SQUARE_BRACKET, lineno);
 				break;
 			case '\n':
 				lineno++;
 				break;
 			case '-':
-				this->m_tokens.emplace_back(Token::MINUS, lineno);
+				tokens.emplace_back(Token::MINUS, lineno);
 				break;
 			case '+':
-				this->m_tokens.emplace_back(Token::PLUS, lineno);
+				tokens.emplace_back(Token::PLUS, lineno);
 				break;
 			case '/':
-				this->m_tokens.emplace_back(Token::SLASH, lineno);
+				tokens.emplace_back(Token::SLASH, lineno);
 				break;
 			case '*':
-				this->m_tokens.emplace_back(Token::TIMES, lineno);
+				tokens.emplace_back(Token::TIMES, lineno);
 				break;
 			case ',':
-				this->m_tokens.emplace_back(Token::COMMA, lineno);
+				tokens.emplace_back(Token::COMMA, lineno);
 				break;
 			case '\"':
-				this->m_tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
-				ix += this->parseStringLiteral(source.substr(ix + 1), lineno);
+				tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
+				ix += parseStringLiteral(source.substr(ix + 1), lineno, tokens);
 				break;
 			default: /* Character has no special handling */
 				if(std::isspace(source[ix])) {
@@ -125,23 +133,23 @@ Result<None, AsmError> Assembler::lexInput(const std::string &source) {
 					ix++; /* compensate for character lost in word */
 				}
 
-				this->m_tokens.emplace_back(token_type, lineno, word);
+				tokens.emplace_back(token_type, lineno, word);
 				ix += word.length() - 1;
 
 				break;
 		}
 	}
 
-	for(auto &tk: this->m_tokens) {
+	for(auto &tk: tokens) {
 		logDebug() << "lexer: " << tk.toString() << "\n";
 	}
 
-	logInfo() << "lexed input into " << this->m_tokens.size() << " tokens\n";
+	logInfo() << "lexed input into " << tokens.size() << " tokens\n";
 
-	return Ok(None());
+	return Ok(tokens);
 }
 
-u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
+u32 Lexer::parseStringLiteral(const std::string &source, u32 &lineno, std::vector<Token> &tokens) {
 	if(source.length() == 0) {
 		return 0;
 	}
@@ -156,8 +164,8 @@ u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
 		}
 
 		if(source[ix] == '"') {
-			this->m_tokens.emplace_back(Token::STRING, lineno, output);
-			this->m_tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
+			tokens.emplace_back(Token::STRING, lineno, output);
+			tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
 			ix++;
 			break;
 		}
@@ -192,7 +200,26 @@ u32 Assembler::parseStringLiteral(const std::string &source, u32 &lineno) {
 	return ix;
 }
 
-Result<None, AsmError> Assembler::parseTokens() {
+/* class Parser */
+
+Result<Parser, AsmError> Parser::process(const std::vector<Token> &tokens) {
+	Parser parser(tokens);
+
+	const Result<None, AsmError> parse_result = parser.parseTokens();
+	if(parse_result.isErr()) {
+		return Err(parse_result.unwrapErr());
+	}
+
+	return Ok(parser);
+}
+
+std::vector<Statement> Parser::ast() const {
+	return this->m_ast;
+}
+
+Parser::Parser(const std::vector<Token> &tokens) : m_tokens(tokens) {}
+
+Result<None, AsmError> Parser::parseTokens() {
 	for(u32 ix = 0; ix < this->m_tokens.size(); ix++) {
 		const Token &token = this->m_tokens[ix];
 
@@ -245,7 +272,9 @@ Result<None, AsmError> Assembler::parseTokens() {
 	return Ok(None());
 }
 
-Result<u32, AsmError> Assembler::tryParseSectionAt(u32 ix) {
+/* individual statement & expression parsing functions */
+
+Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 	const Token &token = this->m_tokens[ix];
 
 	if(this->m_tokens.size() <= ix + 3) {
@@ -296,7 +325,7 @@ Result<u32, AsmError> Assembler::tryParseSectionAt(u32 ix) {
 	return Ok(ix + 3);
 }
 
-Result<u32, AsmError> Assembler::tryParseLabelAt(u32 ix) {
+Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 	const Token &token = this->m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
@@ -320,7 +349,7 @@ Result<u32, AsmError> Assembler::tryParseLabelAt(u32 ix) {
 	return Ok(ix);
 }
 
-Result<u32, AsmError> Assembler::tryParseAddressingStatementAt(u32 ix) {
+Result<u32, AsmError> Parser::tryParseAddressingStatementAt(u32 ix) {
 	const Token &token = this->m_tokens[ix];
 
 	if(ix + 1 >= this->m_tokens.size()) {
@@ -351,7 +380,7 @@ Result<u32, AsmError> Assembler::tryParseAddressingStatementAt(u32 ix) {
 	return Ok(ix + 1);
 }
 
-Result<u32, AsmError> Assembler::tryParseUnknownAt(u32 ix) {
+Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 	const Token &token = this->m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
@@ -374,7 +403,7 @@ Result<u32, AsmError> Assembler::tryParseUnknownAt(u32 ix) {
 	return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
 }
 
-Result<u32, AsmError> Assembler::tryParseInstruction(u32 ix, Instruction::Kind kind) {
+Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind) {
 	const std::vector<InstructionOperand> required_operands = InstructionOperand::operandsFor(kind);
 	const Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> parse_operands_result =
 		this->tryParseOperands(ix);
@@ -433,7 +462,7 @@ Result<u32, AsmError> Assembler::tryParseInstruction(u32 ix, Instruction::Kind k
 	this->m_ast.push_back(Statement(
 			Statement::INSTRUCTION,
 			{},
-			std::make_unique<Instruction>(
+			std::make_shared<Instruction>(
 				kind,
 				operand_expressions
 			)
@@ -443,12 +472,12 @@ Result<u32, AsmError> Assembler::tryParseInstruction(u32 ix, Instruction::Kind k
 	return Ok(parse_operands_unwrapped.first);
 }
 
-Result<u32, AsmError> Assembler::tryParseDirective(u32 ix, Directive::Kind kind) {
+Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	/** @todo implement */
 	return Ok(ix);
 }
 
-Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Assembler::tryParseOperands(u32 ix) {
+Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOperands(u32 ix) {
 	if(ix >= this->m_tokens.size()) {
 		return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, std::vector<ExpressionBase>{}));
 	}

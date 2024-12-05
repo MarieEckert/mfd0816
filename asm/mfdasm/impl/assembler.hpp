@@ -39,9 +39,26 @@ class Assembler {
 	Result<None, AsmError> parseLines(const std::string &source);
 
    private:
-	Result<None, AsmError> lexInput(const std::string &source);
+	std::vector<Statement> m_ast;
+};
 
-	u32 parseStringLiteral(const std::string &source, u32 &lineno);
+class Lexer {
+   public:
+	static Result<std::vector<Token>, AsmError> process(const std::string &source);
+
+   private:
+	static u32
+	parseStringLiteral(const std::string &source, u32 &lineno, std::vector<Token> &tokens);
+};
+
+class Parser {
+   public:
+	static Result<Parser, AsmError> process(const std::vector<Token> &tokens);
+
+	std::vector<Statement> ast() const;
+
+   private:
+	Parser(const std::vector<Token> &tokens);
 
 	Result<None, AsmError> parseTokens();
 
