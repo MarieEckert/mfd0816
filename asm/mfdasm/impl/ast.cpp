@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <mfdasm/impl/ast.hpp>
@@ -41,6 +42,22 @@ Literal::Literal(std::vector<u8> value) : m_value(value) {}
 /* class Identifier */
 
 Identifier::Identifier(Kind kind, std::string name) : m_kind(kind), m_name(name) {}
+
+/* class DirectAddress */
+
+DirectAddress::DirectAddress(Kind kind, std::vector<u8> value) : m_kind(kind), m_value(value) {}
+
+DirectAddress::Kind DirectAddress::kind() const {
+	return this->m_kind;
+}
+
+/* class IndirectAddress */
+
+IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value) : m_kind(kind), m_value(value) {}
+
+IndirectAddress::Kind IndirectAddress::kind() const {
+	return this->m_kind;
+}
 
 /* class Instruction */
 
@@ -152,12 +169,20 @@ std::optional<Directive::Kind> Directive::kindFromString(const std::string &str)
 Statement::Statement(
 	Kind kind,
 	std::vector<ExpressionBase> expressions,
-	std::unique_ptr<StatementBase> statement)
+	std::shared_ptr<StatementBase> statement)
 	: m_kind(kind), m_expressions(expressions), m_subStatement(std::move(statement)) {
 	if(statement == nullptr && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
 		panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
 }
+
+Statement::Statement(Statement &x)
+	: m_kind(x.m_kind), m_expressions(x.m_expressions), m_subStatement(x.m_subStatement) {}
+
+Statement::Statement(Statement &&x)
+	: m_kind(std::exchange(x.m_kind, static_cast<Statement::Kind>(0))),
+	  m_expressions(std::move(x.m_expressions)),
+	  m_subStatement(std::move(x.m_subStatement)) {}
 
 Statement::Kind Statement::kind() const {
 	return this->m_kind;
