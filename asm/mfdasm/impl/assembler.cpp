@@ -25,6 +25,7 @@
 
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/impl/directive_operand.hpp>
 #include <mfdasm/impl/instruction_operand.hpp>
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
@@ -474,6 +475,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 
 Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	/** @todo implement */
+	const std::vector<DirectiveOperand> operands = DirectiveOperand::operandsFor(kind);
 	return Ok(ix);
 }
 
