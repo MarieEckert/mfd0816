@@ -301,9 +301,6 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 			"nullopt");
 	}
 
-	const u16 value = std::stoi(
-		literal_value.maybeValue().value(), 0, Token::numberTypeBase(literal_value.type()));
-
 	/* clang-format off */
 	this->m_ast.push_back(Statement(
 			Statement::SECTION,
@@ -313,10 +310,7 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 					literal_name.maybeValue().value()
 				),
 				Literal(
-					{
-						static_cast<u8>((value >> 8) & 0xFF),
-						static_cast<u8>(value & 0xFF)
-					}
+					literal_value.toBytes()
 				)
 			}
 		)
