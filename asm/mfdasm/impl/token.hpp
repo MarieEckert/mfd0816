@@ -20,6 +20,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <mfdasm/typedefs.hpp>
 
@@ -83,6 +84,8 @@ class Token {
 
 	static bool isNumberType(Type type);
 
+	static bool isRegister(Type type);
+
 	static int numberTypeBase(Type type);
 
 	Token(Type type, u32 lineno, std::optional<std::string> value = std::nullopt);
@@ -94,6 +97,8 @@ class Token {
 	std::optional<std::string> maybeValue() const;
 
 	std::string toString() const;
+
+	std::vector<u8> toBytes() const;
 
    private:
 	Type m_type;

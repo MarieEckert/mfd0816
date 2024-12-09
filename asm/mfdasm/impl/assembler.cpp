@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <cctype>
 #include <iterator>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -463,7 +462,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	this->m_ast.push_back(Statement(
 			Statement::INSTRUCTION,
 			{},
-			std::make_shared<Instruction>(
+			Instruction(
 				kind,
 				operand_expressions
 			)
@@ -486,14 +485,41 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 
 	std::vector<ExpressionBase> expressions;
 
-	/**
-	 * @todo Parse the following expressions:
+	/* Parse the following expressions:
 	 * 1. Identifiers
 	 * 2. Literals
 	 * 3. Registers
 	 * 4. Direct Addressing ([<expression>])
 	 * 5. Indirect Addressing ([[<expression>]])
 	 */
+
+	do {
+		logDebug() << "current token = " << this->m_tokens[ix].toString() << "\n";
+
+		const Token &token = this->m_tokens[ix];
+		if(Token::isNumberType(token.type()) || token.type() == Token::STRING) {
+			expressions.push_back(Literal(token.toBytes()));
+			goto end;
+		}
+
+		if(Token::isRegister(token.type())) {
+			const std::optional<Register> reg = Register::fromTokenType(token.type());
+			if(!reg.has_value()) {
+				panic(
+					"invalid return: token = " + token.toString() +
+					"; Token::isRegister() == true; Register::fromTokenType() returned nullopt!");
+			}
+			expressions.push_back(reg.value());
+			goto end;
+		}
+
+		/** @todo direct/indirect address */
+
+		expressions.push_back(Identifier(Identifier::LABEL, token.maybeValue().value_or("???")));
+
+	end:
+		ix += 2;
+	} while(ix < this->m_tokens.size() && this->m_tokens[ix - 1].type() == Token::COMMA);
 
 	return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, expressions));
 }

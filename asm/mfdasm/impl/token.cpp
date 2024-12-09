@@ -19,6 +19,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <mfdasm/impl/token.hpp>
 
@@ -108,6 +109,29 @@ bool Token::isNumberType(Type type) {
 	}
 };
 
+bool Token::isRegister(Type type) {
+	switch(type) {
+		case SP:
+		case IP:
+		case FL:
+		case AL:
+		case AH:
+		case ACL:
+		case BL:
+		case BH:
+		case BCL:
+		case CL:
+		case CH:
+		case CCL:
+		case DL:
+		case DH:
+		case DCL:
+			return true;
+		default:
+			return false;
+	}
+}
+
 int Token::numberTypeBase(Type type) {
 	switch(type) {
 		case BINARY_NUMBER:
@@ -160,6 +184,26 @@ std::string Token::toString() const {
 
 	return "[line = " + std::to_string(this->m_lineno) + "; type = " + type_name + "; " +
 		   value_string + "]";
+}
+
+std::vector<u8> Token::toBytes() const {
+	if(!this->m_maybeValue.has_value()) {
+		return {};
+	}
+
+	if(Token::isNumberType(this->m_type)) {
+		const u16 value =
+			std::stoi(this->m_maybeValue.value(), 0, Token::numberTypeBase(this->m_type));
+
+		return {static_cast<u8>((value >> 8) & 0xFF), static_cast<u8>(value & 0xFF)};
+	}
+
+	if(this->m_type == Token::STRING) {
+		return std::vector<u8>(
+			this->m_maybeValue.value().begin(), this->m_maybeValue.value().end());
+	}
+
+	return {};
 }
 
 }  // namespace mfdasm::impl

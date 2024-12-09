@@ -16,7 +16,7 @@
  */
 
 #include <iostream>
-#include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -35,17 +35,21 @@ ExpressionBase::Kind ExpressionBase::kind() const {
 	return this->m_kind;
 }
 
+ExpressionBase::ExpressionBase(Kind kind) : m_kind(kind) {}
+
 /* class Literal */
 
-Literal::Literal(std::vector<u8> value) : m_value(value) {}
+Literal::Literal(std::vector<u8> value) : ExpressionBase(ExpressionBase::LITERAL), m_value(value) {}
 
 /* class Identifier */
 
-Identifier::Identifier(Kind kind, std::string name) : m_kind(kind), m_name(name) {}
+Identifier::Identifier(Kind kind, std::string name)
+	: ExpressionBase(ExpressionBase::IDENTIFIER), m_kind(kind), m_name(name) {}
 
 /* class DirectAddress */
 
-DirectAddress::DirectAddress(Kind kind, std::vector<u8> value) : m_kind(kind), m_value(value) {}
+DirectAddress::DirectAddress(Kind kind, std::vector<u8> value)
+	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS), m_kind(kind), m_value(value) {}
 
 DirectAddress::Kind DirectAddress::kind() const {
 	return this->m_kind;
@@ -53,9 +57,55 @@ DirectAddress::Kind DirectAddress::kind() const {
 
 /* class IndirectAddress */
 
-IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value) : m_kind(kind), m_value(value) {}
+IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value)
+	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS), m_kind(kind), m_value(value) {}
 
 IndirectAddress::Kind IndirectAddress::kind() const {
+	return this->m_kind;
+}
+
+/* class Register */
+
+Register::Register(Kind kind) : ExpressionBase(ExpressionBase::REGISTER), m_kind(kind) {}
+
+std::optional<Register> Register::fromTokenType(Token::Type type) {
+	switch(type) {
+		case Token::SP:
+			return Register(Register::SP);
+		case Token::IP:
+			return Register(Register::IP);
+		case Token::FL:
+			return Register(Register::FL);
+		case Token::AL:
+			return Register(Register::AL);
+		case Token::AH:
+			return Register(Register::AH);
+		case Token::ACL:
+			return Register(Register::ACL);
+		case Token::BL:
+			return Register(Register::BL);
+		case Token::BH:
+			return Register(Register::BH);
+		case Token::BCL:
+			return Register(Register::BCL);
+		case Token::CL:
+			return Register(Register::CL);
+		case Token::CH:
+			return Register(Register::CH);
+		case Token::CCL:
+			return Register(Register::CCL);
+		case Token::DL:
+			return Register(Register::DL);
+		case Token::DH:
+			return Register(Register::DH);
+		case Token::DCL:
+			return Register(Register::DCL);
+		default:
+			return std::nullopt;
+	}
+}
+
+Register::Kind Register::kind() const {
 	return this->m_kind;
 }
 
@@ -169,9 +219,9 @@ std::optional<Directive::Kind> Directive::kindFromString(const std::string &str)
 Statement::Statement(
 	Kind kind,
 	std::vector<ExpressionBase> expressions,
-	std::shared_ptr<StatementBase> statement)
+	std::optional<StatementBase> statement)
 	: m_kind(kind), m_expressions(expressions), m_subStatement(std::move(statement)) {
-	if(statement == nullptr && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
+	if(!statement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
 		panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
 }

@@ -148,13 +148,14 @@
 #ifndef MFDASM_IMPL_AST_HPP
 #define MFDASM_IMPL_AST_HPP
 
-#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <mfdasm/typedefs.hpp>
+
+#include "mfdasm/impl/token.hpp"
 
 namespace mfdasm::impl {
 
@@ -184,6 +185,9 @@ class ExpressionBase {
 	Kind kind() const;
 
    protected:
+	ExpressionBase(Kind kind);
+
+   private:
 	Kind m_kind;
 };
 
@@ -255,6 +259,36 @@ class IndirectAddress : public ExpressionBase {
 	Kind m_kind;
 
 	std::vector<u8> m_value;
+};
+
+class Register : public ExpressionBase {
+   public:
+	enum Kind {
+		SP,
+		IP,
+		FL,
+		AL,
+		AH,
+		ACL,
+		BL,
+		BH,
+		BCL,
+		CL,
+		CH,
+		CCL,
+		DL,
+		DH,
+		DCL,
+	};
+
+	Register(Kind kind);
+
+	static std::optional<Register> fromTokenType(Token::Type type);
+
+	Kind kind() const;
+
+   private:
+	Kind m_kind;
 };
 
 class Instruction : public StatementBase {
@@ -395,7 +429,7 @@ class Statement : public StatementBase {
 	Statement(
 		Kind kind,
 		std::vector<ExpressionBase> expressions,
-		std::shared_ptr<StatementBase> statement = nullptr);
+		std::optional<StatementBase> statement = std::nullopt);
 
 	Statement(Statement &x);
 
@@ -412,7 +446,7 @@ class Statement : public StatementBase {
 
 	std::vector<ExpressionBase> m_expressions;
 
-	std::shared_ptr<StatementBase> m_subStatement;
+	std::optional<StatementBase> m_subStatement;
 };
 }  // namespace mfdasm::impl
 
