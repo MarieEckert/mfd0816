@@ -77,7 +77,7 @@ sector targets
   end
 
   section release
-    str target_cflags '-Oz'
+    str target_cflags '-O3'
     str target_ldflags ''
     str target_builddir '$(/config/files/release_dir)'
     str target_objdir '$(/config/files/release_dir)$(/config/files/obj_dir)'
