@@ -493,7 +493,10 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 	 * 5. Indirect Addressing ([[<expression>]])
 	 */
 
+	ix--; /* this is shitty */
+
 	do {
+		ix++;
 		logDebug() << "current token = " << this->m_tokens[ix].toString() << "\n";
 
 		const Token &token = this->m_tokens[ix];
@@ -518,9 +521,10 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 		expressions.push_back(Identifier(Identifier::LABEL, token.maybeValue().value_or("???")));
 
 	end:
-		ix += 2;
-	} while(ix < this->m_tokens.size() && this->m_tokens[ix - 1].type() == Token::COMMA);
+		ix++;
+	} while(ix < this->m_tokens.size() && this->m_tokens[ix].type() == Token::COMMA);
 
+	ix--; /* ix needs to be on the last "consumed" token */
 	return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, expressions));
 }
 
