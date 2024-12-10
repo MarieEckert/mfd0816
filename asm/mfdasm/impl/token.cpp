@@ -203,6 +203,8 @@ std::vector<u8> Token::toBytes() const {
 			this->m_maybeValue.value().begin(), this->m_maybeValue.value().end());
 	}
 
+	/** @todo registers */
+
 	return {};
 }
 

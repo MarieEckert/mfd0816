@@ -29,6 +29,9 @@
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
+#include "mfdasm/impl/asmerror.hpp"
+#include "mfdasm/impl/token.hpp"
+
 namespace mfdasm::impl {
 
 static bool isCharReserved(char c) {
@@ -510,7 +513,51 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 			goto end;
 		}
 
-		/** @todo direct/indirect address */
+		if(token.type() == Token::LEFT_SQUARE_BRACKET) {
+			if(ix + 2 >= this->m_tokens.size()) {
+				return Err(AsmError(
+					AsmError::SYNTAX_ERROR, token.lineno(),
+					"invalid (in)direct addressing syntax"));
+			}
+
+			const bool indirect = ix + 1 < this->m_tokens.size() &&
+								  this->m_tokens[ix + 1].type() == Token::LEFT_SQUARE_BRACKET;
+			const u32 offset = indirect ? 2 : 1;
+
+			bool syntax_valid = false;
+			if(indirect) {
+				syntax_valid = ix + 4 < this->m_tokens.size() &&
+							   this->m_tokens[ix + 3].type() == Token::RIGHT_SQUARE_BRACKET &&
+							   this->m_tokens[ix + 4].type() == Token::RIGHT_SQUARE_BRACKET;
+			} else {
+				syntax_valid = this->m_tokens[ix + 2].type() == Token::RIGHT_SQUARE_BRACKET;
+			}
+
+			if(!syntax_valid) {
+				return Err(AsmError(
+					AsmError::SYNTAX_ERROR, token.lineno(),
+					std::string("invalid ") + (indirect ? "in" : "") + "direct addressing syntax"));
+			}
+
+			logDebug() << "direct? " << (indirect ? "no" : "yes")
+					   << "; token: " << this->m_tokens[ix + offset].toString() << "\n";
+
+			const Token &middle_token = this->m_tokens[ix + offset];
+			if(indirect) {
+				expressions.push_back(IndirectAddress(
+					Token::isRegister(middle_token.type()) ? IndirectAddress::REGISTER
+														   : IndirectAddress::MEMORY,
+					token.toBytes()));
+			} else {
+				expressions.push_back(DirectAddress(
+					Token::isRegister(middle_token.type()) ? DirectAddress::REGISTER
+														   : DirectAddress::MEMORY,
+					token.toBytes()));
+			}
+
+			ix += indirect ? 4 : 2;
+			goto end;
+		}
 
 		expressions.push_back(Identifier(Identifier::LABEL, token.maybeValue().value_or("???")));
 
