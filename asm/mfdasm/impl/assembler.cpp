@@ -513,6 +513,7 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 			goto end;
 		}
 
+		/* direct/indirect addressing */
 		if(token.type() == Token::LEFT_SQUARE_BRACKET) {
 			if(ix + 2 >= this->m_tokens.size()) {
 				return Err(AsmError(
@@ -557,6 +558,10 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 
 			ix += indirect ? 4 : 2;
 			goto end;
+		}
+
+		if(token.type() != Token::UNKNOWN) {
+			return Err(AsmError(AsmError::ILLEGAL_OPERAND, token.lineno()));
 		}
 
 		expressions.push_back(Identifier(Identifier::LABEL, token.maybeValue().value_or("???")));
