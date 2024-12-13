@@ -6,6 +6,7 @@ CONTENTS
 
   1.... INSTRUCTION LISTING
   2.... INSTRUCTION SPECIFICATIONS
+  3.... REGISTER ENCODING
   ..... LICENSE
 
 1. INSTRUCTION LISTING
@@ -136,33 +137,33 @@ CONTENTS
 
   0x00 ADC <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Adds the value of ACL with the first operand and the carry flag and stores
-    the result in ACL. SF is modified to indicate if the result is
+    Adds the value of AR with the first operand and the carry flag and stores
+    the result in AR. SF is modified to indicate if the result is
     signed (SF = 1) or unsigned (SF = 0). Sets CF on carry for unsigned math,
     OF on overflow for signed math and NF flag to indicate the sign of the
-    signed result. Sets ZF if the result is 0 (ACL = 0 && CF = 0 && OF = 0).
+    signed result. Sets ZF if the result is 0 (AR = 0 && CF = 0 && OF = 0).
 
     The first operand can be immediate, register immediate, direct,
     register direct, indirect or register indirect.
 
     Operation:
 
-      ACL := ACL + Operand1 + CF;
+      AR := AR + Operand1 + CF;
 
   0x01 ADD <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Adds the value of ACL with the first operand and stores the result in ACL.
+    Adds the value of AR with the first operand and stores the result in AR.
     Sets the NF flag to indicate the sign of the signed result.
     Sets CF on carry for unsigned math, OF on overflow for signed math and the
     NF flag to indicate the sign of the signed result. Sets ZF if the result
-    is 0 (ACL = 0 && CF = 0 && OF = 0).
+    is 0 (AR = 0 && CF = 0 && OF = 0).
 
     The first operand can be immediate, register immediate, direct,
     register direct, indirect or register indirect.
 
     Operation:
 
-      ACL := ACL + Operand1;
+      AR := AR + Operand1;
 
     Carry and Overflow example:
 
@@ -172,13 +173,13 @@ CONTENTS
 
   0x02 AND <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Executes a logical AND with the current value of ACL and the first operand.
-    The result is then stored in ACL. Sets ZF if the result is 0, clears OF and
+    Executes a logical AND with the current value of AR and the first operand.
+    The result is then stored in AR. Sets ZF if the result is 0, clears OF and
     CF.
 
     Operation:
 
-      ACL := ACL & Operand1;
+      AR := AR & Operand1;
 
   0x03 BIN <r/imm/m> <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -191,7 +192,7 @@ CONTENTS
 
     Operation:
 
-      for i := 1 to ACL do
+      for i := 1 to AR do
         io_read(Operand1 + i - 1, Operand2);
       end
 
@@ -206,7 +207,7 @@ CONTENTS
 
     Operation:
 
-      for i := 1 to ACL do
+      for i := 1 to AR do
         io_write(Operand1 + i - 1, Operand2);
       end
 
@@ -246,32 +247,32 @@ CONTENTS
 
   0x09 DIV <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Divides the value of ACL by Operand 1 as an unsigned value and stores the
-    result in ACL.
+    Divides the value of AR by Operand 1 as an unsigned value and stores the
+    result in AR.
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
 
     Operation:
 
-      ACL := ACL / Operand1;
+      AR := AR / Operand1;
 
   0x0a IDIV <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Divides the value of ACL by Operand 1 as a signed value and stores the
-    result in ACL.
+    Divides the value of AR by Operand 1 as a signed value and stores the
+    result in AR.
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
 
     Operation:
 
-      ACL := ACL / Operand1;
+      AR := AR / Operand1;
 
   0x0b IMUL <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Multiplies the value of ACL by Operand 1 as a signed value and stores the
-    result in ACL. CF and OF are set if the most signficant bit,
+    Multiplies the value of AR by Operand 1 as a signed value and stores the
+    result in AR. CF and OF are set if the most signficant bit,
     including the sign bit, are carried over into AH. If the result fits into
     AL, CF and OF are cleared.
 
@@ -280,9 +281,9 @@ CONTENTS
 
     Operation:
 
-      ACL := ACL * Operand 1;
+      AR := AR * Operand 1;
 
-      if ACL = AL then
+      if AR = AL then
         CF := 0;
         OF := 0;
       else
@@ -496,8 +497,8 @@ CONTENTS
 
   0x1d MUL <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Multiplies (unsigned) the value of ACL by Operand 1 and stores the result in
-    ACL. If the result fits into ACL, CF and OF are cleared otherwise both get
+    Multiplies (unsigned) the value of AR by Operand 1 and stores the result in
+    AR. If the result fits into AR, CF and OF are cleared otherwise both get
     set.
 
     Operand 2 can be immediate, register immediate, direct, register direct,
@@ -534,14 +535,14 @@ CONTENTS
 
   0x21 OR <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Performs a logical OR with the value of ACL and Operand 1 and stores the
-    result in ACL.
+    Performs a logical OR with the value of AR and Operand 1 and stores the
+    result in AR.
 
     Operand 1 can be direct, register direct, indirect or register indirect.
 
     Operation:
 
-      ACL := ACL or Operand1;
+      AR := AR or Operand1;
 
   0x22 OUT <r/imm/m> <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -715,11 +716,11 @@ CONTENTS
 
   0x4b SUB <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Subtracts the value indacted by Operand 1 from the value of ACL and stores
-    the result in ACL.
+    Subtracts the value indacted by Operand 1 from the value of AR and stores
+    the result in AR.
     Sets CF on carry for unsigned math, OF on overflow for signed math and the
     NF flag to indicate the sign of the signed result. Sets ZF if the result
-    is 0 (ACL = 0 && CF = 0 && OF = 0).
+    is 0 (AR = 0 && CF = 0 && OF = 0).
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
@@ -735,19 +736,19 @@ CONTENTS
 
     Operation:
 
-      ANDSetFlags(ACL & Operand1);
+      ANDSetFlags(AR & Operand1);
 
   0x4d XOR <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Executes a XOR operation on the value of ACL with the value indicated by
-    Operand 1. Stores the result in ACL.
+    Executes a XOR operation on the value of AR with the value indicated by
+    Operand 1. Stores the result in AR.
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
 
     Operation:
 
-      ACL := ACL ^ Operand1;
+      AR := AR ^ Operand1;
 
 LICENSE
 ────────────────────────────────────────────────────────────────────────────────
