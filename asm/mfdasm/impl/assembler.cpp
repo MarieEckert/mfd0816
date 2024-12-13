@@ -559,12 +559,12 @@ Parser::tryParseOperands(u32 ix) {
 				expressions.push_back(std::make_shared<IndirectAddress>(
 					Token::isRegister(middle_token.type()) ? IndirectAddress::REGISTER
 														   : IndirectAddress::MEMORY,
-					token.toBytes()));
+					middle_token.toBytes()));
 			} else {
 				expressions.push_back(std::make_shared<DirectAddress>(
 					Token::isRegister(middle_token.type()) ? DirectAddress::REGISTER
 														   : DirectAddress::MEMORY,
-					token.toBytes()));
+					middle_token.toBytes()));
 			}
 
 			ix += indirect ? 4 : 2;

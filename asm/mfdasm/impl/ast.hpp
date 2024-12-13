@@ -185,7 +185,7 @@ class ExpressionBase {
 
 	Kind kind() const;
 
-	virtual std::string toString() const;
+	virtual std::string toString(u32 indent_level = 0) const;
 
    protected:
 	ExpressionBase(Kind kind);
@@ -200,7 +200,7 @@ class StatementBase {
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
-	virtual std::string toString() const;
+	virtual std::string toString(u32 indent_level = 0) const;
 
    protected:
 	StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions);
@@ -214,7 +214,7 @@ class Literal : public ExpressionBase {
 
 	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	std::vector<u8> m_value;
@@ -233,7 +233,7 @@ class Identifier : public ExpressionBase {
 
 	Kind kind() const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	Kind m_kind;
@@ -252,7 +252,7 @@ class DirectAddress : public ExpressionBase {
 
 	Kind kind() const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	Kind m_kind;
@@ -271,7 +271,7 @@ class IndirectAddress : public ExpressionBase {
 
 	Kind kind() const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	Kind m_kind;
@@ -305,7 +305,7 @@ class Register : public ExpressionBase {
 
 	Kind kind() const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	Kind m_kind;
@@ -402,7 +402,7 @@ class Instruction : public StatementBase {
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	Kind m_kind;
@@ -421,7 +421,7 @@ class Directive : public StatementBase {
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 };
 
 class Statement : public StatementBase {
@@ -459,7 +459,7 @@ class Statement : public StatementBase {
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
-	std::string toString() const override;
+	std::string toString(u32 indent_level = 0) const override;
 
    private:
 	Kind m_kind;

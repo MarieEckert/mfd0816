@@ -198,6 +198,17 @@ std::string Token::toString() const {
 }
 
 std::vector<u8> Token::toBytes() const {
+	if(Token::isRegister(this->m_type)) {
+		const auto iterator = register_value_map.find(this->m_type);
+		if(iterator == register_value_map.end()) {
+			panic(
+				"register missing in Token::register_value_map! (this->m_type =" +
+				std::to_string(this->m_type) + ")");
+		}
+
+		return {iterator->second};
+	}
+
 	if(!this->m_maybeValue.has_value()) {
 		return {};
 	}
@@ -212,17 +223,6 @@ std::vector<u8> Token::toBytes() const {
 	if(this->m_type == Token::STRING) {
 		return std::vector<u8>(
 			this->m_maybeValue.value().begin(), this->m_maybeValue.value().end());
-	}
-
-	if(Token::isRegister(this->m_type)) {
-		const auto iterator = register_value_map.find(this->m_type);
-		if(iterator == register_value_map.end()) {
-			panic(
-				"register missing in Token::register_value_map! (this->m_type =" +
-				std::to_string(this->m_type) + ")");
-		}
-
-		return {iterator->second};
 	}
 
 	return {};
