@@ -18,7 +18,9 @@
 #include <3rdparty/map.hpp>
 #include <algorithm>
 #include <cctype>
+#include <iostream>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -266,6 +268,9 @@ Result<None, AsmError> Parser::parseTokens() {
 				break;
 			}
 			default:
+				for(const auto &statement: this->m_ast) {
+					std::cout << statement.toString();
+				}
 				return Err(AsmError(
 					AsmError::SYNTAX_ERROR, token.lineno(),
 					"Unexpected keyword or token: " + token.toString()));
@@ -308,11 +313,11 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 	this->m_ast.push_back(Statement(
 			Statement::SECTION,
 			{
-				Identifier(
+				std::make_shared<Identifier>(
 					Identifier::SECTION,
 					literal_name.maybeValue().value()
 				),
-				Literal(
+				std::make_shared<Literal>(
 					literal_value.toBytes()
 				)
 			}
@@ -335,7 +340,7 @@ Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 	this->m_ast.push_back(Statement(
 			Statement::LABEL,
 			{
-				Identifier(
+				std::make_shared<Identifier>(
 					Identifier::LABEL,
 					token.maybeValue().value()
 				)
@@ -402,17 +407,18 @@ Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 
 Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind) {
 	const std::vector<InstructionOperand> required_operands = InstructionOperand::operandsFor(kind);
-	const Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> parse_operands_result =
-		this->tryParseOperands(ix);
+	const Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
+		parse_operands_result = this->tryParseOperands(ix);
 
 	if(parse_operands_result.isErr()) {
 		return Err(parse_operands_result.unwrapErr());
 	}
 
-	const std::pair<u32, std::vector<ExpressionBase>> &parse_operands_unwrapped =
+	const std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>> &parse_operands_unwrapped =
 		parse_operands_result.unwrap();
 
-	const std::vector<ExpressionBase> &operand_expressions = parse_operands_unwrapped.second;
+	const std::vector<std::shared_ptr<ExpressionBase>> &operand_expressions =
+		parse_operands_unwrapped.second;
 
 	if(operand_expressions.size() != required_operands.size()) {
 		return Err(AsmError(
@@ -422,28 +428,31 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	}
 
 	const auto given_operands =
-		map(operand_expressions, [](ExpressionBase expr) -> InstructionOperand::Kind {
-			switch(expr.kind()) {
-				case ExpressionBase::DIRECT_ADDRESS: {
-					const DirectAddress &tmp_directaddress = static_cast<DirectAddress &>(expr);
-					return tmp_directaddress.kind() == DirectAddress::MEMORY
-							   ? InstructionOperand::DIRECT
-							   : InstructionOperand::REGISTER_DIRECT;
+		map(operand_expressions,
+			[](std::shared_ptr<ExpressionBase> expr) -> InstructionOperand::Kind {
+				switch(expr->kind()) {
+					case ExpressionBase::DIRECT_ADDRESS: {
+						const DirectAddress *tmp_directaddress =
+							dynamic_cast<DirectAddress *>(expr.get());
+						return tmp_directaddress->kind() == DirectAddress::MEMORY
+								   ? InstructionOperand::DIRECT
+								   : InstructionOperand::REGISTER_DIRECT;
+					}
+					case ExpressionBase::INDIRECT_ADDRESS: {
+						const IndirectAddress *tmp_indirectaddress =
+							dynamic_cast<IndirectAddress *>(expr.get());
+						return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
+								   ? InstructionOperand::DIRECT
+								   : InstructionOperand::REGISTER_DIRECT;
+					}
+					case ExpressionBase::REGISTER:
+						return InstructionOperand::REGISTER_IMMEDIATE;
+					case ExpressionBase::IDENTIFIER:
+					case ExpressionBase::LITERAL:
+						return InstructionOperand::IMMEDIATE;
 				}
-				case ExpressionBase::INDIRECT_ADDRESS: {
-					const IndirectAddress &tmp_indirectaddress =
-						static_cast<IndirectAddress &>(expr);
-					return tmp_indirectaddress.kind() == IndirectAddress::MEMORY
-							   ? InstructionOperand::DIRECT
-							   : InstructionOperand::REGISTER_DIRECT;
-				}
-				case ExpressionBase::REGISTER:
-					return InstructionOperand::REGISTER_IMMEDIATE;
-				case ExpressionBase::IDENTIFIER:
-				case ExpressionBase::LITERAL:
-					return InstructionOperand::IMMEDIATE;
-			}
-		}).to<std::vector<InstructionOperand::Kind>>();
+			})
+			.to<std::vector<InstructionOperand::Kind>>();
 
 	for(u32 operand_ix = 0; operand_ix < required_operands.size(); operand_ix++) {
 		if(required_operands[operand_ix].isAllowed(given_operands[operand_ix])) {
@@ -459,7 +468,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	this->m_ast.push_back(Statement(
 			Statement::INSTRUCTION,
 			{},
-			Instruction(
+			std::make_shared<Instruction>(
 				kind,
 				operand_expressions
 			)
@@ -475,12 +484,14 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	return Ok(ix);
 }
 
-Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOperands(u32 ix) {
+Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
+Parser::tryParseOperands(u32 ix) {
 	if(ix >= this->m_tokens.size()) {
-		return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, std::vector<ExpressionBase>{}));
+		return Ok(std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(
+			ix, std::vector<std::shared_ptr<ExpressionBase>>{}));
 	}
 
-	std::vector<ExpressionBase> expressions;
+	std::vector<std::shared_ptr<ExpressionBase>> expressions;
 
 	/* Parse the following expressions:
 	 * 1. Identifiers
@@ -498,7 +509,7 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 
 		const Token &token = this->m_tokens[ix];
 		if(Token::isNumberType(token.type()) || token.type() == Token::STRING) {
-			expressions.push_back(Literal(token.toBytes()));
+			expressions.push_back(std::make_shared<Literal>(token.toBytes()));
 			goto end;
 		}
 
@@ -509,7 +520,7 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 					"invalid return: token = " + token.toString() +
 					"; Token::isRegister() == true; Register::fromTokenType() returned nullopt!");
 			}
-			expressions.push_back(reg.value());
+			expressions.push_back(std::make_shared<Register>(reg.value()));
 			goto end;
 		}
 
@@ -545,12 +556,12 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 
 			const Token &middle_token = this->m_tokens[ix + offset];
 			if(indirect) {
-				expressions.push_back(IndirectAddress(
+				expressions.push_back(std::make_shared<IndirectAddress>(
 					Token::isRegister(middle_token.type()) ? IndirectAddress::REGISTER
 														   : IndirectAddress::MEMORY,
 					token.toBytes()));
 			} else {
-				expressions.push_back(DirectAddress(
+				expressions.push_back(std::make_shared<DirectAddress>(
 					Token::isRegister(middle_token.type()) ? DirectAddress::REGISTER
 														   : DirectAddress::MEMORY,
 					token.toBytes()));
@@ -564,14 +575,15 @@ Result<std::pair<u32, std::vector<ExpressionBase>>, AsmError> Parser::tryParseOp
 			return Err(AsmError(AsmError::ILLEGAL_OPERAND, token.lineno()));
 		}
 
-		expressions.push_back(Identifier(Identifier::LABEL, token.maybeValue().value_or("???")));
+		expressions.push_back(
+			std::make_shared<Identifier>(Identifier::LABEL, token.maybeValue().value_or("???")));
 
 	end:
 		ix++;
 	} while(ix < this->m_tokens.size() && this->m_tokens[ix].type() == Token::COMMA);
 
 	ix--; /* ix needs to be on the last "consumed" token */
-	return Ok(std::pair<u32, std::vector<ExpressionBase>>(ix, expressions));
+	return Ok(std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(ix, expressions));
 }
 
 }  // namespace mfdasm::impl

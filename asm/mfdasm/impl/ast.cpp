@@ -16,6 +16,7 @@
  */
 
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -37,14 +38,39 @@ ExpressionBase::Kind ExpressionBase::kind() const {
 
 ExpressionBase::ExpressionBase(Kind kind) : m_kind(kind) {}
 
+std::string ExpressionBase::toString() const {
+	return "ExpressionBase\n";
+}
+
+/* class StatementBase */
+
+std::vector<u8> StatementBase::toBytes(ResolvalContext &resolval_context) const {
+	return {0};
+}
+
+std::string StatementBase::toString() const {
+	return "StatementBase\n";
+}
+
+StatementBase::StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions)
+	: m_expressions(expressions) {}
+
 /* class Literal */
 
 Literal::Literal(std::vector<u8> value) : ExpressionBase(ExpressionBase::LITERAL), m_value(value) {}
+
+std::string Literal::toString() const {
+	return "LITERAL\n";
+}
 
 /* class Identifier */
 
 Identifier::Identifier(Kind kind, std::string name)
 	: ExpressionBase(ExpressionBase::IDENTIFIER), m_kind(kind), m_name(name) {}
+
+std::string Identifier::toString() const {
+	return "Identifier\n";
+}
 
 /* class DirectAddress */
 
@@ -55,6 +81,10 @@ DirectAddress::Kind DirectAddress::kind() const {
 	return this->m_kind;
 }
 
+std::string DirectAddress::toString() const {
+	return "DirectAddress\n";
+}
+
 /* class IndirectAddress */
 
 IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value)
@@ -62,6 +92,10 @@ IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value)
 
 IndirectAddress::Kind IndirectAddress::kind() const {
 	return this->m_kind;
+}
+
+std::string IndirectAddress::toString() const {
+	return "IndirectAddress\n";
 }
 
 /* class Register */
@@ -107,6 +141,10 @@ std::optional<Register> Register::fromTokenType(Token::Type type) {
 
 Register::Kind Register::kind() const {
 	return this->m_kind;
+}
+
+std::string Register::toString() const {
+	return "Register\n";
 }
 
 /* class Instruction */
@@ -174,8 +212,8 @@ std::optional<Instruction::Kind> Instruction::kindFromString(const std::string &
 	return res->second;
 }
 
-Instruction::Instruction(Kind kind, std::vector<ExpressionBase> expressions)
-	: m_kind(kind), m_expressions(expressions) {
+Instruction::Instruction(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions)
+	: StatementBase(expressions), m_kind(kind) {
 	if(Instruction::isReserved(kind)) {
 		logWarning() << "Instruction constructed with reserved opcode 0x" << std::hex
 					 << static_cast<i32>(kind) << std::dec << "\n";
@@ -192,7 +230,19 @@ std::vector<u8> Instruction::toBytes(ResolvalContext &resolval_context) const {
 }
 
 std::string Instruction::toString() const {
-	return "";
+	std::string expression_string = "";
+	for(const auto &expression: this->m_expressions) {
+		expression_string += expression->toString();
+	}
+
+	return "Instruction {\n"
+		   "  kind: " +
+		   std::to_string(this->m_kind) +
+		   "\n"
+		   "  expressions: [" +
+		   expression_string +
+		   "  ]\n"
+		   "}";
 }
 
 /* class Directive */
@@ -214,24 +264,28 @@ std::optional<Directive::Kind> Directive::kindFromString(const std::string &str)
 	return res->second;
 }
 
+std::string Directive::toString() const {
+	return "Directive";
+}
+
 /* class Statement */
 
 Statement::Statement(
 	Kind kind,
-	std::vector<ExpressionBase> expressions,
-	std::optional<StatementBase> statement)
-	: m_kind(kind), m_expressions(expressions), m_subStatement(std::move(statement)) {
+	std::vector<std::shared_ptr<ExpressionBase>> expressions,
+	std::optional<std::shared_ptr<StatementBase>> statement)
+	: StatementBase(expressions), m_kind(kind), m_subStatement(std::move(statement)) {
 	if(!statement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
 		panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
 }
 
 Statement::Statement(Statement &x)
-	: m_kind(x.m_kind), m_expressions(x.m_expressions), m_subStatement(x.m_subStatement) {}
+	: StatementBase(x.m_expressions), m_kind(x.m_kind), m_subStatement(x.m_subStatement) {}
 
 Statement::Statement(Statement &&x)
-	: m_kind(std::exchange(x.m_kind, static_cast<Statement::Kind>(0))),
-	  m_expressions(std::move(x.m_expressions)),
+	: StatementBase(std::move(x.m_expressions)),
+	  m_kind(std::exchange(x.m_kind, static_cast<Statement::Kind>(0))),
 	  m_subStatement(std::move(x.m_subStatement)) {}
 
 Statement::Kind Statement::kind() const {
@@ -239,7 +293,25 @@ Statement::Kind Statement::kind() const {
 }
 
 std::string Statement::toString() const {
-	return "";
+	std::string expression_string = "";
+	for(const auto &expression: this->m_expressions) {
+		expression_string += expression->toString();
+	}
+
+	std::string statement_string =
+		this->m_subStatement.has_value() ? this->m_subStatement->get()->toString() : "";
+
+	return "Statement {\n"
+		   "  kind: " +
+		   std::to_string(this->m_kind) +
+		   "\n"
+		   "  expressions: [\n" +
+		   expression_string +
+		   "  ]\n"
+		   "  statement: " +
+		   statement_string +
+		   "\n"
+		   "}\n";
 }
 
 std::vector<u8> Statement::toBytes(ResolvalContext &resolval_context) const {

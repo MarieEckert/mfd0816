@@ -68,6 +68,8 @@ class Token {
 		DL,
 		DH,
 		DCL,
+		IID,
+		AR,
 		ADDRESSING,
 		RELATIVE,
 		ABSOLUTE,

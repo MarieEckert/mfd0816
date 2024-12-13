@@ -22,10 +22,19 @@
 #include <vector>
 
 #include <mfdasm/impl/token.hpp>
+#include <mfdasm/panic.hpp>
 
 namespace mfdasm::impl {
 
-static inline const std::unordered_map<std::string, Token::Type> name_value_map = {
+static const std::unordered_map<Token::Type, u8> register_value_map = {
+	{Token::AL, 0x00},	{Token::AH, 0x01},	{Token::ACL, 0x02}, {Token::BL, 0x03},
+	{Token::BH, 0x04},	{Token::BCL, 0x05}, {Token::CL, 0x06},	{Token::CH, 0x07},
+	{Token::CCL, 0x08}, {Token::DL, 0x09},	{Token::DH, 0x0a},	{Token::DCL, 0x0b},
+	{Token::SP, 0x0c},	{Token::IP, 0x0d},	{Token::AR, 0x0e},	{Token::FL, 0x0f},
+	{Token::IID, 0x10},
+};
+
+static const std::unordered_map<std::string, Token::Type> name_value_map = {
 	{"end_of_file", Token::Type::END_OF_FILE},
 	{"unknown", Token::Type::UNKNOWN},
 	{"label", Token::Type::LABEL},
@@ -60,6 +69,8 @@ static inline const std::unordered_map<std::string, Token::Type> name_value_map 
 	{"dl", Token::Type::DL},
 	{"dh", Token::Type::DH},
 	{"dcl", Token::Type::DCL},
+	{"iid", Token::Type::IID},
+	{"ar", Token::Type::AR},
 	{"addressing", Token::Type::ADDRESSING},
 	{"relative", Token::Type::RELATIVE},
 	{"absolute", Token::Type::ABSOLUTE},
@@ -203,7 +214,16 @@ std::vector<u8> Token::toBytes() const {
 			this->m_maybeValue.value().begin(), this->m_maybeValue.value().end());
 	}
 
-	/** @todo registers */
+	if(Token::isRegister(this->m_type)) {
+		const auto iterator = register_value_map.find(this->m_type);
+		if(iterator == register_value_map.end()) {
+			panic(
+				"register missing in Token::register_value_map! (this->m_type =" +
+				std::to_string(this->m_type) + ")");
+		}
+
+		return {iterator->second};
+	}
 
 	return {};
 }
