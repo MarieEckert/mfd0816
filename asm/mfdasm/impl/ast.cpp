@@ -288,9 +288,9 @@ std::string Instruction::toString(u32 indentLevel) const {
 		expression_string += expression->toString(indentLevel + 2);
 	}
 
-	return "Instruction {\n" + base_indent + "  kind: " + base_indent +
-		   std::to_string(this->m_kind) + "\n" + base_indent + "  expressions: [\n" +
-		   expression_string + base_indent + "  ]\n" + base_indent + "}";
+	return "Instruction {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) + "\n" +
+		   base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
+		   base_indent + "}";
 }
 
 /* class Directive */
@@ -312,8 +312,20 @@ std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {
 	return res->second;
 }
 
+Directive::Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions)
+	: StatementBase(expressions), m_kind(kind) {}
+
 std::string Directive::toString(u32 indentLevel) const {
-	return "Directive";
+	const std::string base_indent = makeIndent(indentLevel);
+
+	std::string expression_string = "";
+	for(const auto &expression: this->m_expressions) {
+		expression_string += expression->toString(indentLevel + 2);
+	}
+
+	return "Directive {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) + "\n" +
+		   base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
+		   base_indent + "}";
 }
 
 /* class Statement */

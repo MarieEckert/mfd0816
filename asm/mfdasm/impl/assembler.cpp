@@ -24,15 +24,16 @@
 #include <string>
 #include <vector>
 
+#include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/directive_operand.hpp>
 #include <mfdasm/impl/instruction_operand.hpp>
+#include <mfdasm/impl/token.hpp>
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
-#include "mfdasm/impl/asmerror.hpp"
-#include "mfdasm/impl/token.hpp"
+#define PRINT_AST_ON_UKOT
 
 namespace mfdasm::impl {
 
@@ -278,6 +279,14 @@ Result<None, AsmError> Parser::parseTokens() {
 					continue;
 				}
 
+#ifdef PRINT_AST_ON_UKOT
+				std::cout << "[\n";
+				for(const auto &statement: this->m_ast) {
+					std::cout << statement.toString(1);
+				}
+				std::cout << "]\n";
+#endif
+
 				return Err(AsmError(
 					AsmError::SYNTAX_ERROR, token.lineno(),
 					"Unexpected keyword or token: " + token.toString()));
@@ -503,8 +512,54 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 				std::to_string(operand_expressions.size())));
 	}
 
-	logWarning() << "DIRECTIVES ARE NOT ADDED TO AST CURRENTLY\n";
+	const auto given_operands =
+		map(operand_expressions,
+			[](std::shared_ptr<ExpressionBase> expr) -> DirectiveOperand::Kind {
+				switch(expr->kind()) {
+					case ExpressionBase::DIRECT_ADDRESS: {
+						const DirectAddress *tmp_directaddress =
+							dynamic_cast<DirectAddress *>(expr.get());
+						return tmp_directaddress->kind() == DirectAddress::MEMORY
+								   ? DirectiveOperand::INVALID
+								   : DirectiveOperand::INVALID;
+					}
+					case ExpressionBase::INDIRECT_ADDRESS: {
+						const IndirectAddress *tmp_indirectaddress =
+							dynamic_cast<IndirectAddress *>(expr.get());
+						return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
+								   ? DirectiveOperand::INVALID
+								   : DirectiveOperand::INVALID;
+					}
+					case ExpressionBase::REGISTER:
+						return DirectiveOperand::INVALID;
+					case ExpressionBase::IDENTIFIER:
+					case ExpressionBase::LITERAL:
+						return DirectiveOperand::IMMEDIATE;
+				}
+			})
+			.to<std::vector<DirectiveOperand::Kind>>();
 
+	for(u32 operand_ix = 0; operand_ix < required_operands.size(); operand_ix++) {
+		if(required_operands[operand_ix].isAllowed(given_operands[operand_ix])) {
+			continue;
+		}
+
+		return Err(AsmError(
+			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			"Invalid operand of type " + std::to_string(given_operands[operand_ix])));
+	}
+
+	/* clang-format off */
+	this->m_ast.push_back(Statement(
+			Statement::DIRECTIVE,
+			{},
+			std::make_shared<Directive>(
+				kind,
+				operand_expressions
+			)
+		)
+	);
+	/* clang-format on */
 	return Ok(parse_operands_unwrapped.first);
 }
 
@@ -592,6 +647,11 @@ Parser::tryParseOperands(u32 ix) {
 			}
 
 			ix += indirect ? 4 : 2;
+			goto end;
+		}
+
+		if(token.type() == Token::_HERE) {
+			expressions.push_back(std::make_shared<Identifier>(Identifier::HERE, ""));
 			goto end;
 		}
 

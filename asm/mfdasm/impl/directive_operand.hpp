@@ -28,6 +28,7 @@ class DirectiveOperand {
    public:
 	enum Kind {
 		IMMEDIATE = 0b0000,
+		INVALID = 0b11111,
 	};
 
 	static std::vector<DirectiveOperand> operandsFor(Directive::Kind directive);

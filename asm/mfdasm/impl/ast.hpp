@@ -225,6 +225,7 @@ class Identifier : public ExpressionBase {
 	enum Kind {
 		LABEL,
 		SECTION,
+		HERE,
 	};
 
 	Identifier(Kind kind, std::string name);
@@ -419,9 +420,14 @@ class Directive : public StatementBase {
 
 	static std::optional<Kind> kindFromToken(Token::Type type);
 
+	Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions);
+
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
 	std::string toString(u32 indent_level = 0) const override;
+
+   private:
+	Kind m_kind;
 };
 
 class Statement : public StatementBase {
