@@ -295,17 +295,17 @@ std::string Instruction::toString(u32 indentLevel) const {
 
 /* class Directive */
 
-static const std::unordered_map<std::string, Directive::Kind> directive_name_map = {
-	{"db", Directive::DB},
-	{"dw", Directive::DW},
-	{"dd", Directive::DD},
-	{"times", Directive::TIMES},
+static const std::unordered_map<Token::Type, Directive::Kind> directive_type_map = {
+	{Token::DB, Directive::DB},
+	{Token::DW, Directive::DW},
+	{Token::DD, Directive::DD},
+	{Token::TIMES, Directive::TIMES},
 };
 
-std::optional<Directive::Kind> Directive::kindFromString(const std::string &str) {
-	const auto res = directive_name_map.find(str);
+std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {
+	const auto res = directive_type_map.find(type);
 
-	if(res == directive_name_map.cend()) {
+	if(res == directive_type_map.cend()) {
 		return std::nullopt;
 	}
 

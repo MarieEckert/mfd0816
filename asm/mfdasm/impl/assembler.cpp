@@ -263,14 +263,21 @@ Result<None, AsmError> Parser::parseTokens() {
 				}
 
 				ix = parse_result.unwrap();
-				logInfo()
-					<< "TODO: implement handling for unknown tokens (instructions or directives)\n";
 				break;
 			}
 			default:
-				for(const auto &statement: this->m_ast) {
-					std::cout << statement.toString();
+				if(const auto maybe_directive = Directive::kindFromToken(token.type());
+				   maybe_directive.has_value()) {
+					const Result<u32, AsmError> directive_parse_result =
+						this->tryParseDirective(ix + 1, maybe_directive.value());
+					if(directive_parse_result.isErr()) {
+						return Err(directive_parse_result.unwrapErr());
+					}
+
+					ix = directive_parse_result.unwrap();
+					continue;
 				}
+
 				return Err(AsmError(
 					AsmError::SYNTAX_ERROR, token.lineno(),
 					"Unexpected keyword or token: " + token.toString()));
@@ -398,10 +405,6 @@ Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 		return this->tryParseInstruction(ix + 1, maybe_instruction.value());
 	}
 
-	if(const auto maybe_directive = Directive::kindFromString(token_value)) {
-		return this->tryParseDirective(ix + 1, maybe_directive.value());
-	}
-
 	return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
 }
 
@@ -479,9 +482,30 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 }
 
 Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
-	/** @todo implement */
-	const std::vector<DirectiveOperand> operands = DirectiveOperand::operandsFor(kind);
-	return Ok(ix);
+	const std::vector<DirectiveOperand> required_operands = DirectiveOperand::operandsFor(kind);
+	const Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
+		parse_operands_result = this->tryParseOperands(ix);
+
+	if(parse_operands_result.isErr()) {
+		return Err(parse_operands_result.unwrapErr());
+	}
+
+	const std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>> &parse_operands_unwrapped =
+		parse_operands_result.unwrap();
+
+	const std::vector<std::shared_ptr<ExpressionBase>> &operand_expressions =
+		parse_operands_unwrapped.second;
+
+	if(operand_expressions.size() != required_operands.size()) {
+		return Err(AsmError(
+			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			"Expected " + std::to_string(required_operands.size()) + " operands, got " +
+				std::to_string(operand_expressions.size())));
+	}
+
+	logWarning() << "DIRECTIVES ARE NOT ADDED TO AST CURRENTLY\n";
+
+	return Ok(parse_operands_unwrapped.first);
 }
 
 Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>

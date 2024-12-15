@@ -25,7 +25,33 @@ namespace mfdasm::impl {
 
 /** @brief this is hell */
 const std::unordered_map<Directive::Kind, std::vector<DirectiveOperand>>
-	DirectiveOperand::m_directiveOperandsMap = {};
+	DirectiveOperand::m_directiveOperandsMap = {
+		{
+			Directive::DB,
+			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
+			},
+		},
+		{
+			Directive::DW,
+			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
+			},
+		},
+		{
+			Directive::DD,
+			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
+			},
+		},
+
+		{
+			Directive::TIMES,
+			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
+			},
+		},
+};
 
 DirectiveOperand::DirectiveOperand(std::vector<DirectiveOperand::Kind> allowed_kinds)
 	: m_allowedKinds(allowed_kinds) {}

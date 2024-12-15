@@ -417,7 +417,7 @@ class Directive : public StatementBase {
 		TIMES,
 	};
 
-	static std::optional<Kind> kindFromString(const std::string &str);
+	static std::optional<Kind> kindFromToken(Token::Type type);
 
 	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
