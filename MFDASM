@@ -1,0 +1,82 @@
+                        MFD-0816 ASSEMBLER SPECFICIATION
+                                 November  2024
+
+CONTENTS
+────────────────────────────────────────────────────────────────────────────────
+
+  1.... RESERVED KEYWORDS & CHARACTERS
+  2.... SYNTAX
+  2.1.. COMMENTS
+  2.2.. SECTIONS
+  2.3.. LABELS
+  2.4.. INSTRUCTIONS & DIRECTIVES
+  2.5.. CONSTANT EXPRESSIONS
+  3.... SPECIAL KEYWORDS
+
+1. RESERVED KEYWORDS & CHARACTERS
+────────────────────────────────────────────────────────────────────────────────
+
+  Keywords:
+
+    db  dw  dd  times  _here  section  sp  ip  fl  al  ah  acl  bl  bh  bcl  cl
+    ch  ccl  dl  dh  dcl  iid  ar  addressing  relative  absolute  at
+
+  Characters:
+
+    [  ]  -  +  /  *  "  ;  ,
+
+2. SYNTAX
+2.1. COMMENTS
+────────────────────────────────────────────────────────────────────────────────
+
+  Comments can be made using the reserved semi-colon character, these are line
+  comments. As soon as a semi-colon is met on a line, every character up until
+  the end of the line is interpreted as a comment.
+
+2.2. SECTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+  Programs can be divided up into sections. Each section has a name an a
+  starting address. The begin of a section is declared by the section keyword,
+  followed by the section name, followed by the at keyword and finally the
+  address as a literal expression.
+
+  Example:
+
+    section <name> at <location>
+
+  The Section location must be a 16-bit value, the name must not be a reserved
+  keyword or character.
+
+  If instructions or data is declared before any section is declared, it should
+  start at address 0. Empty space between sections must be padded with 0s, if
+  the assembler is set to produce a ROM.
+
+  Section names are to be added as identifiers usable anywhere else in the
+  program.
+
+2.3. LABELS
+────────────────────────────────────────────────────────────────────────────────
+
+  Labels are basic statements which resolve to a certain address/location in the
+  program. Labels are declared by a name immediatly followed by a colon.
+
+  Example:
+
+    <label-name>:
+
+  The name must not be a reserved keyword or character.
+
+  Labels are to be added as identifiers usable anywhere else in the program.
+  They should resolve to location of the last byte before its declaration plus
+  one.
+
+  Example:
+
+                Location  Value
+                0x0123     00
+    some_label: 0x0124           ; some_label should now resolve to 0x0124
+
+2.4. INSTRUCTIONS & DIRECTIVES
+────────────────────────────────────────────────────────────────────────────────
+
