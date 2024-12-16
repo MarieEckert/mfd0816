@@ -364,16 +364,11 @@ std::string Statement::toString(u32 indentLevel) const {
 			? this->m_subStatement->get()->toString(indentLevel + 1)
 			: "std::nullopt / nullptr";
 
-	return "Statement {\n"
-		   "  kind: " +
-		   std::to_string(this->m_kind) +
-		   "\n"
-		   "  expressions: [\n" +
-		   expression_string +
-		   "  ]\n"
-		   "  statement: " +
-		   statement_string +
-		   "\n"
+	const std::string base_indent = makeIndent(indentLevel);
+
+	return base_indent + "Statement {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) +
+		   "\n" + base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
+		   base_indent + "  statement: " + statement_string + base_indent + "\n" + base_indent +
 		   "}\n";
 }
 
