@@ -446,6 +446,9 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 					case ExpressionBase::DIRECT_ADDRESS: {
 						const DirectAddress *tmp_directaddress =
 							dynamic_cast<DirectAddress *>(expr.get());
+						if(tmp_directaddress == nullptr) {
+							panic("could not cast ExpressionBase to DirectAddress in map func");
+						}
 						return tmp_directaddress->kind() == DirectAddress::MEMORY
 								   ? InstructionOperand::DIRECT
 								   : InstructionOperand::REGISTER_DIRECT;
@@ -453,6 +456,9 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 					case ExpressionBase::INDIRECT_ADDRESS: {
 						const IndirectAddress *tmp_indirectaddress =
 							dynamic_cast<IndirectAddress *>(expr.get());
+						if(tmp_indirectaddress == nullptr) {
+							panic("could not cast ExpressionBase to IndirectAddress in map func");
+						}
 						return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
 								   ? InstructionOperand::DIRECT
 								   : InstructionOperand::REGISTER_DIRECT;
@@ -516,20 +522,8 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 		map(operand_expressions,
 			[](std::shared_ptr<ExpressionBase> expr) -> DirectiveOperand::Kind {
 				switch(expr->kind()) {
-					case ExpressionBase::DIRECT_ADDRESS: {
-						const DirectAddress *tmp_directaddress =
-							dynamic_cast<DirectAddress *>(expr.get());
-						return tmp_directaddress->kind() == DirectAddress::MEMORY
-								   ? DirectiveOperand::INVALID
-								   : DirectiveOperand::INVALID;
-					}
-					case ExpressionBase::INDIRECT_ADDRESS: {
-						const IndirectAddress *tmp_indirectaddress =
-							dynamic_cast<IndirectAddress *>(expr.get());
-						return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
-								   ? DirectiveOperand::INVALID
-								   : DirectiveOperand::INVALID;
-					}
+					case ExpressionBase::DIRECT_ADDRESS:
+					case ExpressionBase::INDIRECT_ADDRESS:
 					case ExpressionBase::REGISTER:
 						return DirectiveOperand::INVALID;
 					case ExpressionBase::IDENTIFIER:
@@ -597,7 +591,8 @@ Parser::tryParseOperands(u32 ix) {
 			if(!reg.has_value()) {
 				panic(
 					"invalid return: token = " + token.toString() +
-					"; Token::isRegister() == true; Register::fromTokenType() returned nullopt!");
+					"; Token::isRegister() == true; Register::fromTokenType() returned "
+					"nullopt!");
 			}
 			expressions.push_back(std::make_shared<Register>(reg.value()));
 			goto end;
