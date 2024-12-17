@@ -51,17 +51,17 @@ ExpressionBase::Kind ExpressionBase::kind() const {
 
 ExpressionBase::ExpressionBase(Kind kind) : m_kind(kind) {}
 
-std::string ExpressionBase::toString(u32 indentLevel) const {
+std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "ExpressionBase\n";
 }
 
 /* class StatementBase */
 
-std::vector<u8> StatementBase::toBytes(ResolvalContext &resolval_context) const {
+std::vector<u8> StatementBase::toBytes([[maybe_unused]] ResolvalContext &resolval_context) const {
 	return {0};
 }
 
-std::string StatementBase::toString(u32 indentLevel) const {
+std::string StatementBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "StatementBase\n";
 }
 
