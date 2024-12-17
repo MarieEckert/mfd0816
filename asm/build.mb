@@ -97,6 +97,8 @@ end
 sector c_rules
   section compile
     str exec_mode 'singular'
+    bool parallel true
+    u8 max_procs 16
 
     str input_src '/config/files/sources'
 
