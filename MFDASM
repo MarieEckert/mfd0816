@@ -4,14 +4,19 @@
 CONTENTS
 ────────────────────────────────────────────────────────────────────────────────
 
-  1.... RESERVED KEYWORDS & CHARACTERS
-  2.... SYNTAX
-  2.1.. COMMENTS
-  2.2.. SECTIONS
-  2.3.. LABELS
-  2.4.. INSTRUCTIONS & DIRECTIVES
-  2.5.. CONSTANT EXPRESSIONS
-  3.... SPECIAL KEYWORDS
+  1..... RESERVED KEYWORDS & CHARACTERS
+  2..... SYNTAX
+  2.1... COMMENTS
+  2.2... SECTIONS
+  2.3... LABELS
+  2.4... INSTRUCTIONS & DIRECTIVES
+  2.4.1. ADDRESSING MODES
+  2.5... CONSTANT EXPRESSIONS
+  2.6... STRING LITERALS
+  2.7... NUMBER LITERALS
+  3..... SPECIAL KEYWORDS
+  4..... DIRECTIVE REFERENCE
+  ...... LICENSE
 
 1. RESERVED KEYWORDS & CHARACTERS
 ────────────────────────────────────────────────────────────────────────────────
@@ -80,3 +85,54 @@ CONTENTS
 2.4. INSTRUCTIONS & DIRECTIVES
 ────────────────────────────────────────────────────────────────────────────────
 
+  The syntax for instructions and directives is as follows:
+
+    <instruction or directive keyword> [operand[, operand]]
+
+  Here, the part in angle brackets is required and the parts in square brackets
+  are only required for certain instructions or directives. If an operand is
+  followed upon by another operand, they must be seperated by a comma.
+
+  For a reference of instructions see the MFD-0816 INSTRUCTION SET REFERENCE,
+  for directives see Chapter 4.
+
+2.4.1. ADDRESSING MODES
+────────────────────────────────────────────────────────────────────────────────
+
+  This chapter focuses on immediate, direct and indirect addressing syntax,
+  for the "addressing" directive, see Chapter 4.
+
+  Immediate addresses/values are declared simply by notating the value without
+  any decorations, e.g.:
+
+    ld acl, 0x1234
+
+  Loads the value 0x1234 into the ACL register.
+
+    ld bcl, ccl
+
+  Loads the value from the CCL register into the BCL register.
+
+  Direct addressing is achieved by wrapping the value in square-brackets, e.g.:
+
+    ld acl, [0x1234]
+
+  Loads the value at address 0x1234 into the ACL register.
+
+    ld bcl, [ccl]
+
+  Loads the value from the address in the CCL register into the BCL register.
+
+  Indirect addressing is done by adding another set of square-brackets around
+  the value, e.g.:
+
+    ld acl, [[0x1234]]
+
+2.5. CONSTANT EXPRESSIONS
+────────────────────────────────────────────────────────────────────────────────
+
+LICENSE
+────────────────────────────────────────────────────────────────────────────────
+
+  MFD-0816 ASSEMBLER SPECIFICATION by Marie Eckert is licensed
+  under CC BY-SA 4.0, see <https://creativecommons.org/licenses/by-sa/4.0/>
