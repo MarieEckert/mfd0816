@@ -23,6 +23,7 @@ REPOSITORY STRUCTURE
   │   └── mfdasm     : Implementation
   ├── DESIGN         : MFD0816 design/specficiation
   ├── INSTRUCTIONS   : MFD0816 instruction set reference
+  ├── MFDASM         : MFD0816 assembler specification
   └── README
 
 LICENSES
@@ -37,6 +38,7 @@ LICENSES
   Files / Directories:
     ► /DESIGN
     ► /INSTRUCTIONS
+    ► /MFDASM
 
   License: GNU GPL v3
   Link...: <https://www.gnu.org/licenses/>
