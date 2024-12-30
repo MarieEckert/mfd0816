@@ -24,7 +24,7 @@ CONTENTS
   Keywords:
 
     db  dw  dd  times  _here  section  sp  ip  fl  al  ah  acl  bl  bh  bcl  cl
-    ch  ccl  dl  dh  dcl  iid  ar  addressing  relative  absolute  at
+    ch  ccl  dl  dh  dcl  iid  ar  addressing  relative  absolute  at  define
 
   Characters:
 
@@ -130,6 +130,50 @@ CONTENTS
 
 2.5. CONSTANT EXPRESSIONS
 ────────────────────────────────────────────────────────────────────────────────
+
+  TODO
+
+4. DIRECTIVE REFERENCE
+────────────────────────────────────────────────────────────────────────────────
+
+  TIMES <literal/identifier>
+
+    Repeat the next statement n times, where n is the value the first and
+    only operand resolves to.
+
+  DB/DW/DD <literal/identifier>
+
+    Define a byte, word or double-word at the current position in the binary
+    to be equal to the value which the first operand resolves to, e.g.:
+
+      ; (other instructions before this)
+      db 0xca
+      dw 0xfeba
+      dd 0xbe123456
+      dw 0x0000
+      db 0x12
+      dw 0
+      dw 0
+      dw 0
+      ; (also some other instructions after this)
+
+    would become:
+
+      ..00 <other data>
+      ..10 cafe babe 1234 5600 0012 0000 0000 0000
+      ..20 <other data>
+
+  DEFINE <identifier>, <literal/identifier>
+
+    Arbitrarily define the value of an identifier. This can not be used to
+    override keywords or similar. It is more akin to the definition of a
+    constant in pascal.
+
+    The first operand becomes the operand, whilst the second operand becomes
+    the assigned value.
+
+    NOTE: The assigned value can not be an identifier which does not exist
+          at the point at which the directive is encountered.
 
 LICENSE
 ────────────────────────────────────────────────────────────────────────────────
