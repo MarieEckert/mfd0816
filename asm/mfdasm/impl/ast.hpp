@@ -416,6 +416,7 @@ class Directive : public StatementBase {
 		DW,
 		DD,
 		TIMES,
+		DEFINE,
 	};
 
 	static std::optional<Kind> kindFromToken(Token::Type type);

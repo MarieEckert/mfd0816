@@ -44,10 +44,16 @@ const std::unordered_map<Directive::Kind, std::vector<DirectiveOperand>>
 				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
 			},
 		},
-
 		{
 			Directive::TIMES,
 			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
+			},
+		},
+		{
+			Directive::DEFINE,
+			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
 				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
 			},
 		},

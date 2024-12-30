@@ -296,10 +296,9 @@ std::string Instruction::toString(u32 indentLevel) const {
 /* class Directive */
 
 static const std::unordered_map<Token::Type, Directive::Kind> directive_type_map = {
-	{Token::DB, Directive::DB},
-	{Token::DW, Directive::DW},
-	{Token::DD, Directive::DD},
-	{Token::TIMES, Directive::TIMES},
+	{Token::DB, Directive::DB},			{Token::DW, Directive::DW},
+	{Token::DD, Directive::DD},			{Token::TIMES, Directive::TIMES},
+	{Token::DEFINE, Directive::DEFINE},
 };
 
 std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {

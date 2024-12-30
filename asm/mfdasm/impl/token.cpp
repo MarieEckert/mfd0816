@@ -75,6 +75,7 @@ static const std::unordered_map<std::string, Token::Type> name_value_map = {
 	{"relative", Token::Type::RELATIVE},
 	{"absolute", Token::Type::ABSOLUTE},
 	{"at", Token::Type::AT},
+	{"define", Token::Type::DEFINE},
 	{"binary_number", Token::Type::BINARY_NUMBER},
 	{"decimal_number", Token::Type::DECIMAL_NUMBER},
 	{"hexadecimal_number", Token::Type::HEXADECIMAL_NUMBER},

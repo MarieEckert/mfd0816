@@ -27,8 +27,9 @@ namespace mfdasm::impl {
 class DirectiveOperand {
    public:
 	enum Kind {
-		IMMEDIATE = 0b0000,
-		INVALID = 0b11111,
+		IMMEDIATE = 0,
+		UNKNOWN = 1,
+		INVALID = 255,
 	};
 
 	static std::vector<DirectiveOperand> operandsFor(Directive::Kind directive);
