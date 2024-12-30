@@ -606,6 +606,14 @@ Parser::tryParseOperands(u32 ix) {
 					"invalid (in)direct addressing syntax"));
 			}
 
+			/* boiled down rules here are:
+			 * A right closing bracket is required. If there is one opening, one closing is
+			 * required, if there are two opening, two closers are required. The middle part may
+			 * be a literal, identifier or register.
+			 *
+			 * See chapter 2.4.1. of the MFDASM spec in the root of the repository.
+			 */
+
 			const bool indirect = ix + 1 < this->m_tokens.size() &&
 								  this->m_tokens[ix + 1].type() == Token::LEFT_SQUARE_BRACKET;
 			const u32 offset = indirect ? 2 : 1;
