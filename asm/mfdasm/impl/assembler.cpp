@@ -33,7 +33,7 @@
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
-#define PRINT_AST_ON_UKOT
+#define _PRINT_AST_ON_UKOT
 
 namespace mfdasm::impl {
 
@@ -190,6 +190,9 @@ u32 Lexer::parseStringLiteral(const std::string &source, u32 &lineno, std::vecto
 			case 'n':
 				output += '\n';
 				break;
+			case 'r':
+				output += '\r';
+				break;
 			case '"':
 				output += '"';
 				break;
@@ -197,6 +200,8 @@ u32 Lexer::parseStringLiteral(const std::string &source, u32 &lineno, std::vecto
 				output += '\\';
 				break;
 			default:
+				logWarning() << "line " << lineno << ": unknown escape-sequence \"\\"
+							 << source[ix + 1] << "\"\n";
 				output += '?';
 				break;
 		}
