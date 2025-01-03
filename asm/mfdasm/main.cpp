@@ -77,7 +77,12 @@ int main(int argc, char **argv) {
 		std::exit(1);
 	}
 
-	impl::Instruction test_instruction(impl::Instruction::_RESERVED_00, {});
-	impl::Statement test(impl::Statement::INSTRUCTION, {});
+	std::vector<impl::Statement> ast = asem.ast().value();
+	std::cout << "[\n";
+	for(const auto &statement: ast) {
+		std::cout << statement.toString(1);
+	}
+	std::cout << "]\n";
+
 	return 0;
 }

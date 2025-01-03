@@ -27,6 +27,7 @@ namespace mfdasm::impl {
 class AsmError {
    public:
 	enum Type : u8 {
+		EMPTY_INPUT,
 		SYNTAX_ERROR,
 		INVALID_INSTRUCTION,
 		ILLEGAL_OPERAND,

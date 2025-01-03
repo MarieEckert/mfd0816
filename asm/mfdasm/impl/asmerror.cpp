@@ -25,6 +25,7 @@
 namespace mfdasm::impl {
 
 static const std::unordered_map<AsmError::Type, std::string> error_names = {
+	{AsmError::EMPTY_INPUT, "Empty Input"},
 	{AsmError::SYNTAX_ERROR, "Syntax Error"},
 	{AsmError::ILLEGAL_OPERAND, "Illegal Operand"},
 	{AsmError::INVALID_INSTRUCTION, "Invalid Instruction"},

@@ -76,6 +76,14 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 	return Ok(None());
 }
 
+std::optional<std::vector<Statement>> Assembler::ast() const {
+	if(m_ast.empty()) {
+		return std::nullopt;
+	}
+
+	return m_ast;
+}
+
 /* class Lexer */
 
 Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {

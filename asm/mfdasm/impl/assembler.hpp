@@ -40,6 +40,8 @@ class Assembler {
 
 	Result<std::vector<u8>, AsmError> astToBytes() const;
 
+	std::optional<std::vector<Statement>> ast() const;
+
    private:
 	std::vector<Statement> m_ast;
 };
