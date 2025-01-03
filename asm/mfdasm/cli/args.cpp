@@ -25,12 +25,12 @@ ArgumentBase::ArgumentBase(std::string short_name, std::string long_name, bool a
 	: m_isAction(action), m_shortName(short_name), m_longName(long_name) {}
 
 ssize_t ArgumentBase::check(const std::string &name, std::string value) {
-	if(name != this->m_shortName && name != this->m_longName) {
+	if(name != m_shortName && name != m_longName) {
 		return -1;
 	}
 
-	this->m_stringValue = !this->m_isAction ? value : "true";
-	return this->m_isAction ? 0 : 1;
+	m_stringValue = !m_isAction ? value : "true";
+	return m_isAction ? 0 : 1;
 }
 
 /* class ArgumentParser */

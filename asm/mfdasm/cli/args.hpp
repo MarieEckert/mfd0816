@@ -88,17 +88,17 @@ class Argument : public ArgumentBase {
 	 * @return std::nullopt if the argument wasnt set.
 	 */
 	std::optional<T> get() {
-		if(this->m_value.has_value()) {
-			return this->m_value;
+		if(m_value.has_value()) {
+			return m_value;
 		}
 
-		if(!this->m_stringValue.has_value()) {
+		if(!m_stringValue.has_value()) {
 			return std::nullopt;
 		}
 
-		this->m_value = _getAs<T>(this->m_stringValue.value());
+		m_value = _getAs<T>(m_stringValue.value());
 
-		return this->m_value;
+		return m_value;
 	};
 
    private:

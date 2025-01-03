@@ -166,7 +166,7 @@ Token::Token(Type type, u32 lineno, std::optional<std::string> value)
 		case Type::STRING:
 		case Type::LABEL:
 		case Type::UNKNOWN:
-			this->m_maybeValue = value;
+			m_maybeValue = value;
 			break;
 		default:
 			break;
@@ -174,56 +174,54 @@ Token::Token(Type type, u32 lineno, std::optional<std::string> value)
 }
 
 Token::Type Token::type() const {
-	return this->m_type;
+	return m_type;
 }
 
 u32 Token::lineno() const {
-	return this->m_lineno;
+	return m_lineno;
 }
 
 std::optional<std::string> Token::maybeValue() const {
-	return this->m_maybeValue;
+	return m_maybeValue;
 }
 
 std::string Token::toString() const {
 	const auto it = std::find_if(
 		name_value_map.cbegin(), name_value_map.cend(),
-		[type = this->m_type](std::pair<std::string, Type> val) { return val.second == type; });
+		[type = m_type](std::pair<std::string, Type> val) { return val.second == type; });
 	const std::string type_name = it != name_value_map.cend() ? it->first : "unknown";
 
 	const std::string value_string =
-		this->m_maybeValue.has_value() ? "value = " + this->m_maybeValue.value() : "";
+		m_maybeValue.has_value() ? "value = " + m_maybeValue.value() : "";
 
-	return "[line = " + std::to_string(this->m_lineno) + "; type = " + type_name + "; " +
-		   value_string + "]";
+	return "[line = " + std::to_string(m_lineno) + "; type = " + type_name + "; " + value_string +
+		   "]";
 }
 
 std::vector<u8> Token::toBytes() const {
-	if(Token::isRegister(this->m_type)) {
-		const auto iterator = register_value_map.find(this->m_type);
+	if(Token::isRegister(m_type)) {
+		const auto iterator = register_value_map.find(m_type);
 		if(iterator == register_value_map.end()) {
 			panic(
-				"register missing in Token::register_value_map! (this->m_type =" +
-				std::to_string(this->m_type) + ")");
+				"register missing in Token::register_value_map! (m_type =" +
+				std::to_string(m_type) + ")");
 		}
 
 		return {iterator->second};
 	}
 
-	if(!this->m_maybeValue.has_value()) {
+	if(!m_maybeValue.has_value()) {
 		return {};
 	}
 
-	if(Token::isNumberType(this->m_type)) {
-		const u16 value =
-			std::stoi(this->m_maybeValue.value(), 0, Token::numberTypeBase(this->m_type));
+	if(Token::isNumberType(m_type)) {
+		const u16 value = std::stoi(m_maybeValue.value(), 0, Token::numberTypeBase(m_type));
 
 		return {static_cast<u8>((value >> 8) & 0xFF), static_cast<u8>(value & 0xFF)};
 	}
 
-	if(this->m_type == Token::STRING) {
-		return std::vector<u8>(
-			this->m_maybeValue.value().begin(), this->m_maybeValue.value().end());
+	if(m_type == Token::STRING) {
+		return std::vector<u8>(m_maybeValue.value().begin(), m_maybeValue.value().end());
 	}
 
 	return {};

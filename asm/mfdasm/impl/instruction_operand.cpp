@@ -556,8 +556,7 @@ InstructionOperand::InstructionOperand(std::vector<InstructionOperand::Kind> all
 	: m_allowedKinds(allowed_kinds) {}
 
 bool InstructionOperand::isAllowed(Kind kind) const {
-	return std::find(this->m_allowedKinds.cbegin(), this->m_allowedKinds.cend(), kind) !=
-		   this->m_allowedKinds.cend();
+	return std::find(m_allowedKinds.cbegin(), m_allowedKinds.cend(), kind) != m_allowedKinds.cend();
 }
 
 std::vector<InstructionOperand> InstructionOperand::operandsFor(Instruction::Kind instruction) {

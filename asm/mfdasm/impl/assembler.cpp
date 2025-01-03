@@ -71,7 +71,7 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 		return Err(parse_result.unwrapErr());
 	}
 
-	this->m_ast = parse_result.unwrap().ast();
+	m_ast = parse_result.unwrap().ast();
 
 	return Ok(None());
 }
@@ -225,14 +225,14 @@ Result<Parser, AsmError> Parser::process(const std::vector<Token> &tokens) {
 }
 
 std::vector<Statement> Parser::ast() const {
-	return this->m_ast;
+	return m_ast;
 }
 
 Parser::Parser(const std::vector<Token> &tokens) : m_tokens(tokens) {}
 
 Result<None, AsmError> Parser::parseTokens() {
-	for(u32 ix = 0; ix < this->m_tokens.size(); ix++) {
-		const Token &token = this->m_tokens[ix];
+	for(u32 ix = 0; ix < m_tokens.size(); ix++) {
+		const Token &token = m_tokens[ix];
 
 		switch(token.type()) {
 			case Token::SECTION: {
@@ -286,7 +286,7 @@ Result<None, AsmError> Parser::parseTokens() {
 
 #ifdef PRINT_AST_ON_UKOT
 				std::cout << "[\n";
-				for(const auto &statement: this->m_ast) {
+				for(const auto &statement: m_ast) {
 					std::cout << statement.toString(1);
 				}
 				std::cout << "]\n";
@@ -304,15 +304,15 @@ Result<None, AsmError> Parser::parseTokens() {
 /* individual statement & expression parsing functions */
 
 Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
-	const Token &token = this->m_tokens[ix];
+	const Token &token = m_tokens[ix];
 
-	if(this->m_tokens.size() <= ix + 3) {
+	if(m_tokens.size() <= ix + 3) {
 		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
 	}
 
-	const Token &literal_name = this->m_tokens[ix + 1];
-	const Token &at_token = this->m_tokens[ix + 2];
-	const Token &literal_value = this->m_tokens[ix + 3];
+	const Token &literal_name = m_tokens[ix + 1];
+	const Token &at_token = m_tokens[ix + 2];
+	const Token &literal_value = m_tokens[ix + 3];
 
 	if(literal_name.type() != Token::UNKNOWN) {
 		return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "Expected section name"));
@@ -331,7 +331,7 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 	}
 
 	/* clang-format off */
-	this->m_ast.push_back(Statement(
+	m_ast.push_back(Statement(
 			Statement::SECTION,
 			{
 				std::make_shared<Identifier>(
@@ -349,7 +349,7 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 }
 
 Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
-	const Token &token = this->m_tokens[ix];
+	const Token &token = m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
 		panic(
@@ -358,7 +358,7 @@ Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 	}
 
 	/* clang-format off */
-	this->m_ast.push_back(Statement(
+	m_ast.push_back(Statement(
 			Statement::LABEL,
 			{
 				std::make_shared<Identifier>(
@@ -373,15 +373,15 @@ Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 }
 
 Result<u32, AsmError> Parser::tryParseAddressingStatementAt(u32 ix) {
-	const Token &token = this->m_tokens[ix];
+	const Token &token = m_tokens[ix];
 
-	if(ix + 1 >= this->m_tokens.size()) {
+	if(ix + 1 >= m_tokens.size()) {
 		return Err(AsmError(
 			AsmError::SYNTAX_ERROR, token.lineno(),
 			"Expected keyword \"relative\" or \"absolute\" after \"addressing\""));
 	}
 
-	const Token &addressing_type_token = this->m_tokens[ix + 1];
+	const Token &addressing_type_token = m_tokens[ix + 1];
 	if(addressing_type_token.type() != Token::ABSOLUTE &&
 	   addressing_type_token.type() != Token::RELATIVE) {
 		return Err(AsmError(
@@ -392,7 +392,7 @@ Result<u32, AsmError> Parser::tryParseAddressingStatementAt(u32 ix) {
 	const bool relative = addressing_type_token.type() == Token::RELATIVE;
 
 	/* clang-format off */
-	this->m_ast.push_back(Statement(
+	m_ast.push_back(Statement(
 			relative ? Statement::ADDRESSING_RELATIVE : Statement::ADDRESSING_ABSOLUTE,
 			{}
 		)
@@ -404,7 +404,7 @@ Result<u32, AsmError> Parser::tryParseAddressingStatementAt(u32 ix) {
 }
 
 Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
-	const Token &token = this->m_tokens[ix];
+	const Token &token = m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
 		panic(
@@ -439,7 +439,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 
 	if(operand_expressions.size() != required_operands.size()) {
 		return Err(AsmError(
-			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			AsmError::ILLEGAL_OPERAND, m_tokens[ix].lineno(),
 			"Expected " + std::to_string(required_operands.size()) + " operands, got " +
 				std::to_string(operand_expressions.size())));
 	}
@@ -483,12 +483,12 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 		}
 
 		return Err(AsmError(
-			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			AsmError::ILLEGAL_OPERAND, m_tokens[ix].lineno(),
 			"Invalid operand of type " + std::to_string(given_operands[operand_ix])));
 	}
 
 	/* clang-format off */
-	this->m_ast.push_back(Statement(
+	m_ast.push_back(Statement(
 			Statement::INSTRUCTION,
 			{},
 			std::make_shared<Instruction>(
@@ -518,7 +518,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 
 	if(operand_expressions.size() != required_operands.size()) {
 		return Err(AsmError(
-			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			AsmError::ILLEGAL_OPERAND, m_tokens[ix].lineno(),
 			"Expected " + std::to_string(required_operands.size()) + " operands, got " +
 				std::to_string(operand_expressions.size())));
 	}
@@ -544,12 +544,12 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 		}
 
 		return Err(AsmError(
-			AsmError::ILLEGAL_OPERAND, this->m_tokens[ix].lineno(),
+			AsmError::ILLEGAL_OPERAND, m_tokens[ix].lineno(),
 			"Invalid operand of type " + std::to_string(given_operands[operand_ix])));
 	}
 
 	/* clang-format off */
-	this->m_ast.push_back(Statement(
+	m_ast.push_back(Statement(
 			Statement::DIRECTIVE,
 			{},
 			std::make_shared<Directive>(
@@ -564,7 +564,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 
 Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
 Parser::tryParseOperands(u32 ix) {
-	if(ix >= this->m_tokens.size()) {
+	if(ix >= m_tokens.size()) {
 		return Ok(std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(
 			ix, std::vector<std::shared_ptr<ExpressionBase>>{}));
 	}
@@ -583,9 +583,9 @@ Parser::tryParseOperands(u32 ix) {
 
 	do {
 		ix++;
-		logDebug() << "current token = " << this->m_tokens[ix].toString() << "\n";
+		logDebug() << "current token = " << m_tokens[ix].toString() << "\n";
 
-		const Token &token = this->m_tokens[ix];
+		const Token &token = m_tokens[ix];
 		if(Token::isNumberType(token.type()) || token.type() == Token::STRING) {
 			expressions.push_back(std::make_shared<Literal>(token.toBytes()));
 			goto end;
@@ -605,7 +605,7 @@ Parser::tryParseOperands(u32 ix) {
 
 		/* direct/indirect addressing */
 		if(token.type() == Token::LEFT_SQUARE_BRACKET) {
-			if(ix + 2 >= this->m_tokens.size()) {
+			if(ix + 2 >= m_tokens.size()) {
 				return Err(AsmError(
 					AsmError::SYNTAX_ERROR, token.lineno(),
 					"invalid (in)direct addressing syntax"));
@@ -619,17 +619,17 @@ Parser::tryParseOperands(u32 ix) {
 			 * See chapter 2.4.1. of the MFDASM spec in the root of the repository.
 			 */
 
-			const bool indirect = ix + 1 < this->m_tokens.size() &&
-								  this->m_tokens[ix + 1].type() == Token::LEFT_SQUARE_BRACKET;
+			const bool indirect =
+				ix + 1 < m_tokens.size() && m_tokens[ix + 1].type() == Token::LEFT_SQUARE_BRACKET;
 			const u32 offset = indirect ? 2 : 1;
 
 			bool syntax_valid = false;
 			if(indirect) {
-				syntax_valid = ix + 4 < this->m_tokens.size() &&
-							   this->m_tokens[ix + 3].type() == Token::RIGHT_SQUARE_BRACKET &&
-							   this->m_tokens[ix + 4].type() == Token::RIGHT_SQUARE_BRACKET;
+				syntax_valid = ix + 4 < m_tokens.size() &&
+							   m_tokens[ix + 3].type() == Token::RIGHT_SQUARE_BRACKET &&
+							   m_tokens[ix + 4].type() == Token::RIGHT_SQUARE_BRACKET;
 			} else {
-				syntax_valid = this->m_tokens[ix + 2].type() == Token::RIGHT_SQUARE_BRACKET;
+				syntax_valid = m_tokens[ix + 2].type() == Token::RIGHT_SQUARE_BRACKET;
 			}
 
 			if(!syntax_valid) {
@@ -639,9 +639,9 @@ Parser::tryParseOperands(u32 ix) {
 			}
 
 			logDebug() << "direct? " << (indirect ? "no" : "yes")
-					   << "; token: " << this->m_tokens[ix + offset].toString() << "\n";
+					   << "; token: " << m_tokens[ix + offset].toString() << "\n";
 
-			const Token &middle_token = this->m_tokens[ix + offset];
+			const Token &middle_token = m_tokens[ix + offset];
 			if(indirect) {
 				expressions.push_back(std::make_shared<IndirectAddress>(
 					Token::isRegister(middle_token.type()) ? IndirectAddress::REGISTER
@@ -672,7 +672,7 @@ Parser::tryParseOperands(u32 ix) {
 
 	end:
 		ix++;
-	} while(ix < this->m_tokens.size() && this->m_tokens[ix].type() == Token::COMMA);
+	} while(ix < m_tokens.size() && m_tokens[ix].type() == Token::COMMA);
 
 	ix--; /* ix needs to be on the last "consumed" token */
 	return Ok(std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(ix, expressions));

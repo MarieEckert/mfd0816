@@ -198,7 +198,7 @@ class StatementBase {
    public:
 	virtual ~StatementBase() = default;
 
-	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
+	virtual std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
 
 	virtual std::string toString(u32 indent_level = 0) const;
 
@@ -423,7 +423,7 @@ class Directive : public StatementBase {
 
 	Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions);
 
-	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
+	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 
@@ -464,7 +464,7 @@ class Statement : public StatementBase {
 
 	Kind kind() const;
 
-	std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
+	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 

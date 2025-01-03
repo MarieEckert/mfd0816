@@ -63,8 +63,7 @@ DirectiveOperand::DirectiveOperand(std::vector<DirectiveOperand::Kind> allowed_k
 	: m_allowedKinds(allowed_kinds) {}
 
 bool DirectiveOperand::isAllowed(Kind kind) const {
-	return std::find(this->m_allowedKinds.cbegin(), this->m_allowedKinds.cend(), kind) !=
-		   this->m_allowedKinds.cend();
+	return std::find(m_allowedKinds.cbegin(), m_allowedKinds.cend(), kind) != m_allowedKinds.cend();
 }
 
 std::vector<DirectiveOperand> DirectiveOperand::operandsFor(Directive::Kind directive) {

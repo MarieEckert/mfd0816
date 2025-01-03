@@ -46,7 +46,7 @@ static std::string makeIndent(u32 level) {
 /* class ExpressionBase */
 
 ExpressionBase::Kind ExpressionBase::kind() const {
-	return this->m_kind;
+	return m_kind;
 }
 
 ExpressionBase::ExpressionBase(Kind kind) : m_kind(kind) {}
@@ -76,7 +76,7 @@ std::string Literal::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 
 	std::string value_string;
-	for(const u8 byte: this->m_value) {
+	for(const u8 byte: m_value) {
 		std::stringstream ss;
 		ss << std::hex << (int)byte;
 		value_string += "\n" + base_indent + "    0x" + ss.str() + ",";
@@ -94,9 +94,8 @@ Identifier::Identifier(Kind kind, std::string name)
 std::string Identifier::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 
-	return base_indent + "Identifier {\n" + base_indent +
-		   "  kind: " + std::to_string(this->m_kind) + "\n" + base_indent +
-		   "  name: " + this->m_name + "\n" + base_indent + "}\n";
+	return base_indent + "Identifier {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
+		   "\n" + base_indent + "  name: " + m_name + "\n" + base_indent + "}\n";
 }
 
 /* class DirectAddress */
@@ -109,20 +108,20 @@ DirectAddress::DirectAddress(Kind kind, std::vector<u8> value)
 }
 
 DirectAddress::Kind DirectAddress::kind() const {
-	return this->m_kind;
+	return m_kind;
 }
 
 std::string DirectAddress::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 	std::string value_string;
-	for(const u8 byte: this->m_value) {
+	for(const u8 byte: m_value) {
 		std::stringstream ss;
 		ss << std::hex << (int)byte;
 		value_string += "\n" + base_indent + "    0x" + ss.str() + ",";
 	}
-	return base_indent + "DirectAddress {\n" + base_indent +
-		   "  kind: " + std::to_string(this->m_kind) + "\n" + base_indent + "  value: [" +
-		   value_string + "\n" + base_indent + "  ]\n" + base_indent + "}\n";
+	return base_indent + "DirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
+		   "\n" + base_indent + "  value: [" + value_string + "\n" + base_indent + "  ]\n" +
+		   base_indent + "}\n";
 }
 
 /* class IndirectAddress */
@@ -131,20 +130,20 @@ IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value)
 	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS), m_kind(kind), m_value(value) {}
 
 IndirectAddress::Kind IndirectAddress::kind() const {
-	return this->m_kind;
+	return m_kind;
 }
 
 std::string IndirectAddress::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 	std::string value_string;
-	for(const u8 byte: this->m_value) {
+	for(const u8 byte: m_value) {
 		std::stringstream ss;
 		ss << std::hex << (int)byte;
 		value_string += "\n" + base_indent + "    0x" + ss.str() + ",";
 	}
-	return base_indent + "Indirect {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) +
-		   "\n" + base_indent + "  value: [" + value_string + "\n" + base_indent + "  ]\n" +
-		   base_indent + "}\n";
+	return base_indent + "Indirect {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
+		   base_indent + "  value: [" + value_string + "\n" + base_indent + "  ]\n" + base_indent +
+		   "}\n";
 }
 
 /* class Register */
@@ -189,13 +188,13 @@ std::optional<Register> Register::fromTokenType(Token::Type type) {
 }
 
 Register::Kind Register::kind() const {
-	return this->m_kind;
+	return m_kind;
 }
 
 std::string Register::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
-	return base_indent + "Register {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) +
-		   "\n" + base_indent + "}\n";
+	return base_indent + "Register {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
+		   base_indent + "}\n";
 }
 
 /* class Instruction */
@@ -275,7 +274,7 @@ std::vector<u8> Instruction::toBytes(ResolvalContext &resolval_context) const {
 	std::vector<u8> result;
 	result.reserve(4);
 
-	result.push_back(this->m_kind);
+	result.push_back(m_kind);
 
 	return result;
 }
@@ -284,11 +283,11 @@ std::string Instruction::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 
 	std::string expression_string = "";
-	for(const auto &expression: this->m_expressions) {
+	for(const auto &expression: m_expressions) {
 		expression_string += expression->toString(indentLevel + 2);
 	}
 
-	return "Instruction {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) + "\n" +
+	return "Instruction {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
 		   base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
 		   base_indent + "}";
 }
@@ -314,15 +313,20 @@ std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {
 Directive::Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions)
 	: StatementBase(expressions), m_kind(kind) {}
 
+/** @todo implement */
+std::vector<u8> Directive::toBytes(ResolvalContext &resolval_context) const {
+	return {};
+}
+
 std::string Directive::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 
 	std::string expression_string = "";
-	for(const auto &expression: this->m_expressions) {
+	for(const auto &expression: m_expressions) {
 		expression_string += expression->toString(indentLevel + 2);
 	}
 
-	return "Directive {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) + "\n" +
+	return "Directive {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
 		   base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
 		   base_indent + "}";
 }
@@ -334,6 +338,11 @@ Statement::Statement(
 	std::vector<std::shared_ptr<ExpressionBase>> expressions,
 	std::optional<std::shared_ptr<StatementBase>> statement)
 	: StatementBase(expressions), m_kind(kind), m_subStatement(std::move(statement)) {
+	/* This is the result of a horrible decision and many instances of
+	 * "eh, i'll fix it later"...
+	 *
+	 * many such cases
+	 */
 	if(!statement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
 		panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
@@ -348,31 +357,31 @@ Statement::Statement(Statement &&x)
 	  m_subStatement(std::move(x.m_subStatement)) {}
 
 Statement::Kind Statement::kind() const {
-	return this->m_kind;
+	return m_kind;
+}
+
+/** @todo implement */
+std::vector<u8> Statement::toBytes(ResolvalContext &resolval_context) const {
+	return {};
 }
 
 std::string Statement::toString(u32 indentLevel) const {
 	std::string expression_string = "";
 
-	for(const auto &expression: this->m_expressions) {
+	for(const auto &expression: m_expressions) {
 		expression_string += expression->toString(indentLevel + 2);
 	}
 
-	std::string statement_string =
-		this->m_subStatement.has_value() && this->m_subStatement.value() != nullptr
-			? this->m_subStatement->get()->toString(indentLevel + 1)
-			: "std::nullopt / nullptr";
+	std::string statement_string = m_subStatement.has_value() && m_subStatement.value() != nullptr
+									   ? m_subStatement->get()->toString(indentLevel + 1)
+									   : "std::nullopt / nullptr";
 
 	const std::string base_indent = makeIndent(indentLevel);
 
-	return base_indent + "Statement {\n" + base_indent + "  kind: " + std::to_string(this->m_kind) +
+	return base_indent + "Statement {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
 		   "\n" + base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
 		   base_indent + "  statement: " + statement_string + base_indent + "\n" + base_indent +
 		   "}\n";
-}
-
-std::vector<u8> Statement::toBytes(ResolvalContext &resolval_context) const {
-	return {};
 }
 
 }  // namespace mfdasm::impl

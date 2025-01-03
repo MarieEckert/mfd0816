@@ -39,22 +39,22 @@ AsmError::AsmError(Type type, u32 lineno, std::optional<std::string> message)
 
 std::string AsmError::toString() const {
 	std::stringstream ss;
-	ss << errorName(this->m_type) << " (0x" << std::hex << std::setfill('0') << std::setw(2)
-	   << static_cast<i32>(this->m_type) << ") on line " << std::dec << this->m_lineno
-	   << (this->m_message.has_value() ? ": " + this->m_message.value() : "");
+	ss << errorName(m_type) << " (0x" << std::hex << std::setfill('0') << std::setw(2)
+	   << static_cast<i32>(m_type) << ") on line " << std::dec << m_lineno
+	   << (m_message.has_value() ? ": " + m_message.value() : "");
 	return ss.str();
 }
 
 AsmError::Type AsmError::type() const {
-	return this->m_type;
+	return m_type;
 }
 
 u32 AsmError::lineno() const {
-	return this->m_lineno;
+	return m_lineno;
 }
 
 std::optional<std::string> AsmError::maybeMessage() const {
-	return this->m_message;
+	return m_message;
 }
 
 }  // namespace mfdasm::impl

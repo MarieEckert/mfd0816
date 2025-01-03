@@ -38,6 +38,8 @@ class Assembler {
 	 */
 	Result<None, AsmError> parseLines(const std::string &source);
 
+	Result<std::vector<u8>, AsmError> astToBytes() const;
+
    private:
 	std::vector<Statement> m_ast;
 };
