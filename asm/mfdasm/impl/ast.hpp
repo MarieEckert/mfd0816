@@ -181,7 +181,8 @@ class ExpressionBase {
 
 	virtual ~ExpressionBase() = default;
 
-	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
+	virtual std::optional<std::vector<u8>> resolveValue(
+		const ResolvalContext &resolval_context) const;
 
 	Kind kind() const;
 
@@ -212,7 +213,8 @@ class Literal : public ExpressionBase {
    public:
 	Literal(std::vector<u8> value);
 
-	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
+	std::optional<std::vector<u8>> resolveValue(
+		const ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 
@@ -230,9 +232,12 @@ class Identifier : public ExpressionBase {
 
 	Identifier(Kind kind, std::string name);
 
-	std::optional<std::vector<u8>> resolveValue(const ResolvalContext &resolval_context) const;
+	std::optional<std::vector<u8>> resolveValue(
+		const ResolvalContext &resolval_context) const override;
 
 	Kind kind() const;
+
+	std::string name() const;
 
 	std::string toString(u32 indent_level = 0) const override;
 

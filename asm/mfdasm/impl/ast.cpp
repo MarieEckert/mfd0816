@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -49,6 +50,11 @@ ExpressionBase::Kind ExpressionBase::kind() const {
 	return m_kind;
 }
 
+std::optional<std::vector<u8>> ExpressionBase::resolveValue(
+	const ResolvalContext &resolval_context) const {
+	return {};
+}
+
 ExpressionBase::ExpressionBase(Kind kind) : m_kind(kind) {}
 
 std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
@@ -72,6 +78,11 @@ StatementBase::StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expres
 
 Literal::Literal(std::vector<u8> value) : ExpressionBase(ExpressionBase::LITERAL), m_value(value) {}
 
+std::optional<std::vector<u8>> Literal::resolveValue(
+	const ResolvalContext &resolval_context) const {
+	return m_value;
+}
+
 std::string Literal::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 
@@ -91,11 +102,37 @@ std::string Literal::toString(u32 indentLevel) const {
 Identifier::Identifier(Kind kind, std::string name)
 	: ExpressionBase(ExpressionBase::IDENTIFIER), m_kind(kind), m_name(name) {}
 
+std::optional<std::vector<u8>> Identifier::resolveValue(
+	const ResolvalContext &resolval_context) const {
+	std::vector<u8> value;
+
+	const auto iterator = std::find_if(
+		resolval_context.identifiers.cbegin(), resolval_context.identifiers.cend(),
+		[identifier_name = m_name](
+			std::pair<const std::basic_string<char>, std::vector<unsigned char>> map_value) {
+			return map_value.first == identifier_name;
+		});
+
+	if(iterator == resolval_context.identifiers.cend()) {
+		return std::nullopt;
+	}
+
+	return iterator->second;
+}
+
 std::string Identifier::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
 
 	return base_indent + "Identifier {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
 		   "\n" + base_indent + "  name: " + m_name + "\n" + base_indent + "}\n";
+}
+
+Identifier::Kind Identifier::kind() const {
+	return m_kind;
+}
+
+std::string Identifier::name() const {
+	return m_name;
 }
 
 /* class DirectAddress */
@@ -315,6 +352,28 @@ Directive::Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> exp
 
 /** @todo implement */
 std::vector<u8> Directive::toBytes(ResolvalContext &resolval_context) const {
+	if(m_kind == Kind::DEFINE) {
+		if(m_expressions.size() != 2) {
+			panic(
+				"toBytes() on Directive with invalid expression count (expected 2, got " +
+				std::to_string(m_expressions.size()) + ")");
+		}
+
+		const std::shared_ptr<ExpressionBase> identifier_expr = m_expressions[0];
+		const std::shared_ptr<ExpressionBase> value_expr = m_expressions[1];
+
+		if(identifier_expr->kind() != ExpressionBase::IDENTIFIER) {
+			panic("First expression of directive is not identifier");
+		}
+
+		const Identifier *identifier = dynamic_cast<Identifier *>(identifier_expr.get());
+
+		std::vector<u8> value = value_expr->resolveValue(resolval_context).value();
+
+		resolval_context.identifiers.emplace(identifier->name(), value);
+		return {};
+	}
+
 	return {};
 }
 
