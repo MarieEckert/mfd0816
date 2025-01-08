@@ -208,6 +208,8 @@ class StatementBase {
 
 	virtual std::string toString(u32 indent_level = 0) const;
 
+	const std::vector<std::shared_ptr<ExpressionBase>> &expressions() const;
+
 	u32 lineno() const;
 
    protected:

@@ -72,6 +72,10 @@ std::string StatementBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "StatementBase\n";
 }
 
+const std::vector<std::shared_ptr<ExpressionBase>> &StatementBase::expressions() const {
+	return m_expressions;
+}
+
 u32 StatementBase::lineno() const {
 	return m_lineno;
 }

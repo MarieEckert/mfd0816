@@ -37,7 +37,9 @@ using SectionMap = std::map<std::string, std::shared_ptr<Section>>;
 
 class SectionTable {
    public:
-	Result<std::shared_ptr<Section>, AsmError> addFromStatement(const Statement &statement, ResolvalContext &resolval_context);
+	Result<std::shared_ptr<Section>, AsmError> addFromStatement(
+		const Statement &statement,
+		ResolvalContext &resolval_context);
 
 	const SectionMap &sectionMap() const;
 

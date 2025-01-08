@@ -22,8 +22,8 @@
 
 #include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/ast.hpp>
-#include <mfdasm/impl/token.hpp>
 #include <mfdasm/impl/mri/section_table.hpp>
+#include <mfdasm/impl/token.hpp>
 #include <mfdasm/result.hpp>
 
 namespace mfdasm::impl {

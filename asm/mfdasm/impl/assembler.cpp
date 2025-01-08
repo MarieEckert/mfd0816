@@ -83,7 +83,8 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 
 	for(const Statement &statement: m_ast) {
 		if(statement.kind() == Statement::SECTION) {
-			Result<std::shared_ptr<mri::Section>, AsmError> new_section = section_table.addFromStatement(statement, resolval_context);
+			Result<std::shared_ptr<mri::Section>, AsmError> new_section =
+				section_table.addFromStatement(statement, resolval_context);
 			if(new_section.isErr()) {
 				return Err(new_section.unwrapErr());
 			}
