@@ -154,9 +154,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include <mfdasm/impl/asmerror.hpp>
+#include <mfdasm/impl/token.hpp>
+#include <mfdasm/result.hpp>
 #include <mfdasm/typedefs.hpp>
-
-#include "mfdasm/impl/token.hpp"
 
 namespace mfdasm::impl {
 
@@ -181,15 +182,19 @@ class ExpressionBase {
 
 	virtual ~ExpressionBase() = default;
 
-	virtual std::optional<std::vector<u8>> resolveValue(
+	virtual Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const;
 
 	Kind kind() const;
 
 	virtual std::string toString(u32 indent_level = 0) const;
 
+	u32 lineno() const;
+
    protected:
-	ExpressionBase(Kind kind);
+	ExpressionBase(Kind kind, u32 lineno);
+
+	u32 m_lineno;
 
    private:
 	Kind m_kind;
@@ -199,21 +204,25 @@ class StatementBase {
    public:
 	virtual ~StatementBase() = default;
 
-	virtual std::vector<u8> toBytes(ResolvalContext &resolval_context) const;
+	virtual Result<std::vector<u8>, AsmError> toBytes(ResolvalContext &resolval_context) const;
 
 	virtual std::string toString(u32 indent_level = 0) const;
 
+	u32 lineno() const;
+
    protected:
-	StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions);
+	StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno);
 
 	std::vector<std::shared_ptr<ExpressionBase>> m_expressions;
+
+	u32 m_lineno;
 };
 
 class Literal : public ExpressionBase {
    public:
-	Literal(std::vector<u8> value);
+	Literal(std::vector<u8> value, u32 lineno);
 
-	std::optional<std::vector<u8>> resolveValue(
+	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
@@ -230,9 +239,9 @@ class Identifier : public ExpressionBase {
 		HERE,
 	};
 
-	Identifier(Kind kind, std::string name);
+	Identifier(Kind kind, std::string name, u32 lineno);
 
-	std::optional<std::vector<u8>> resolveValue(
+	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
 
 	Kind kind() const;
@@ -254,7 +263,7 @@ class DirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	DirectAddress(Kind kind, std::vector<u8> value);
+	DirectAddress(Kind kind, std::vector<u8> value, u32 lineno);
 
 	Kind kind() const;
 
@@ -273,7 +282,7 @@ class IndirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	IndirectAddress(Kind kind, std::vector<u8> value);
+	IndirectAddress(Kind kind, std::vector<u8> value, u32 lineno);
 
 	Kind kind() const;
 
@@ -305,9 +314,9 @@ class Register : public ExpressionBase {
 		DCL,
 	};
 
-	Register(Kind kind);
+	Register(Kind kind, u32 lineno);
 
-	static std::optional<Register> fromTokenType(Token::Type type);
+	static std::optional<Register> fromToken(const Token &token);
 
 	Kind kind() const;
 
@@ -404,9 +413,9 @@ class Instruction : public StatementBase {
 
 	static std::optional<Kind> kindFromString(const std::string &str);
 
-	Instruction(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions);
+	Instruction(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno);
 
-	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
+	Result<std::vector<u8>, AsmError> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 
@@ -426,9 +435,9 @@ class Directive : public StatementBase {
 
 	static std::optional<Kind> kindFromToken(Token::Type type);
 
-	Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions);
+	Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno);
 
-	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
+	Result<std::vector<u8>, AsmError> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 
@@ -451,6 +460,7 @@ class Statement : public StatementBase {
 	 * @brief Construct a new statement.
 	 * @param kind The kind of statement.
 	 * @param expressions The expressions needed for that statement.
+	 * @param lineno The line number the statement was made on.
 	 * @param statement The concrete statement.
 	 * @note While the statement parameter is allowed to be nullptr some of the time, it is a fatal
 	 * error to not set it if kind is either INSTRUCTION or DIRECTIVE. If this is not done, the
@@ -459,6 +469,7 @@ class Statement : public StatementBase {
 	Statement(
 		Kind kind,
 		std::vector<std::shared_ptr<ExpressionBase>> expressions,
+		u32 lineno,
 		std::optional<std::shared_ptr<StatementBase>> statement = std::nullopt);
 
 	~Statement() = default;
@@ -469,7 +480,7 @@ class Statement : public StatementBase {
 
 	Kind kind() const;
 
-	std::vector<u8> toBytes(ResolvalContext &resolval_context) const override;
+	Result<std::vector<u8>, AsmError> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 

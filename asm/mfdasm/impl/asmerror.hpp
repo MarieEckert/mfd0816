@@ -31,6 +31,7 @@ class AsmError {
 		SYNTAX_ERROR,
 		INVALID_INSTRUCTION,
 		ILLEGAL_OPERAND,
+		VALUE_RESOLVAL_ERROR,
 	};
 
 	static std::string errorName(Type type);

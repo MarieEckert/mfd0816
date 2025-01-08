@@ -50,12 +50,12 @@ ExpressionBase::Kind ExpressionBase::kind() const {
 	return m_kind;
 }
 
-std::optional<std::vector<u8>> ExpressionBase::resolveValue(
+Result<std::vector<u8>, AsmError> ExpressionBase::resolveValue(
 	const ResolvalContext &resolval_context) const {
-	return {};
+	return Ok(std::vector<u8>{});
 }
 
-ExpressionBase::ExpressionBase(Kind kind) : m_kind(kind) {}
+ExpressionBase::ExpressionBase(Kind kind, u32 lineno) : m_kind(kind), m_lineno(lineno) {}
 
 std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "ExpressionBase\n";
@@ -63,24 +63,26 @@ std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
 
 /* class StatementBase */
 
-std::vector<u8> StatementBase::toBytes([[maybe_unused]] ResolvalContext &resolval_context) const {
-	return {0};
+Result<std::vector<u8>, AsmError> StatementBase::toBytes(
+	[[maybe_unused]] ResolvalContext &resolval_context) const {
+	return Ok(std::vector<u8>{});
 }
 
 std::string StatementBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "StatementBase\n";
 }
 
-StatementBase::StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions)
-	: m_expressions(expressions) {}
+StatementBase::StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno)
+	: m_expressions(expressions), m_lineno(lineno) {}
 
 /* class Literal */
 
-Literal::Literal(std::vector<u8> value) : ExpressionBase(ExpressionBase::LITERAL), m_value(value) {}
+Literal::Literal(std::vector<u8> value, u32 lineno)
+	: ExpressionBase(ExpressionBase::LITERAL, lineno), m_value(value) {}
 
-std::optional<std::vector<u8>> Literal::resolveValue(
+Result<std::vector<u8>, AsmError> Literal::resolveValue(
 	const ResolvalContext &resolval_context) const {
-	return m_value;
+	return Ok(m_value);
 }
 
 std::string Literal::toString(u32 indentLevel) const {
@@ -99,10 +101,10 @@ std::string Literal::toString(u32 indentLevel) const {
 
 /* class Identifier */
 
-Identifier::Identifier(Kind kind, std::string name)
-	: ExpressionBase(ExpressionBase::IDENTIFIER), m_kind(kind), m_name(name) {}
+Identifier::Identifier(Kind kind, std::string name, u32 lineno)
+	: ExpressionBase(ExpressionBase::IDENTIFIER, lineno), m_kind(kind), m_name(name) {}
 
-std::optional<std::vector<u8>> Identifier::resolveValue(
+Result<std::vector<u8>, AsmError> Identifier::resolveValue(
 	const ResolvalContext &resolval_context) const {
 	std::vector<u8> value;
 
@@ -114,10 +116,10 @@ std::optional<std::vector<u8>> Identifier::resolveValue(
 		});
 
 	if(iterator == resolval_context.identifiers.cend()) {
-		return std::nullopt;
+		return Ok(std::vector<u8>{});
 	}
 
-	return iterator->second;
+	return Ok(iterator->second);
 }
 
 std::string Identifier::toString(u32 indentLevel) const {
@@ -137,8 +139,8 @@ std::string Identifier::name() const {
 
 /* class DirectAddress */
 
-DirectAddress::DirectAddress(Kind kind, std::vector<u8> value)
-	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS), m_kind(kind), m_value(value) {
+DirectAddress::DirectAddress(Kind kind, std::vector<u8> value, u32 lineno)
+	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS, lineno), m_kind(kind), m_value(value) {
 	if(value.size() == 0) {
 		panic("shit");
 	}
@@ -163,8 +165,8 @@ std::string DirectAddress::toString(u32 indentLevel) const {
 
 /* class IndirectAddress */
 
-IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value)
-	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS), m_kind(kind), m_value(value) {}
+IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value, u32 lineno)
+	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS, lineno), m_kind(kind), m_value(value) {}
 
 IndirectAddress::Kind IndirectAddress::kind() const {
 	return m_kind;
@@ -185,43 +187,62 @@ std::string IndirectAddress::toString(u32 indentLevel) const {
 
 /* class Register */
 
-Register::Register(Kind kind) : ExpressionBase(ExpressionBase::REGISTER), m_kind(kind) {}
+Register::Register(Kind kind, u32 lineno)
+	: ExpressionBase(ExpressionBase::REGISTER, lineno), m_kind(kind) {}
 
-std::optional<Register> Register::fromTokenType(Token::Type type) {
-	switch(type) {
+std::optional<Register> Register::fromToken(const Token &token) {
+	Register::Kind kind;
+	switch(token.type()) {
 		case Token::SP:
-			return Register(Register::SP);
+			kind = Register::SP;
+			break;
 		case Token::IP:
-			return Register(Register::IP);
+			kind = Register::IP;
+			break;
 		case Token::FL:
-			return Register(Register::FL);
+			kind = Register::FL;
+			break;
 		case Token::AL:
-			return Register(Register::AL);
+			kind = Register::AL;
+			break;
 		case Token::AH:
-			return Register(Register::AH);
+			kind = Register::AH;
+			break;
 		case Token::ACL:
-			return Register(Register::ACL);
+			kind = Register::ACL;
+			break;
 		case Token::BL:
-			return Register(Register::BL);
+			kind = Register::BL;
+			break;
 		case Token::BH:
-			return Register(Register::BH);
+			kind = Register::BH;
+			break;
 		case Token::BCL:
-			return Register(Register::BCL);
+			kind = Register::BCL;
+			break;
 		case Token::CL:
-			return Register(Register::CL);
+			kind = Register::CL;
+			break;
 		case Token::CH:
-			return Register(Register::CH);
+			kind = Register::CH;
+			break;
 		case Token::CCL:
-			return Register(Register::CCL);
+			kind = Register::CCL;
+			break;
 		case Token::DL:
-			return Register(Register::DL);
+			kind = Register::DL;
+			break;
 		case Token::DH:
-			return Register(Register::DH);
+			kind = Register::DH;
+			break;
 		case Token::DCL:
-			return Register(Register::DCL);
+			kind = Register::DCL;
+			break;
 		default:
 			return std::nullopt;
 	}
+
+	return Register(kind, token.lineno());
 }
 
 Register::Kind Register::kind() const {
@@ -299,21 +320,24 @@ std::optional<Instruction::Kind> Instruction::kindFromString(const std::string &
 	return res->second;
 }
 
-Instruction::Instruction(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions)
-	: StatementBase(expressions), m_kind(kind) {
+Instruction::Instruction(
+	Kind kind,
+	std::vector<std::shared_ptr<ExpressionBase>> expressions,
+	u32 lineno)
+	: StatementBase(expressions, lineno), m_kind(kind) {
 	if(Instruction::isReserved(kind)) {
 		logWarning() << "Instruction constructed with reserved opcode 0x" << std::hex
 					 << static_cast<i32>(kind) << std::dec << "\n";
 	}
 }
 
-std::vector<u8> Instruction::toBytes(ResolvalContext &resolval_context) const {
+Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval_context) const {
 	std::vector<u8> result;
 	result.reserve(4);
 
 	result.push_back(m_kind);
 
-	return result;
+	return Ok(result);
 }
 
 std::string Instruction::toString(u32 indentLevel) const {
@@ -347,11 +371,14 @@ std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {
 	return res->second;
 }
 
-Directive::Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions)
-	: StatementBase(expressions), m_kind(kind) {}
+Directive::Directive(
+	Kind kind,
+	std::vector<std::shared_ptr<ExpressionBase>> expressions,
+	u32 lineno)
+	: StatementBase(expressions, lineno), m_kind(kind) {}
 
 /** @todo implement */
-std::vector<u8> Directive::toBytes(ResolvalContext &resolval_context) const {
+Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_context) const {
 	if(m_kind == Kind::DEFINE) {
 		if(m_expressions.size() != 2) {
 			panic(
@@ -363,18 +390,24 @@ std::vector<u8> Directive::toBytes(ResolvalContext &resolval_context) const {
 		const std::shared_ptr<ExpressionBase> value_expr = m_expressions[1];
 
 		if(identifier_expr->kind() != ExpressionBase::IDENTIFIER) {
-			panic("First expression of directive is not identifier");
+			return Err(AsmError(
+				AsmError::ILLEGAL_OPERAND, m_lineno,
+				"First expression of directive is not identifier"));
 		}
 
 		const Identifier *identifier = dynamic_cast<Identifier *>(identifier_expr.get());
 
-		std::vector<u8> value = value_expr->resolveValue(resolval_context).value();
+		Result<std::vector<u8>, AsmError> maybe_value = value_expr->resolveValue(resolval_context);
+		if(maybe_value.isErr()) {
+			return Err(AsmError(
+				AsmError::VALUE_RESOLVAL_ERROR, m_lineno, "could not resolve value of expression"));
+		}
 
-		resolval_context.identifiers.emplace(identifier->name(), value);
-		return {};
+		resolval_context.identifiers.emplace(identifier->name(), maybe_value.unwrap());
+		return Ok(std::vector<u8>{});
 	}
 
-	return {};
+	return Ok(std::vector<u8>{});
 }
 
 std::string Directive::toString(u32 indentLevel) const {
@@ -395,8 +428,9 @@ std::string Directive::toString(u32 indentLevel) const {
 Statement::Statement(
 	Kind kind,
 	std::vector<std::shared_ptr<ExpressionBase>> expressions,
+	u32 lineno,
 	std::optional<std::shared_ptr<StatementBase>> statement)
-	: StatementBase(expressions), m_kind(kind), m_subStatement(std::move(statement)) {
+	: StatementBase(expressions, lineno), m_kind(kind), m_subStatement(std::move(statement)) {
 	/* This is the result of a horrible decision and many instances of
 	 * "eh, i'll fix it later"...
 	 *
@@ -408,10 +442,12 @@ Statement::Statement(
 }
 
 Statement::Statement(Statement &x)
-	: StatementBase(x.m_expressions), m_kind(x.m_kind), m_subStatement(x.m_subStatement) {}
+	: StatementBase(x.m_expressions, x.m_lineno),
+	  m_kind(x.m_kind),
+	  m_subStatement(x.m_subStatement) {}
 
 Statement::Statement(Statement &&x)
-	: StatementBase(std::move(x.m_expressions)),
+	: StatementBase(std::move(x.m_expressions), x.m_lineno),
 	  m_kind(std::exchange(x.m_kind, static_cast<Statement::Kind>(0))),
 	  m_subStatement(std::move(x.m_subStatement)) {}
 
@@ -420,8 +456,8 @@ Statement::Kind Statement::kind() const {
 }
 
 /** @todo implement */
-std::vector<u8> Statement::toBytes(ResolvalContext &resolval_context) const {
-	return {};
+Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_context) const {
+	return Ok(std::vector<u8>{});
 }
 
 std::string Statement::toString(u32 indentLevel) const {

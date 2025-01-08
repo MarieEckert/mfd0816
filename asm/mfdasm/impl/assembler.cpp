@@ -344,12 +344,15 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 			{
 				std::make_shared<Identifier>(
 					Identifier::SECTION,
-					literal_name.maybeValue().value()
+					literal_name.maybeValue().value(),
+					literal_name.lineno()
 				),
 				std::make_shared<Literal>(
-					literal_value.toBytes()
-				)
-			}
+					literal_value.toBytes(),
+					literal_value.lineno()
+				),
+			},
+			token.lineno()
 		)
 	);
 	/* clang-format on */
@@ -371,9 +374,11 @@ Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 			{
 				std::make_shared<Identifier>(
 					Identifier::LABEL,
-					token.maybeValue().value()
-				)
-			}
+					token.maybeValue().value(),
+					token.lineno()
+				),
+			},
+			token.lineno()
 		)
 	);
 	/* clang-format on */
@@ -402,7 +407,7 @@ Result<u32, AsmError> Parser::tryParseAddressingStatementAt(u32 ix) {
 	/* clang-format off */
 	m_ast.push_back(Statement(
 			relative ? Statement::ADDRESSING_RELATIVE : Statement::ADDRESSING_ABSOLUTE,
-			{}
+			{}, token.lineno()
 		)
 	);
 
@@ -431,6 +436,7 @@ Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 }
 
 Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind) {
+	const Token &token = m_tokens[ix];
 	const std::vector<InstructionOperand> required_operands = InstructionOperand::operandsFor(kind);
 	const Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
 		parse_operands_result = this->tryParseOperands(ix);
@@ -499,9 +505,11 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	m_ast.push_back(Statement(
 			Statement::INSTRUCTION,
 			{},
+			token.lineno(),
 			std::make_shared<Instruction>(
 				kind,
-				operand_expressions
+				operand_expressions,
+				token.lineno()
 			)
 		)
 	);
@@ -510,6 +518,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 }
 
 Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
+	const Token &token = m_tokens[ix];
 	const std::vector<DirectiveOperand> required_operands = DirectiveOperand::operandsFor(kind);
 	const Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
 		parse_operands_result = this->tryParseOperands(ix);
@@ -560,9 +569,11 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	m_ast.push_back(Statement(
 			Statement::DIRECTIVE,
 			{},
+			token.lineno(),
 			std::make_shared<Directive>(
 				kind,
-				operand_expressions
+				operand_expressions,
+				token.lineno()
 			)
 		)
 	);
@@ -595,7 +606,7 @@ Parser::tryParseOperands(u32 ix) {
 
 		const Token &token = m_tokens[ix];
 		if(Token::isNumberType(token.type()) || token.type() == Token::STRING) {
-			expressions.push_back(std::make_shared<Literal>(token.toBytes()));
+			expressions.push_back(std::make_shared<Literal>(token.toBytes(), token.lineno()));
 			goto end;
 		}
 
@@ -604,18 +615,19 @@ Parser::tryParseOperands(u32 ix) {
 				return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "unclosed string"));
 			}
 
-			expressions.push_back(std::make_shared<Literal>(m_tokens[ix + 1].toBytes()));
+			expressions.push_back(
+				std::make_shared<Literal>(m_tokens[ix + 1].toBytes(), m_tokens[ix + 1].lineno()));
 
 			ix += 2;
 			goto end;
 		}
 
 		if(Token::isRegister(token.type())) {
-			const std::optional<Register> reg = Register::fromTokenType(token.type());
+			const std::optional<Register> reg = Register::fromToken(token);
 			if(!reg.has_value()) {
 				panic(
 					"invalid return: token = " + token.toString() +
-					"; Token::isRegister() == true; Register::fromTokenType() returned "
+					"; Token::isRegister() == true; Register::fromToken() returned "
 					"nullopt!");
 			}
 			expressions.push_back(std::make_shared<Register>(reg.value()));
@@ -665,12 +677,12 @@ Parser::tryParseOperands(u32 ix) {
 				expressions.push_back(std::make_shared<IndirectAddress>(
 					Token::isRegister(middle_token.type()) ? IndirectAddress::REGISTER
 														   : IndirectAddress::MEMORY,
-					middle_token.toBytes()));
+					middle_token.toBytes(), middle_token.lineno()));
 			} else {
 				expressions.push_back(std::make_shared<DirectAddress>(
 					Token::isRegister(middle_token.type()) ? DirectAddress::REGISTER
 														   : DirectAddress::MEMORY,
-					middle_token.toBytes()));
+					middle_token.toBytes(), middle_token.lineno()));
 			}
 
 			ix += indirect ? 4 : 2;
@@ -678,7 +690,8 @@ Parser::tryParseOperands(u32 ix) {
 		}
 
 		if(token.type() == Token::_HERE) {
-			expressions.push_back(std::make_shared<Identifier>(Identifier::HERE, ""));
+			expressions.push_back(
+				std::make_shared<Identifier>(Identifier::HERE, "", token.lineno()));
 			goto end;
 		}
 
@@ -686,8 +699,8 @@ Parser::tryParseOperands(u32 ix) {
 			return Err(AsmError(AsmError::ILLEGAL_OPERAND, token.lineno()));
 		}
 
-		expressions.push_back(
-			std::make_shared<Identifier>(Identifier::LABEL, token.maybeValue().value_or("???")));
+		expressions.push_back(std::make_shared<Identifier>(
+			Identifier::LABEL, token.maybeValue().value_or("???"), token.lineno()));
 
 	end:
 		ix++;
