@@ -91,6 +91,7 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 
 			logDebug() << "registered new section\n";
 			current_section = new_section.unwrap();
+			resolval_context.currentAddress = current_section->offset;
 			continue;
 		}
 
