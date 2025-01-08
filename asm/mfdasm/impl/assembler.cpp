@@ -599,6 +599,17 @@ Parser::tryParseOperands(u32 ix) {
 			goto end;
 		}
 
+		if(token.type() == Token::DOUBLE_QUOTE) {
+			if(ix + 2 >= m_tokens.size() || m_tokens[ix + 2].type() != Token::DOUBLE_QUOTE) {
+				return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno(), "unclosed string"));
+			}
+
+			expressions.push_back(std::make_shared<Literal>(m_tokens[ix + 1].toBytes()));
+
+			ix += 2;
+			goto end;
+		}
+
 		if(Token::isRegister(token.type())) {
 			const std::optional<Register> reg = Register::fromTokenType(token.type());
 			if(!reg.has_value()) {
