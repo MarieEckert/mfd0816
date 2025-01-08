@@ -15,49 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MFDASM_IMPL_MRI_MRI_HPP
-#define MFDASM_IMPL_MRI_MRI_HPP
-
 #include <mfdasm/impl/mri/section_table.hpp>
-#include <mfdasm/typedefs.hpp>
 
 namespace mfdasm::impl::mri {
 
-#pragma pack(push, 4)
+/* class SectionTable */
 
-constexpr char mri_magic[4] = "MRI";
-constexpr u16 mri_version = 0x0100;
+Result<std::shared_ptr<Section>, AsmError> SectionTable::addFromStatement(const Statement &statement, ResolvalContext &resolval_context) {
+	if(resolval_context.identifiers.contains("TODO")) {
+		return Err(AsmError(AsmError::IDENTIFIER_REDEFINITION, statement.lineno()));
+	}
 
-enum class TypeFlag : u16 {
-	COMPACT = 1 << 0,
-	DATA_COMPRESSED = 1 << 1,
-};
+	auto section = std::make_shared<Section>();
+	section->offset = 0; /* todo */
 
-struct Header {
-	char magic[4];
-	u16 version;
-	u16 type;
-	u32 filesize;
-	u32 data_offset;
-};
+	m_sectionMap.emplace("TODO", section);
+	resolval_context.identifiers.emplace("TODO", section->offset);
 
-struct TableEntry {
-	u32 file_offset;
-	u16 load_address;
-	u16 length;
-};
+	return Ok(section);
+}
 
-struct Table {
-	u32 entry_count;
-	TableEntry entries[];
-};
+const SectionMap &SectionTable::sectionMap() const {
+	return m_sectionMap;
+}
 
-#pragma pack(pop)
-
-static void writeCompactMRI(std::string path, SectionTable sections, bool compressed);
-
-static void writePaddedMRI(std::string path, SectionTable sections, bool compressed);
-
-}  // namespace mfdasm::impl::mri
-
-#endif
+} // namespace mfdasm::impl::mri

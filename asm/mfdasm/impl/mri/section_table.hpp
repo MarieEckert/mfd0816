@@ -18,11 +18,33 @@
 #ifndef MFDASM_IMPL_MRI_SECTION_TABLE_HPP
 #define MFDASM_IMPL_MRI_SECTION_TABLE_HPP
 
+#include <map>
+#include <memory>
+#include <string>
+
+#include <mfdasm/impl/asmerror.hpp>
+#include <mfdasm/impl/ast.hpp>
+#include <mfdasm/typedefs.hpp>
+
 namespace mfdasm::impl::mri {
 
-class SectionTable {
+struct Section {
+	u16 offset;
+	std::vector<u8> data;
 };
 
-} // namespace mfdasm::impl::mri
+using SectionMap = std::map<std::string, std::shared_ptr<Section>>;
+
+class SectionTable {
+   public:
+	Result<std::shared_ptr<Section>, AsmError> addFromStatement(const Statement &statement, ResolvalContext &resolval_context);
+
+	const SectionMap &sectionMap() const;
+
+   private:
+	SectionMap m_sectionMap;
+};
+
+}  // namespace mfdasm::impl::mri
 
 #endif

@@ -23,6 +23,7 @@
 #include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/token.hpp>
+#include <mfdasm/impl/mri/section_table.hpp>
 #include <mfdasm/result.hpp>
 
 namespace mfdasm::impl {
@@ -38,7 +39,7 @@ class Assembler {
 	 */
 	Result<None, AsmError> parseLines(const std::string &source);
 
-	Result<std::vector<u8>, AsmError> astToBytes() const;
+	Result<mri::SectionTable, AsmError> astToBytes() const;
 
 	std::optional<std::vector<Statement>> ast() const;
 

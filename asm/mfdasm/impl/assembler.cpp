@@ -30,7 +30,6 @@
 #include <mfdasm/impl/directive_operand.hpp>
 #include <mfdasm/impl/instruction_operand.hpp>
 #include <mfdasm/impl/token.hpp>
-#include <mfdasm/impl/mri/mri.hpp>
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
@@ -75,6 +74,29 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 	m_ast = parse_result.unwrap().ast();
 
 	return Ok(None());
+}
+
+Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
+	mri::SectionTable section_table;
+	std::shared_ptr<mri::Section> current_section = nullptr;
+	ResolvalContext resolval_context;
+
+	for(const Statement &statement: m_ast) {
+		if(statement.kind() == Statement::SECTION) {
+			Result<std::shared_ptr<mri::Section>, AsmError> new_section = section_table.addFromStatement(statement, resolval_context);
+			if(new_section.isErr()) {
+				return Err(new_section.unwrapErr());
+			}
+
+			logDebug() << "registered new section\n";
+			current_section = new_section.unwrap();
+			continue;
+		}
+
+		statement.toBytes(resolval_context);
+	}
+
+	return Ok(section_table);
 }
 
 std::optional<std::vector<Statement>> Assembler::ast() const {

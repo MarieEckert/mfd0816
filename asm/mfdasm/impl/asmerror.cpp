@@ -30,6 +30,7 @@ static const std::unordered_map<AsmError::Type, std::string> error_names = {
 	{AsmError::ILLEGAL_OPERAND, "Illegal Operand"},
 	{AsmError::INVALID_INSTRUCTION, "Invalid Instruction"},
 	{AsmError::VALUE_RESOLVAL_ERROR, "Value Resolval Error"},
+	{AsmError::IDENTIFIER_REDEFINITION, "Identifier Redefinition"},
 };
 
 std::string AsmError::errorName(Type type) {

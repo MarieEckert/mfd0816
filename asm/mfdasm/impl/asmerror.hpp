@@ -32,6 +32,7 @@ class AsmError {
 		INVALID_INSTRUCTION,
 		ILLEGAL_OPERAND,
 		VALUE_RESOLVAL_ERROR,
+		IDENTIFIER_REDEFINITION,
 	};
 
 	static std::string errorName(Type type);

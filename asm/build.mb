@@ -18,6 +18,7 @@ sector config
           'impl/ast',
           'impl/directive_operand',
           'impl/instruction_operand',
+          'impl/mri/section_table',
           'impl/token',
           'log',
           'main',

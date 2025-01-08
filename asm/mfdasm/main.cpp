@@ -84,5 +84,11 @@ int main(int argc, char **argv) {
 	}
 	std::cout << "]\n";
 
+	Result<impl::mri::SectionTable, impl::AsmError> bytes = asem.astToBytes();
+	if(bytes.isErr()) {
+		logError() << "Assembler (translation time): " << bytes.unwrapErr().toString() << "\n";
+		std::exit(1);
+	}
+
 	return 0;
 }
