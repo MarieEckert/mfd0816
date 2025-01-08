@@ -30,6 +30,7 @@
 #include <mfdasm/impl/directive_operand.hpp>
 #include <mfdasm/impl/instruction_operand.hpp>
 #include <mfdasm/impl/token.hpp>
+#include <mfdasm/impl/mri/mri.hpp>
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
