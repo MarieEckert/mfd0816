@@ -429,6 +429,7 @@ class Directive : public StatementBase {
 		DB,
 		DW,
 		DD,
+		DS,
 		TIMES,
 		DEFINE,
 	};

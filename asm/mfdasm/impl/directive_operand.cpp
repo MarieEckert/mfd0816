@@ -57,6 +57,12 @@ const std::unordered_map<Directive::Kind, std::vector<DirectiveOperand>>
 				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
 			},
 		},
+		{
+			Directive::DS,
+			{
+				DirectiveOperand({DirectiveOperand::IMMEDIATE}),
+			},
+		},
 };
 
 DirectiveOperand::DirectiveOperand(std::vector<DirectiveOperand::Kind> allowed_kinds)

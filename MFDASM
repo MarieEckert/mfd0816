@@ -25,6 +25,7 @@ CONTENTS
 
     db  dw  dd  times  _here  section  sp  ip  fl  al  ah  acl  bl  bh  bcl  cl
     ch  ccl  dl  dh  dcl  iid  ar  addressing  relative  absolute  at  define
+    ds
 
   Characters:
 
@@ -174,6 +175,18 @@ CONTENTS
 
     NOTE: The assigned value can not be an identifier which does not exist
           at the point at which the directive is encountered.
+
+  DS <string literal>
+
+    Define a string at the current position in the binary, e.g.:
+
+      ds "abcd"
+
+    would become:
+
+      ..00 <other data>
+      ..10 6162 6364 0000 0000 0000 0000 0000 0000
+      ..20 <other data>
 
 LICENSE
 ────────────────────────────────────────────────────────────────────────────────

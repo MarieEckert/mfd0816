@@ -75,6 +75,7 @@ class Token {
 		ABSOLUTE,
 		AT,
 		DEFINE,
+		DS,
 
 		/* data literals */
 		BINARY_NUMBER,
