@@ -1,0 +1,19 @@
+MFD0816 Rom Image (MRI)
+
+HEADER
+
+MRI\0       : magic with 0 padding (4B)
+version     : u16
+type        : u16 (Bit 0: 0 = padded image, 1 = compact image, Bit 1: Data Part Compressed?)
+filesize    : u32
+data offset : u32 (for padded image: start of padded data; for compact image: start of section table)
+
+TABLE FORMAT
+entry count : u32
+
+entry count * entries:
+	file offset : u32
+	load address: u16
+	length      : u16
+
+DATA
