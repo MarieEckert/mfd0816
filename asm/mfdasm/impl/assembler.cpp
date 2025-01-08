@@ -95,7 +95,26 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 			continue;
 		}
 
-		statement.toBytes(resolval_context);
+		if(statement.kind() == Statement::ADDRESSING_RELATIVE ||
+		   statement.kind() == Statement::ADDRESSING_ABSOLUTE) {
+			logWarning() << "addressing statements are not fully implemented yet!\n";
+			continue;
+		}
+
+		if(current_section == nullptr) {
+			logWarning() << "code on line " << std::to_string(statement.lineno())
+						 << " outside any section.\n";
+			logWarning() << "  -> This code will be ignored\n";
+			continue;
+		}
+
+		Result<std::vector<u8>, AsmError> to_bytes_result = statement.toBytes(resolval_context);
+		if(to_bytes_result.isErr()) {
+			return Err(to_bytes_result.unwrapErr());
+		}
+
+		std::vector<u8> bytes = to_bytes_result.unwrap();
+		current_section->data.insert(current_section->data.end(), bytes.begin(), bytes.end());
 	}
 
 	return Ok(section_table);
