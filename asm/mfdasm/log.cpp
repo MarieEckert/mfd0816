@@ -28,7 +28,13 @@
 
 namespace mfdasm {
 
-static Logger::Level _log_level = Logger::Level::DEBUG;
+static Logger::Level _log_level = 
+#ifndef MFDASM_RELEASE
+	Logger::Level::DEBUG
+#else
+	Logger::Level::INFO
+#endif
+;
 
 void Logger::setLogLevel(Level level) {
 	if(level > Level::PANIC) {

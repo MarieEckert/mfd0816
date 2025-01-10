@@ -47,10 +47,12 @@ using namespace mfdasm;
 int main(int argc, char **argv) {
 	cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
 	cli::Argument<bool> arg_licenses("-l", "--licenses", true);
+	cli::Argument<bool> arg_print_ast("-p", "--print-ast", true);
 
 	cli::ArgumentParser parser;
 	parser.addArgument(&arg_verbosity);
 	parser.addArgument(&arg_licenses);
+	parser.addArgument(&arg_print_ast);
 	parser.parse(argc, argv);
 
 	if(arg_licenses.get().value_or(false)) {
@@ -77,12 +79,14 @@ int main(int argc, char **argv) {
 		std::exit(1);
 	}
 
-	std::vector<impl::Statement> ast = asem.ast().value();
-	std::cout << "[\n";
-	for(const auto &statement: ast) {
-		std::cout << statement.toString(1);
+	if(arg_print_ast.get().value_or(false)) {
+		std::vector<impl::Statement> ast = asem.ast().value();
+		std::cout << "[\n";
+		for(const auto &statement: ast) {
+			std::cout << statement.toString(1);
+		}
+		std::cout << "]\n";
 	}
-	std::cout << "]\n";
 
 	Result<impl::mri::SectionTable, impl::AsmError> bytes = asem.astToBytes();
 	if(bytes.isErr()) {

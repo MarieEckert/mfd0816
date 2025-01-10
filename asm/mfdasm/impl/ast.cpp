@@ -345,6 +345,8 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 
 	result.push_back(m_kind);
 
+	logDebug() << "INSTRUCTION TOBYTES DEBUG\n";
+
 	return Ok(result);
 }
 
@@ -465,7 +467,24 @@ Statement::Kind Statement::kind() const {
 
 /** @todo implement */
 Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_context) const {
-	return Ok(std::vector<u8>{});
+	switch(m_kind) {
+		case Statement::LABEL:
+			resolval_context.identifiers.emplace(static_pointer_cast<Identifier>(m_expressions[0])->name(), resolval_context.currentAddress);
+		case Statement::ADDRESSING_ABSOLUTE:
+		case Statement::ADDRESSING_RELATIVE:
+		case Statement::SECTION:
+			return Ok(std::vector<u8>{});
+		case Statement::INSTRUCTION:
+			if(!m_subStatement.has_value()) {
+				panic("toBytes() called on Statement of kind INSTRUCTION without sub-statement");
+			}
+			return static_pointer_cast<Instruction>(m_subStatement.value())->toBytes(resolval_context);
+		case Statement::DIRECTIVE:
+			if(!m_subStatement.has_value()) {
+				panic("toBytes() called on Statement of kind DIRECTIVE without sub-statement");
+			}
+			return static_pointer_cast<Directive>(m_subStatement.value())->toBytes(resolval_context);
+	}
 }
 
 std::string Statement::toString(u32 indentLevel) const {

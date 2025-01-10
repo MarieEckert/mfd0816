@@ -89,8 +89,8 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 				return Err(new_section.unwrapErr());
 			}
 
-			logDebug() << "registered new section\n";
 			current_section = new_section.unwrap();
+			logInfo() << "new section at offset " << current_section->offset << "\n";
 			resolval_context.currentAddress = current_section->offset;
 			continue;
 		}
@@ -115,6 +115,7 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 
 		std::vector<u8> bytes = to_bytes_result.unwrap();
 		current_section->data.insert(current_section->data.end(), bytes.begin(), bytes.end());
+		resolval_context.currentAddress += bytes.size();
 	}
 
 	return Ok(section_table);
