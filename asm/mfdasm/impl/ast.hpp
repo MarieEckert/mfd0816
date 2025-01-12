@@ -445,6 +445,10 @@ class Directive : public StatementBase {
 	std::string toString(u32 indent_level = 0) const override;
 
    private:
+	Result<std::vector<u8>, AsmError> handleDefineNumberLiteral(
+		ResolvalContext &resolval_context,
+		usize width) const;
+
 	Kind m_kind;
 };
 

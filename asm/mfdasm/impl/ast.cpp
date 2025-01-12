@@ -393,7 +393,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 	case Kind::DEFINE: {
 		if(m_expressions.size() != 2) {
 			panic(
-				"toBytes() on Directive with invalid expression count (expected 2, got " +
+				"toBytes() on define directive with invalid expression count (expected 2, got " +
 				std::to_string(m_expressions.size()) + ")");
 		}
 
@@ -417,6 +417,18 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		resolval_context.identifiers.emplace(identifier->name(), maybe_value.unwrap());
 		return Ok(std::vector<u8>{});
 	}
+	case Kind::DB:
+		return this->handleDefineNumberLiteral(resolval_context, 1);
+	case Kind::DW:
+		return this->handleDefineNumberLiteral(resolval_context, 1);
+	case Kind::DD:
+		return this->handleDefineNumberLiteral(resolval_context, 1);
+	case Kind::DS: {
+	}
+
+	/** @todo how to handle this properly? add Statement as expression?? */
+	case Kind::TIMES: {
+	}
 	}
 
 	return Ok(std::vector<u8>{});
@@ -433,6 +445,29 @@ std::string Directive::toString(u32 indentLevel) const {
 	return "Directive {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
 		   base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
 		   base_indent + "}";
+}
+
+Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
+	ResolvalContext &resolval_context,
+	usize width) const {
+	if(m_expressions.size() != 1) {
+		panic(
+			"handleDefineNumberLiteral() on directive with invalid expression count (expected 1, "
+			"got " +
+			std::to_string(m_expressions.size()) + ")");
+	}
+
+	Result<std::vector<u8>, AsmError> maybe_value =
+		m_expressions[0]->resolveValue(resolval_context);
+	if(maybe_value.isErr()) {
+		return Err(maybe_value.unwrapErr());
+	}
+
+	std::vector<u8> value = maybe_value.unwrap();
+
+	value.resize(width);
+
+	return Ok(value);
 }
 
 /* class Statement */
