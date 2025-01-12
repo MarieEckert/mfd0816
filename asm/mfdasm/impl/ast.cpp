@@ -55,7 +55,7 @@ Result<std::vector<u8>, AsmError> ExpressionBase::resolveValue(
 	return Ok(std::vector<u8>{});
 }
 
-ExpressionBase::ExpressionBase(Kind kind, u32 lineno) : m_kind(kind), m_lineno(lineno) {}
+ExpressionBase::ExpressionBase(Kind kind, u32 lineno) : m_lineno(lineno), m_kind(kind) {}
 
 std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "ExpressionBase\n";
