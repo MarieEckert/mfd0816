@@ -201,53 +201,53 @@ Register::Register(Kind kind, u32 lineno)
 std::optional<Register> Register::fromToken(const Token &token) {
 	Register::Kind kind;
 	switch(token.type()) {
-		case Token::SP:
-			kind = Register::SP;
-			break;
-		case Token::IP:
-			kind = Register::IP;
-			break;
-		case Token::FL:
-			kind = Register::FL;
-			break;
-		case Token::AL:
-			kind = Register::AL;
-			break;
-		case Token::AH:
-			kind = Register::AH;
-			break;
-		case Token::ACL:
-			kind = Register::ACL;
-			break;
-		case Token::BL:
-			kind = Register::BL;
-			break;
-		case Token::BH:
-			kind = Register::BH;
-			break;
-		case Token::BCL:
-			kind = Register::BCL;
-			break;
-		case Token::CL:
-			kind = Register::CL;
-			break;
-		case Token::CH:
-			kind = Register::CH;
-			break;
-		case Token::CCL:
-			kind = Register::CCL;
-			break;
-		case Token::DL:
-			kind = Register::DL;
-			break;
-		case Token::DH:
-			kind = Register::DH;
-			break;
-		case Token::DCL:
-			kind = Register::DCL;
-			break;
-		default:
-			return std::nullopt;
+	case Token::SP:
+		kind = Register::SP;
+		break;
+	case Token::IP:
+		kind = Register::IP;
+		break;
+	case Token::FL:
+		kind = Register::FL;
+		break;
+	case Token::AL:
+		kind = Register::AL;
+		break;
+	case Token::AH:
+		kind = Register::AH;
+		break;
+	case Token::ACL:
+		kind = Register::ACL;
+		break;
+	case Token::BL:
+		kind = Register::BL;
+		break;
+	case Token::BH:
+		kind = Register::BH;
+		break;
+	case Token::BCL:
+		kind = Register::BCL;
+		break;
+	case Token::CL:
+		kind = Register::CL;
+		break;
+	case Token::CH:
+		kind = Register::CH;
+		break;
+	case Token::CCL:
+		kind = Register::CCL;
+		break;
+	case Token::DL:
+		kind = Register::DL;
+		break;
+	case Token::DH:
+		kind = Register::DH;
+		break;
+	case Token::DCL:
+		kind = Register::DCL;
+		break;
+	default:
+		return std::nullopt;
 	}
 
 	return Register(kind, token.lineno());
@@ -267,32 +267,32 @@ std::string Register::toString(u32 indentLevel) const {
 
 bool Instruction::isReserved(Kind kind) {
 	switch(kind) {
-		case _RESERVED_00:
-		case _RESERVED_01:
-		case _RESERVED_02:
-		case _RESERVED_03:
-		case _RESERVED_04:
-		case _RESERVED_05:
-		case _RESERVED_06:
-		case _RESERVED_07:
-		case _RESERVED_08:
-		case _RESERVED_09:
-		case _RESERVED_10:
-		case _RESERVED_11:
-		case _RESERVED_12:
-		case _RESERVED_13:
-		case _RESERVED_14:
-		case _RESERVED_15:
-		case _RESERVED_16:
-		case _RESERVED_17:
-		case _RESERVED_18:
-		case _RESERVED_19:
-		case _RESERVED_20:
-		case _RESERVED_21:
-		case _RESERVED_22:
-			return true;
-		default:
-			return false;
+	case _RESERVED_00:
+	case _RESERVED_01:
+	case _RESERVED_02:
+	case _RESERVED_03:
+	case _RESERVED_04:
+	case _RESERVED_05:
+	case _RESERVED_06:
+	case _RESERVED_07:
+	case _RESERVED_08:
+	case _RESERVED_09:
+	case _RESERVED_10:
+	case _RESERVED_11:
+	case _RESERVED_12:
+	case _RESERVED_13:
+	case _RESERVED_14:
+	case _RESERVED_15:
+	case _RESERVED_16:
+	case _RESERVED_17:
+	case _RESERVED_18:
+	case _RESERVED_19:
+	case _RESERVED_20:
+	case _RESERVED_21:
+	case _RESERVED_22:
+		return true;
+	default:
+		return false;
 	}
 }
 
@@ -389,7 +389,8 @@ Directive::Directive(
 
 /** @todo implement */
 Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_context) const {
-	if(m_kind == Kind::DEFINE) {
+	switch(m_kind) {
+	case Kind::DEFINE: {
 		if(m_expressions.size() != 2) {
 			panic(
 				"toBytes() on Directive with invalid expression count (expected 2, got " +
@@ -402,7 +403,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		if(identifier_expr->kind() != ExpressionBase::IDENTIFIER) {
 			return Err(AsmError(
 				AsmError::ILLEGAL_OPERAND, m_lineno,
-				"First expression of directive is not identifier"));
+				"First expression of define directive is not identifier"));
 		}
 
 		const Identifier *identifier = dynamic_cast<Identifier *>(identifier_expr.get());
@@ -415,6 +416,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 
 		resolval_context.identifiers.emplace(identifier->name(), maybe_value.unwrap());
 		return Ok(std::vector<u8>{});
+	}
 	}
 
 	return Ok(std::vector<u8>{});
@@ -468,22 +470,24 @@ Statement::Kind Statement::kind() const {
 /** @todo implement */
 Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_context) const {
 	switch(m_kind) {
-		case Statement::LABEL:
-			resolval_context.identifiers.emplace(static_pointer_cast<Identifier>(m_expressions[0])->name(), resolval_context.currentAddress);
-		case Statement::ADDRESSING_ABSOLUTE:
-		case Statement::ADDRESSING_RELATIVE:
-		case Statement::SECTION:
-			return Ok(std::vector<u8>{});
-		case Statement::INSTRUCTION:
-			if(!m_subStatement.has_value()) {
-				panic("toBytes() called on Statement of kind INSTRUCTION without sub-statement");
-			}
-			return static_pointer_cast<Instruction>(m_subStatement.value())->toBytes(resolval_context);
-		case Statement::DIRECTIVE:
-			if(!m_subStatement.has_value()) {
-				panic("toBytes() called on Statement of kind DIRECTIVE without sub-statement");
-			}
-			return static_pointer_cast<Directive>(m_subStatement.value())->toBytes(resolval_context);
+	case Statement::LABEL:
+		resolval_context.identifiers.emplace(
+			static_pointer_cast<Identifier>(m_expressions[0])->name(),
+			resolval_context.currentAddress);
+	case Statement::ADDRESSING_ABSOLUTE:
+	case Statement::ADDRESSING_RELATIVE:
+	case Statement::SECTION:
+		return Ok(std::vector<u8>{});
+	case Statement::INSTRUCTION:
+		if(!m_subStatement.has_value()) {
+			panic("toBytes() called on Statement of kind INSTRUCTION without sub-statement");
+		}
+		return static_pointer_cast<Instruction>(m_subStatement.value())->toBytes(resolval_context);
+	case Statement::DIRECTIVE:
+		if(!m_subStatement.has_value()) {
+			panic("toBytes() called on Statement of kind DIRECTIVE without sub-statement");
+		}
+		return static_pointer_cast<Directive>(m_subStatement.value())->toBytes(resolval_context);
 	}
 }
 

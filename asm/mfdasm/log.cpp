@@ -28,13 +28,13 @@
 
 namespace mfdasm {
 
-static Logger::Level _log_level = 
+static Logger::Level _log_level =
 #ifndef MFDASM_RELEASE
 	Logger::Level::DEBUG
 #else
 	Logger::Level::INFO
 #endif
-;
+	;
 
 void Logger::setLogLevel(Level level) {
 	if(level > Level::PANIC) {
@@ -69,22 +69,22 @@ std::ostream &Logger::getStream(Level level) {
 	}
 
 	switch(level) {
-		case Level::DEBUG:
-			std::cerr << ANSI_FG_BBLACK "DEBUG:   " ANSI_RESET;
-			break;
-		case Level::INFO:
-			std::cerr << "INFO:    ";
-			break;
-		case Level::WARNING:
-			std::cerr << ANSI_FG_YELLOW "WARNING: " ANSI_RESET;
-			break;
-		case Level::ERROR:
-			std::cerr << ANSI_FG_RED "ERROR:   " ANSI_RESET;
-			break;
-		case Level::PANIC: /* this is more of a "symbolic" level, since you cant disable logging of
-							* panic messages
-							*/
-			return void_stream;
+	case Level::DEBUG:
+		std::cerr << ANSI_FG_BBLACK "DEBUG:   " ANSI_RESET;
+		break;
+	case Level::INFO:
+		std::cerr << "INFO:    ";
+		break;
+	case Level::WARNING:
+		std::cerr << ANSI_FG_YELLOW "WARNING: " ANSI_RESET;
+		break;
+	case Level::ERROR:
+		std::cerr << ANSI_FG_RED "ERROR:   " ANSI_RESET;
+		break;
+	case Level::PANIC: /* this is more of a "symbolic" level, since you cant disable logging of
+						* panic messages
+						*/
+		return void_stream;
 	}
 
 	return std::cerr;

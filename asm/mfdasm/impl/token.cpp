@@ -91,12 +91,12 @@ Token::Type Token::typeFromString(const std::string &str) {
 
 		/* determine base, supported: base 16 (0x), base 10, base 2 (0b) */
 		switch(str[1]) {
-			case 'x':
-				return Type::HEXADECIMAL_NUMBER;
-			case 'b':
-				return Type::BINARY_NUMBER;
-			default:
-				return Type::DECIMAL_NUMBER;
+		case 'x':
+			return Type::HEXADECIMAL_NUMBER;
+		case 'b':
+			return Type::BINARY_NUMBER;
+		default:
+			return Type::DECIMAL_NUMBER;
 		}
 	}
 
@@ -113,64 +113,64 @@ Token::Type Token::typeFromString(const std::string &str) {
 
 bool Token::isNumberType(Type type) {
 	switch(type) {
-		case BINARY_NUMBER:
-		case DECIMAL_NUMBER:
-		case HEXADECIMAL_NUMBER:
-			return true;
-		default:
-			return false;
+	case BINARY_NUMBER:
+	case DECIMAL_NUMBER:
+	case HEXADECIMAL_NUMBER:
+		return true;
+	default:
+		return false;
 	}
 };
 
 bool Token::isRegister(Type type) {
 	switch(type) {
-		case SP:
-		case IP:
-		case FL:
-		case AL:
-		case AH:
-		case ACL:
-		case BL:
-		case BH:
-		case BCL:
-		case CL:
-		case CH:
-		case CCL:
-		case DL:
-		case DH:
-		case DCL:
-			return true;
-		default:
-			return false;
+	case SP:
+	case IP:
+	case FL:
+	case AL:
+	case AH:
+	case ACL:
+	case BL:
+	case BH:
+	case BCL:
+	case CL:
+	case CH:
+	case CCL:
+	case DL:
+	case DH:
+	case DCL:
+		return true;
+	default:
+		return false;
 	}
 }
 
 int Token::numberTypeBase(Type type) {
 	switch(type) {
-		case BINARY_NUMBER:
-			return 2;
-		case DECIMAL_NUMBER:
-			return 10;
-		case HEXADECIMAL_NUMBER:
-			return 16;
-		default:
-			return 0;
+	case BINARY_NUMBER:
+		return 2;
+	case DECIMAL_NUMBER:
+		return 10;
+	case HEXADECIMAL_NUMBER:
+		return 16;
+	default:
+		return 0;
 	}
 }
 
 Token::Token(Type type, u32 lineno, std::optional<std::string> value)
 	: m_type(type), m_lineno(lineno) {
 	switch(m_type) {
-		case Type::BINARY_NUMBER:
-		case Type::DECIMAL_NUMBER:
-		case Type::HEXADECIMAL_NUMBER:
-		case Type::STRING:
-		case Type::LABEL:
-		case Type::UNKNOWN:
-			m_maybeValue = value;
-			break;
-		default:
-			break;
+	case Type::BINARY_NUMBER:
+	case Type::DECIMAL_NUMBER:
+	case Type::HEXADECIMAL_NUMBER:
+	case Type::STRING:
+	case Type::LABEL:
+	case Type::UNKNOWN:
+		m_maybeValue = value;
+		break;
+	default:
+		break;
 	}
 }
 

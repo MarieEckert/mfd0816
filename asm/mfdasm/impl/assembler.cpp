@@ -39,18 +39,18 @@ namespace mfdasm::impl {
 
 static bool isCharReserved(char c) {
 	switch(c) {
-		case '[':
-		case ']':
-		case '-':
-		case '+':
-		case '*':
-		case '/':
-		case '\'':
-		case '"':
-		case ',':
-			return true;
-		default:
-			return false;
+	case '[':
+	case ']':
+	case '-':
+	case '+':
+	case '*':
+	case '/':
+	case '\'':
+	case '"':
+	case ',':
+		return true;
+	default:
+		return false;
 	}
 }
 
@@ -137,65 +137,65 @@ Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {
 	u32 lineno = 1;
 	for(u32 ix = 0; ix < source.size(); ix++) {
 		switch(source[ix]) {
-			case ';': /* Comment */
-				ix = source.find('\n', ix) + 1;
-				lineno++;
-				break;
-			case '\'':
-				tokens.emplace_back(Token::SINGLE_QUOTE, lineno);
-				break;
-			case '[':
-				tokens.emplace_back(Token::LEFT_SQUARE_BRACKET, lineno);
-				break;
-			case ']':
-				tokens.emplace_back(Token::RIGHT_SQUARE_BRACKET, lineno);
-				break;
-			case '\n':
-				lineno++;
-				break;
-			case '-':
-				tokens.emplace_back(Token::MINUS, lineno);
-				break;
-			case '+':
-				tokens.emplace_back(Token::PLUS, lineno);
-				break;
-			case '/':
-				tokens.emplace_back(Token::SLASH, lineno);
-				break;
-			case '*':
-				tokens.emplace_back(Token::TIMES, lineno);
-				break;
-			case ',':
-				tokens.emplace_back(Token::COMMA, lineno);
-				break;
-			case '\"':
-				tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
-				ix += parseStringLiteral(source.substr(ix + 1), lineno, tokens);
-				break;
-			default: /* Character has no special handling */
-				if(std::isspace(source[ix])) {
-					continue;
-				}
+		case ';': /* Comment */
+			ix = source.find('\n', ix) + 1;
+			lineno++;
+			break;
+		case '\'':
+			tokens.emplace_back(Token::SINGLE_QUOTE, lineno);
+			break;
+		case '[':
+			tokens.emplace_back(Token::LEFT_SQUARE_BRACKET, lineno);
+			break;
+		case ']':
+			tokens.emplace_back(Token::RIGHT_SQUARE_BRACKET, lineno);
+			break;
+		case '\n':
+			lineno++;
+			break;
+		case '-':
+			tokens.emplace_back(Token::MINUS, lineno);
+			break;
+		case '+':
+			tokens.emplace_back(Token::PLUS, lineno);
+			break;
+		case '/':
+			tokens.emplace_back(Token::SLASH, lineno);
+			break;
+		case '*':
+			tokens.emplace_back(Token::TIMES, lineno);
+			break;
+		case ',':
+			tokens.emplace_back(Token::COMMA, lineno);
+			break;
+		case '\"':
+			tokens.emplace_back(Token::DOUBLE_QUOTE, lineno);
+			ix += parseStringLiteral(source.substr(ix + 1), lineno, tokens);
+			break;
+		default: /* Character has no special handling */
+			if(std::isspace(source[ix])) {
+				continue;
+			}
 
-				const usize space_pos = std::distance(
-					source.cbegin(), std::find_if(source.cbegin() + ix, source.cend(), [](char c) {
-						return std::isspace(c) || isCharReserved(c);
-					})); /* yucky */
-				const u32 word_len =
-					space_pos != source.length() ? space_pos - ix : source.length() - ix;
-				std::string word = std::string(source.data() + ix, word_len);
+			const usize space_pos = std::distance(
+				source.cbegin(), std::find_if(source.cbegin() + ix, source.cend(), [](char c) {
+					return std::isspace(c) || isCharReserved(c);
+				})); /* yucky */
+			const u32 word_len =
+				space_pos != source.length() ? space_pos - ix : source.length() - ix;
+			std::string word = std::string(source.data() + ix, word_len);
 
-				const Token::Type token_type = Token::typeFromString(word);
+			const Token::Type token_type = Token::typeFromString(word);
 
-				if(token_type == Token::LABEL) {
-					word = word.substr(0, word.length() - 1);
-					ix++; /* compensate for character lost in word */
-				}
+			if(token_type == Token::LABEL) {
+				word = word.substr(0, word.length() - 1);
+				ix++; /* compensate for character lost in word */
+			}
 
-				tokens.emplace_back(token_type, lineno, word);
-				ix += word.length() - 1;
+			tokens.emplace_back(token_type, lineno, word);
+			ix += word.length() - 1;
 
-				break;
+			break;
 		}
 	}
 
@@ -240,23 +240,23 @@ u32 Lexer::parseStringLiteral(const std::string &source, u32 &lineno, std::vecto
 		}
 
 		switch(source[ix + 1]) {
-			case 'n':
-				output += '\n';
-				break;
-			case 'r':
-				output += '\r';
-				break;
-			case '"':
-				output += '"';
-				break;
-			case '\\':
-				output += '\\';
-				break;
-			default:
-				logWarning() << "line " << lineno << ": unknown escape-sequence \"\\"
-							 << source[ix + 1] << "\"\n";
-				output += '?';
-				break;
+		case 'n':
+			output += '\n';
+			break;
+		case 'r':
+			output += '\r';
+			break;
+		case '"':
+			output += '"';
+			break;
+		case '\\':
+			output += '\\';
+			break;
+		default:
+			logWarning() << "line " << lineno << ": unknown escape-sequence \"\\" << source[ix + 1]
+						 << "\"\n";
+			output += '?';
+			break;
 		}
 		ix++;
 	}
@@ -288,66 +288,66 @@ Result<None, AsmError> Parser::parseTokens() {
 		const Token &token = m_tokens[ix];
 
 		switch(token.type()) {
-			case Token::SECTION: {
-				Result<u32, AsmError> parse_result = this->tryParseSectionAt(ix);
-				if(parse_result.isErr()) {
-					return Err(parse_result.unwrapErr());
-				}
-
-				ix = parse_result.unwrap();
-				break;
+		case Token::SECTION: {
+			Result<u32, AsmError> parse_result = this->tryParseSectionAt(ix);
+			if(parse_result.isErr()) {
+				return Err(parse_result.unwrapErr());
 			}
-			case Token::LABEL: {
-				Result<u32, AsmError> parse_result = this->tryParseLabelAt(ix);
-				if(parse_result.isErr()) {
-					return Err(parse_result.unwrapErr());
-				}
 
-				ix = parse_result.unwrap();
-				break;
+			ix = parse_result.unwrap();
+			break;
+		}
+		case Token::LABEL: {
+			Result<u32, AsmError> parse_result = this->tryParseLabelAt(ix);
+			if(parse_result.isErr()) {
+				return Err(parse_result.unwrapErr());
 			}
-			case Token::ADDRESSING: {
-				Result<u32, AsmError> parse_result = this->tryParseAddressingStatementAt(ix);
-				if(parse_result.isErr()) {
-					return Err(parse_result.unwrapErr());
-				}
 
-				ix = parse_result.unwrap();
-				break;
+			ix = parse_result.unwrap();
+			break;
+		}
+		case Token::ADDRESSING: {
+			Result<u32, AsmError> parse_result = this->tryParseAddressingStatementAt(ix);
+			if(parse_result.isErr()) {
+				return Err(parse_result.unwrapErr());
 			}
-			case Token::UNKNOWN: {
-				Result<u32, AsmError> parse_result = this->tryParseUnknownAt(ix);
-				if(parse_result.isErr()) {
-					return Err(parse_result.unwrapErr());
-				}
 
-				ix = parse_result.unwrap();
-				break;
+			ix = parse_result.unwrap();
+			break;
+		}
+		case Token::UNKNOWN: {
+			Result<u32, AsmError> parse_result = this->tryParseUnknownAt(ix);
+			if(parse_result.isErr()) {
+				return Err(parse_result.unwrapErr());
 			}
-			default:
-				if(const auto maybe_directive = Directive::kindFromToken(token.type());
-				   maybe_directive.has_value()) {
-					const Result<u32, AsmError> directive_parse_result =
-						this->tryParseDirective(ix + 1, maybe_directive.value());
-					if(directive_parse_result.isErr()) {
-						return Err(directive_parse_result.unwrapErr());
-					}
 
-					ix = directive_parse_result.unwrap();
-					continue;
+			ix = parse_result.unwrap();
+			break;
+		}
+		default:
+			if(const auto maybe_directive = Directive::kindFromToken(token.type());
+			   maybe_directive.has_value()) {
+				const Result<u32, AsmError> directive_parse_result =
+					this->tryParseDirective(ix + 1, maybe_directive.value());
+				if(directive_parse_result.isErr()) {
+					return Err(directive_parse_result.unwrapErr());
 				}
+
+				ix = directive_parse_result.unwrap();
+				continue;
+			}
 
 #ifdef PRINT_AST_ON_UKOT
-				std::cout << "[\n";
-				for(const auto &statement: m_ast) {
-					std::cout << statement.toString(1);
-				}
-				std::cout << "]\n";
+			std::cout << "[\n";
+			for(const auto &statement: m_ast) {
+				std::cout << statement.toString(1);
+			}
+			std::cout << "]\n";
 #endif
 
-				return Err(AsmError(
-					AsmError::SYNTAX_ERROR, token.lineno(),
-					"Unexpected keyword or token: " + token.toString()));
+			return Err(AsmError(
+				AsmError::SYNTAX_ERROR, token.lineno(),
+				"Unexpected keyword or token: " + token.toString()));
 		}
 	}
 
@@ -507,31 +507,31 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 		map(operand_expressions,
 			[](std::shared_ptr<ExpressionBase> expr) -> InstructionOperand::Kind {
 				switch(expr->kind()) {
-					case ExpressionBase::DIRECT_ADDRESS: {
-						const DirectAddress *tmp_directaddress =
-							dynamic_cast<DirectAddress *>(expr.get());
-						if(tmp_directaddress == nullptr) {
-							panic("could not cast ExpressionBase to DirectAddress in map func");
-						}
-						return tmp_directaddress->kind() == DirectAddress::MEMORY
-								   ? InstructionOperand::DIRECT
-								   : InstructionOperand::REGISTER_DIRECT;
+				case ExpressionBase::DIRECT_ADDRESS: {
+					const DirectAddress *tmp_directaddress =
+						dynamic_cast<DirectAddress *>(expr.get());
+					if(tmp_directaddress == nullptr) {
+						panic("could not cast ExpressionBase to DirectAddress in map func");
 					}
-					case ExpressionBase::INDIRECT_ADDRESS: {
-						const IndirectAddress *tmp_indirectaddress =
-							dynamic_cast<IndirectAddress *>(expr.get());
-						if(tmp_indirectaddress == nullptr) {
-							panic("could not cast ExpressionBase to IndirectAddress in map func");
-						}
-						return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
-								   ? InstructionOperand::DIRECT
-								   : InstructionOperand::REGISTER_DIRECT;
+					return tmp_directaddress->kind() == DirectAddress::MEMORY
+							   ? InstructionOperand::DIRECT
+							   : InstructionOperand::REGISTER_DIRECT;
+				}
+				case ExpressionBase::INDIRECT_ADDRESS: {
+					const IndirectAddress *tmp_indirectaddress =
+						dynamic_cast<IndirectAddress *>(expr.get());
+					if(tmp_indirectaddress == nullptr) {
+						panic("could not cast ExpressionBase to IndirectAddress in map func");
 					}
-					case ExpressionBase::REGISTER:
-						return InstructionOperand::REGISTER_IMMEDIATE;
-					case ExpressionBase::IDENTIFIER:
-					case ExpressionBase::LITERAL:
-						return InstructionOperand::IMMEDIATE;
+					return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
+							   ? InstructionOperand::DIRECT
+							   : InstructionOperand::REGISTER_DIRECT;
+				}
+				case ExpressionBase::REGISTER:
+					return InstructionOperand::REGISTER_IMMEDIATE;
+				case ExpressionBase::IDENTIFIER:
+				case ExpressionBase::LITERAL:
+					return InstructionOperand::IMMEDIATE;
 				}
 			})
 			.to<std::vector<InstructionOperand::Kind>>();
@@ -589,13 +589,13 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 		map(operand_expressions,
 			[](std::shared_ptr<ExpressionBase> expr) -> DirectiveOperand::Kind {
 				switch(expr->kind()) {
-					case ExpressionBase::DIRECT_ADDRESS:
-					case ExpressionBase::INDIRECT_ADDRESS:
-					case ExpressionBase::REGISTER:
-						return DirectiveOperand::INVALID;
-					case ExpressionBase::IDENTIFIER:
-					case ExpressionBase::LITERAL:
-						return DirectiveOperand::IMMEDIATE;
+				case ExpressionBase::DIRECT_ADDRESS:
+				case ExpressionBase::INDIRECT_ADDRESS:
+				case ExpressionBase::REGISTER:
+					return DirectiveOperand::INVALID;
+				case ExpressionBase::IDENTIFIER:
+				case ExpressionBase::LITERAL:
+					return DirectiveOperand::IMMEDIATE;
 				}
 			})
 			.to<std::vector<DirectiveOperand::Kind>>();
