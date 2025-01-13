@@ -136,6 +136,10 @@ sector c_rules
     str output_format '$(%target_objdir%)$(%element%).o'
 
     str exec '#!/bin/bash
+              if [ "$(%input%)" -nt "$(%output%)" ]; then
+                exit
+              fi
+
               FILES="\$($(/config/tools/cc) $(/config/tools/cflags) $(%input%) -MM | cut -d'':'' -f2 - | sed ''s/\\\\//'')"
               for f in $FILES; do
                 if [ "$f" -nt "$(%input%)" ]; then
