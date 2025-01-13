@@ -86,6 +86,16 @@ sector targets
     str target_objdir '$(/config/files/debug_dir)$(/config/files/obj_dir)'
 
     list str c_rules 'compile', 'link'
+
+    ; compile flag generation
+    str exec '#!/bin/bash
+              _FLAGS="$(/config/tools/cflags) $(%target_cflags%)"
+
+              printf "" > compile_flags.txt
+              for f in $_FLAGS; do
+                echo $f >> compile_flags.txt
+              done
+    '
   end
 
   section release
@@ -102,6 +112,13 @@ sector targets
               COMMAND="strip --strip-all $(/config/files/release_dir)$(/config/files/binname)"
               echo "  $COMMAND"
               $COMMAND
+
+              _FLAGS="$(/config/tools/cflags) $(%target_cflags%)"
+
+              printf "" > compile_flags.txt
+              for f in $_FLAGS; do
+                echo $f >> compile_flags.txt
+              done
     '
   end
 end
