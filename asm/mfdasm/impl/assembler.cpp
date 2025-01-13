@@ -527,7 +527,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 				case ExpressionBase::LITERAL:
 					return InstructionOperand::IMMEDIATE;
 				case ExpressionBase::STATEMENT_EXPRESSION:
-	  				panic("invalid state: tryParseOperands returned a StatementExpression");
+					panic("invalid state: tryParseOperands returned a StatementExpression");
 				}
 			})
 			.to<std::vector<InstructionOperand::Kind>>();
@@ -593,7 +593,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 				case ExpressionBase::LITERAL:
 					return DirectiveOperand::IMMEDIATE;
 				case ExpressionBase::STATEMENT_EXPRESSION:
-	  				panic("invalid state: tryParseOperands returned a StatementExpression");
+					panic("invalid state: tryParseOperands returned a StatementExpression");
 				}
 			})
 			.to<std::vector<DirectiveOperand::Kind>>();

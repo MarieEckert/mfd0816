@@ -88,7 +88,7 @@ class Parser {
 
 	void addStatement(Statement statement);
 
-	bool m_timesDirectiveDeclared;
+	bool m_timesDirectiveDeclared{false};
 
 	std::vector<Token> m_tokens;
 
