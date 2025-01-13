@@ -420,12 +420,11 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 	case Kind::DB:
 		return this->handleDefineNumberLiteral(resolval_context, 1);
 	case Kind::DW:
-		return this->handleDefineNumberLiteral(resolval_context, 1);
+		return this->handleDefineNumberLiteral(resolval_context, 2);
 	case Kind::DD:
-		return this->handleDefineNumberLiteral(resolval_context, 1);
-	case Kind::DS: {
-	}
-
+		return this->handleDefineNumberLiteral(resolval_context, 4);
+	case Kind::DS:
+		return this->handleDefineNumberLiteral(resolval_context, 0);
 	/** @todo how to handle this properly? add Statement as expression?? */
 	case Kind::TIMES: {
 	}
@@ -465,7 +464,9 @@ Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
 
 	std::vector<u8> value = maybe_value.unwrap();
 
-	value.resize(width);
+	if(width > 0) {
+		value.resize(width);
+	}
 
 	return Ok(value);
 }
