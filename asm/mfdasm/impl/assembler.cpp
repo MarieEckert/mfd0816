@@ -622,6 +622,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 
 	if(kind == Directive::TIMES) {
 		m_timesDirectiveDeclared = true;
+		m_lastTimesDirective = new_directive;
 	}
 	return Ok(parse_operands_unwrapped.first);
 }
@@ -762,24 +763,12 @@ void Parser::addStatement(Statement statement) {
 	}
 
 	m_timesDirectiveDeclared = false;
-	std::optional<std::shared_ptr<StatementBase>> directive_statement =
-		m_ast.back().maybeSubStatement();
-
-	if(!directive_statement.has_value()) {
-		panic(
-			"m_timesDirectiveDeclared true but last statement in m_ast does not have a sub "
-			"statement");
+	if(m_lastTimesDirective == nullptr) {
+		panic("m_timesDirectiveDeclared true but m_lastTimesDirective == nullptr");
 	}
 
-	std::shared_ptr<Directive> directive =
-		static_pointer_cast<Directive>(directive_statement.value());
-	if(directive == nullptr) {
-		panic(
-			"m_timesDirectiveDeclared true but last statement in m_ast does not have a Directive "
-			"sub statement");
-	}
-
-	directive->addExpression(std::make_shared<StatementExpression>(statement, statement.lineno()));
+	m_lastTimesDirective->addExpression(
+		std::make_shared<StatementExpression>(statement, statement.lineno()));
 }
 
 }  // namespace mfdasm::impl
