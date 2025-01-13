@@ -90,8 +90,6 @@ class Parser {
 
 	bool m_timesDirectiveDeclared;
 
-	std::shared_ptr<Directive> m_currentTimesDirective;
-
 	std::vector<Token> m_tokens;
 
 	std::vector<Statement> m_ast;
