@@ -33,8 +33,6 @@
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 
-#define _PRINT_AST_ON_UKOT
-
 namespace mfdasm::impl {
 
 static bool isCharReserved(char c) {
@@ -341,14 +339,6 @@ Result<None, AsmError> Parser::parseTokens() {
 				continue;
 			}
 
-#ifdef PRINT_AST_ON_UKOT
-			std::cout << "[\n";
-			for(const auto &statement: m_ast) {
-				std::cout << statement.toString(1);
-			}
-			std::cout << "]\n";
-#endif
-
 			return Err(AsmError(
 				AsmError::SYNTAX_ERROR, token.lineno(),
 				"Unexpected keyword or token: " + token.toString()));
@@ -536,6 +526,8 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 				case ExpressionBase::IDENTIFIER:
 				case ExpressionBase::LITERAL:
 					return InstructionOperand::IMMEDIATE;
+				case ExpressionBase::STATEMENT_EXPRESSION:
+	  				panic("invalid state: tryParseOperands returned a StatementExpression");
 				}
 			})
 			.to<std::vector<InstructionOperand::Kind>>();
@@ -600,6 +592,8 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 				case ExpressionBase::IDENTIFIER:
 				case ExpressionBase::LITERAL:
 					return DirectiveOperand::IMMEDIATE;
+				case ExpressionBase::STATEMENT_EXPRESSION:
+	  				panic("invalid state: tryParseOperands returned a StatementExpression");
 				}
 			})
 			.to<std::vector<DirectiveOperand::Kind>>();

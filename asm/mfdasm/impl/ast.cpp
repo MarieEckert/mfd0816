@@ -59,7 +59,7 @@ ExpressionBase::Kind ExpressionBase::kind() const {
 }
 
 Result<std::vector<u8>, AsmError> ExpressionBase::resolveValue(
-	const ResolvalContext &resolval_context) const {
+	[[maybe_unused]] const ResolvalContext &resolval_context) const {
 	return Ok(std::vector<u8>{});
 }
 
@@ -97,7 +97,7 @@ Literal::Literal(std::vector<u8> value, u32 lineno)
 	: ExpressionBase(ExpressionBase::LITERAL, lineno), m_value(value) {}
 
 Result<std::vector<u8>, AsmError> Literal::resolveValue(
-	const ResolvalContext &resolval_context) const {
+	[[maybe_unused]] const ResolvalContext &resolval_context) const {
 	return Ok(m_value);
 }
 
