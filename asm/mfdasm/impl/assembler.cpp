@@ -83,6 +83,10 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 
 	for(const Statement &statement: m_ast) {
 		if(statement.kind() == Statement::SECTION) {
+			if(current_section != nullptr) {
+				logDebug() << "old section contains "
+						   << std::to_string(current_section->data.size()) << " bytes\n";
+			}
 			Result<std::shared_ptr<mri::Section>, AsmError> new_section =
 				section_table.addFromStatement(statement, resolval_context);
 			if(new_section.isErr()) {

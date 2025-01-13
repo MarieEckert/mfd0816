@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -29,6 +30,13 @@
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 #include <mfdasm/typedefs.hpp>
+
+namespace {
+/** @brief helper function for accumulating u8 vector into u64 */
+static u64 f(u64 acc, u8 val) {
+	return (acc << 8) + val;
+}
+}  // namespace
 
 namespace mfdasm::impl {
 
@@ -425,8 +433,45 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		return this->handleDefineNumberLiteral(resolval_context, 4);
 	case Kind::DS:
 		return this->handleDefineNumberLiteral(resolval_context, 0);
-	/** @todo how to handle this properly? add Statement as expression?? */
 	case Kind::TIMES: {
+		if(m_expressions.size() != 2) {
+			panic(
+				"toBytes() on times directive with invalid expression count (expected 2, got " +
+				std::to_string(m_expressions.size()) + ")");
+		}
+
+		const std::shared_ptr<ExpressionBase> count_expr = m_expressions[0];
+		const std::shared_ptr<ExpressionBase> statement_expr = m_expressions[1];
+
+		if(statement_expr->kind() != ExpressionBase::STATEMENT_EXPRESSION) {
+			panic("second expression of times directive is not a statement expression");
+		}
+
+		const Result<std::vector<u8>, AsmError> maybe_count =
+			count_expr->resolveValue(resolval_context);
+		if(maybe_count.isErr()) {
+			return Err(maybe_count.unwrapErr());
+		}
+
+		const std::vector<u8> raw_count = maybe_count.unwrap();
+
+		const u64 count = std::accumulate(raw_count.begin(), raw_count.end(), 0ll, f);
+
+		std::vector<u8> result;
+		for(u64 ix = 0; ix < count; ix++) {
+			const Result<std::vector<u8>, AsmError> statement_result =
+				static_pointer_cast<StatementExpression>(statement_expr)
+					->statement()
+					.toBytes(resolval_context);
+			if(statement_result.isErr()) {
+				return Err(statement_result.unwrapErr());
+			}
+
+			const std::vector<u8> statement_bytes = statement_result.unwrap();
+			result.insert(result.end(), statement_bytes.begin(), statement_bytes.end());
+		}
+
+		return Ok(result);
 	}
 	}
 
