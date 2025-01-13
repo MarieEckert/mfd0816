@@ -384,7 +384,7 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 	}
 
 	/* clang-format off */
-	m_ast.push_back(Statement(
+	addStatement(Statement(
 			Statement::SECTION,
 			{
 				std::make_shared<Identifier>(
@@ -414,7 +414,7 @@ Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 	}
 
 	/* clang-format off */
-	m_ast.push_back(Statement(
+	addStatement(Statement(
 			Statement::LABEL,
 			{
 				std::make_shared<Identifier>(
@@ -450,7 +450,7 @@ Result<u32, AsmError> Parser::tryParseAddressingStatementAt(u32 ix) {
 	const bool relative = addressing_type_token.type() == Token::RELATIVE;
 
 	/* clang-format off */
-	m_ast.push_back(Statement(
+	addStatement(Statement(
 			relative ? Statement::ADDRESSING_RELATIVE : Statement::ADDRESSING_ABSOLUTE,
 			{}, token.lineno()
 		)
@@ -547,7 +547,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	}
 
 	/* clang-format off */
-	m_ast.push_back(Statement(
+	addStatement(Statement(
 			Statement::INSTRUCTION,
 			{},
 			token.lineno(),
@@ -610,19 +610,22 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 			"Invalid operand of type " + std::to_string(given_operands[operand_ix])));
 	}
 
+	auto new_directive = std::make_shared<Directive>(kind, operand_expressions, token.lineno());
+
 	/* clang-format off */
-	m_ast.push_back(Statement(
+	addStatement(Statement(
 			Statement::DIRECTIVE,
 			{},
 			token.lineno(),
-			std::make_shared<Directive>(
-				kind,
-				operand_expressions,
-				token.lineno()
-			)
+			new_directive
 		)
 	);
 	/* clang-format on */
+
+	if(kind == Directive::TIMES) {
+		m_timesDirectiveDeclared = true;
+		m_currentTimesDirective = new_directive;
+	}
 	return Ok(parse_operands_unwrapped.first);
 }
 
@@ -753,6 +756,19 @@ Parser::tryParseOperands(u32 ix) {
 
 	ix--; /* ix needs to be on the last "consumed" token */
 	return Ok(std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(ix, expressions));
+}
+
+void Parser::addStatement(Statement statement) {
+	if(!m_timesDirectiveDeclared) {
+		m_ast.push_back(std::move(statement));
+		return;
+	}
+
+	m_timesDirectiveDeclared = false;
+	std::shared_ptr<StatementBase> directive_statement = m_ast.back().maybeSubStatement().value();
+
+	std::shared_ptr<Directive> directive = static_pointer_cast<Directive>(directive_statement);
+	directive->addExpression(std::make_shared<StatementExpression>(statement, statement.lineno()));
 }
 
 }  // namespace mfdasm::impl

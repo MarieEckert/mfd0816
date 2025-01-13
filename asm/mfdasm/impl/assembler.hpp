@@ -86,6 +86,12 @@ class Parser {
 	Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError> tryParseOperands(
 		u32 ix);
 
+	void addStatement(Statement statement);
+
+	bool m_timesDirectiveDeclared;
+
+	std::shared_ptr<Directive> m_currentTimesDirective;
+
 	std::vector<Token> m_tokens;
 
 	std::vector<Statement> m_ast;

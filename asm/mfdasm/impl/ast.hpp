@@ -178,6 +178,7 @@ class ExpressionBase {
 		REGISTER,
 		DIRECT_ADDRESS,
 		INDIRECT_ADDRESS,
+		STATEMENT_EXPRESSION,
 	};
 
 	virtual ~ExpressionBase() = default;
@@ -444,6 +445,8 @@ class Directive : public StatementBase {
 
 	std::string toString(u32 indent_level = 0) const override;
 
+	void addExpression(std::shared_ptr<ExpressionBase> expression);
+
    private:
 	Result<std::vector<u8>, AsmError> handleDefineNumberLiteral(
 		ResolvalContext &resolval_context,
@@ -491,10 +494,24 @@ class Statement : public StatementBase {
 
 	std::string toString(u32 indent_level = 0) const override;
 
+	std::optional<std::shared_ptr<StatementBase>> maybeSubStatement() const;
+
    private:
 	Kind m_kind;
 
 	std::optional<std::shared_ptr<StatementBase>> m_subStatement;
+};
+
+class StatementExpression : public ExpressionBase {
+   public:
+	StatementExpression(Statement statement, u32 lineno);
+
+	Statement statement();
+
+	std::string toString(u32 indent_level = 0) const override;
+
+   private:
+	Statement m_statement;
 };
 }  // namespace mfdasm::impl
 

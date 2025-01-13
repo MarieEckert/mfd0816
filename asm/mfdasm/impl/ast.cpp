@@ -446,6 +446,10 @@ std::string Directive::toString(u32 indentLevel) const {
 		   base_indent + "}";
 }
 
+void Directive::addExpression(std::shared_ptr<ExpressionBase> expression) {
+	m_expressions.push_back(expression);
+}
+
 Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
 	ResolvalContext &resolval_context,
 	usize width) const {
@@ -544,6 +548,26 @@ std::string Statement::toString(u32 indentLevel) const {
 		   "\n" + base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
 		   base_indent + "  statement: " + statement_string + base_indent + "\n" + base_indent +
 		   "}\n";
+}
+
+std::optional<std::shared_ptr<StatementBase>> Statement::maybeSubStatement() const {
+	return m_subStatement;
+}
+
+/* class StatementExpression */
+
+StatementExpression::StatementExpression(Statement statement, u32 lineno)
+	: ExpressionBase(ExpressionBase::STATEMENT_EXPRESSION, lineno), m_statement(statement) {}
+
+Statement StatementExpression::statement() {
+	return m_statement;
+}
+
+std::string StatementExpression::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
+
+	return base_indent + "StatementExpression {\n" + m_statement.toString(indent_level + 1) +
+		   base_indent + "}\n";
 }
 
 }  // namespace mfdasm::impl
