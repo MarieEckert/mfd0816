@@ -216,9 +216,14 @@ std::vector<u8> Token::toBytes() const {
 	}
 
 	if(Token::isNumberType(m_type)) {
-		const u16 value = std::stoi(m_maybeValue.value(), 0, Token::numberTypeBase(m_type));
+		const u64 value = std::stoull(m_maybeValue.value(), 0, Token::numberTypeBase(m_type));
 
-		return {static_cast<u8>((value >> 8) & 0xFF), static_cast<u8>(value & 0xFF)};
+		return {
+			static_cast<u8>((value >> 56) & 0xFF), static_cast<u8>((value >> 48) & 0xFF),
+			static_cast<u8>((value >> 40) & 0xFF), static_cast<u8>((value >> 32) & 0xFF),
+			static_cast<u8>((value >> 24) & 0xFF), static_cast<u8>((value >> 16) & 0xFF),
+			static_cast<u8>((value >> 8) & 0xFF),  static_cast<u8>((value >> 0) & 0xFF),
+		};
 	}
 
 	if(m_type == Token::STRING) {

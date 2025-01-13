@@ -16,6 +16,7 @@
  */
 
 #include <mfdasm/impl/mri/section_table.hpp>
+#include <mfdasm/log.hpp>
 
 namespace mfdasm::impl::mri {
 
@@ -48,13 +49,13 @@ Result<std::shared_ptr<Section>, AsmError> SectionTable::addFromStatement(
 	}
 
 	const std::vector<u8> literal_value = maybe_literal_value.unwrap();
-
-	if(literal_value.size() != 2) {
+	if(literal_value.size() < 2) {
 		panic("section position literal constructed with invalid byte size!");
 	}
 
 	auto section = std::make_shared<Section>();
-	section->offset = (literal_value[0] << 8) | literal_value[1];
+	section->offset =
+		(literal_value[literal_value.size() - 2] << 8) | literal_value[literal_value.size() - 1];
 
 	m_sectionMap.emplace(identifier->name(), section);
 	resolval_context.identifiers.emplace(identifier->name(), section->offset);

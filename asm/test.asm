@@ -7,8 +7,9 @@ section code at 0x1100
 			ld	bcl,	[[0x1330]]
 
 section data at 0xd000
-define bufferSize,	1024
-	buffer:			times bufferSize times bufferSize times 10 db 0
+					define			bufferSize,	18446744073709551614
+	buffer:			times			bufferSize
+								db	0
 	text:			ds "hello, world! \\ \" \\ \\\"" db 0
 
 section reset_vector at 0xfffe
