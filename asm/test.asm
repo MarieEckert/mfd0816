@@ -7,7 +7,7 @@ section code at 0x1100
 			ld	bcl,	[[0x1330]]
 
 section data at 0xd000
-					define			bufferSize,	18446744073709551614
+					define			bufferSize,	0x400
 	buffer:			times			bufferSize
 								db	0
 	text:			ds "hello, world! \\ \" \\ \\\"" db 0
