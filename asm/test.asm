@@ -5,6 +5,7 @@ section code at 0x1100
 			ld	acl,	[sp]		; load the word from the top of the
 									; stack into acl
 			ld	bcl,	[[0x1330]]
+			ld	ccl,	[[bcl]]
 
 section data at 0xd000
 					define			bufferSize,	0x400

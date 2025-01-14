@@ -349,11 +349,48 @@ Instruction::Instruction(
 
 Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval_context) const {
 	std::vector<u8> result;
-	result.reserve(4);
+	result.reserve(6);
 
 	result.push_back(m_kind);
 
-	logDebug() << "INSTRUCTION TOBYTES DEBUG\n";
+	u8 operand_bits = 0;
+
+	for(usize ix = 0; ix < 2 && ix < m_expressions.size(); ix++) {
+		switch(m_expressions[ix]->kind()) {
+		case ExpressionBase::IDENTIFIER:
+		case ExpressionBase::LITERAL: {
+			break;
+		}
+		case ExpressionBase::REGISTER: {
+			operand_bits |= 0b1000;
+			break;
+		}
+		case ExpressionBase::DIRECT_ADDRESS: {
+			operand_bits |=
+				0b0001 | (static_cast<u8>(
+							  static_pointer_cast<DirectAddress>(m_expressions[ix])->kind() ==
+							  DirectAddress::REGISTER) *
+						  0b1000);
+			break;
+		}
+		case ExpressionBase::INDIRECT_ADDRESS: {
+			operand_bits |=
+				0b0010 | (static_cast<u8>(
+							  static_pointer_cast<IndirectAddress>(m_expressions[ix])->kind() ==
+							  IndirectAddress::REGISTER) *
+						  0b1000);
+			break;
+		}
+		}
+
+		if(ix == 0) {
+			operand_bits = operand_bits << 4;
+		}
+	}
+
+	result.push_back(operand_bits);
+	logDebug() << "operand bits for " << ((int)m_kind) << ": " << std::bitset<8>(operand_bits)
+			   << "\n";
 
 	return Ok(result);
 }
