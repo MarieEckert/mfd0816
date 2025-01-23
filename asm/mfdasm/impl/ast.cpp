@@ -132,7 +132,7 @@ Result<std::vector<u8>, AsmError> Identifier::resolveValue(
 		});
 
 	if(iterator == resolval_context.identifiers.cend()) {
-		return Ok(std::vector<u8>{});
+		return Err(AsmError(AsmError::NO_SUCH_IDENTIFIER, m_lineno, m_name));
 	}
 
 	return Ok(iterator->second);
@@ -380,6 +380,8 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 	std::vector<u8> operands;
 
 	for(usize ix = 0; ix < 2 && ix < m_expressions.size(); ix++) {
+		bool reg = false;
+
 		switch(m_expressions[ix]->kind()) {
 		case ExpressionBase::IDENTIFIER:
 		case ExpressionBase::LITERAL: {
@@ -387,22 +389,19 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 		}
 		case ExpressionBase::REGISTER: {
 			operand_bits |= 0b1000;
+			reg = true;
 			break;
 		}
 		case ExpressionBase::DIRECT_ADDRESS: {
-			operand_bits |=
-				0b0001 | (static_cast<u8>(
-							  static_pointer_cast<DirectAddress>(m_expressions[ix])->kind() ==
-							  DirectAddress::REGISTER) *
-						  0b1000);
+			reg = static_pointer_cast<DirectAddress>(m_expressions[ix])->kind() ==
+				  DirectAddress::REGISTER;
+			operand_bits |= 0b0001 | (static_cast<u8>(reg) * 0b1000);
 			break;
 		}
 		case ExpressionBase::INDIRECT_ADDRESS: {
-			operand_bits |=
-				0b0010 | (static_cast<u8>(
-							  static_pointer_cast<IndirectAddress>(m_expressions[ix])->kind() ==
-							  IndirectAddress::REGISTER) *
-						  0b1000);
+			reg = static_pointer_cast<IndirectAddress>(m_expressions[ix])->kind() ==
+				  IndirectAddress::REGISTER;
+			operand_bits |= 0b0010 | (static_cast<u8>(reg) * 0b1000);
 			break;
 		}
 		}
@@ -410,13 +409,24 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 		const Result<std::vector<u8>, AsmError> maybe_operand_bytes =
 			m_expressions[ix]->resolveValue(resolval_context);
 		if(maybe_operand_bytes.isErr()) {
-			return Err(maybe_operand_bytes.unwrapErr());
-		}
+			const AsmError err = maybe_operand_bytes.unwrapErr();
+			if(err.type() != AsmError::NO_SUCH_IDENTIFIER) {
+				return Err(err);
+			}
 
-		const std::vector<u8> operand_bytes = maybe_operand_bytes.unwrap();
-		operands.insert(
-			operands.end(), operand_bytes.end() - std::min<int>(operand_bytes.size(), 2),
-			operand_bytes.end());
+			resolval_context.unresolvedIdentifiers.insert(
+				{resolval_context.currentAddress + 2 + ix,
+				 {reg ? 1 : 2, err.maybeMessage().value_or("")}});
+			operands.push_back(0);
+			if(!reg) {
+				operands.push_back(0);
+			}
+		} else {
+			const std::vector<u8> operand_bytes = maybe_operand_bytes.unwrap();
+			operands.insert(
+				operands.end(), operand_bytes.end() - std::min<int>(operand_bytes.size(), 2),
+				operand_bytes.end());
+		}
 
 		if(ix == 0) {
 			operand_bits = operand_bits << 4;

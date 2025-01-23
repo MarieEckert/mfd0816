@@ -33,6 +33,7 @@ class AsmError {
 		ILLEGAL_OPERAND,
 		VALUE_RESOLVAL_ERROR,
 		IDENTIFIER_REDEFINITION,
+		NO_SUCH_IDENTIFIER,
 	};
 
 	static std::string errorName(Type type);

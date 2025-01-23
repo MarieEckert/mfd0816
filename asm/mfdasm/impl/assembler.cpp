@@ -120,6 +120,14 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 		resolval_context.currentAddress += bytes.size();
 	}
 
+	/* resolve missing */
+
+	for(const auto &entry: resolval_context.unresolvedIdentifiers) {
+		logDebug() << "unresolved identifier: pos = " << entry.first
+				   << "; width = " << entry.second.first << "; name = \"" << entry.second.second
+				   << "\";\n";
+	}
+
 	return Ok(section_table);
 }
 
