@@ -614,7 +614,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	addStatement(Statement(
 			Statement::DIRECTIVE,
 			{},
-			token.lineno(),
+token.lineno(),
 			new_directive
 		)
 	);
@@ -648,7 +648,7 @@ Parser::tryParseOperands(u32 ix) {
 
 	do {
 		ix++;
-		logDebug() << "current token = " << m_tokens[ix].toString() << "\n";
+		logDebug() << "ix = " << ix << "; current token = " << m_tokens[ix].toString() << "\n";
 
 		const Token &token = m_tokens[ix];
 		if(Token::isNumberType(token.type()) || token.type() == Token::STRING) {
@@ -719,19 +719,29 @@ Parser::tryParseOperands(u32 ix) {
 					   << "; token: " << m_tokens[ix + offset].toString() << "\n";
 
 			const Token &middle_token = m_tokens[ix + offset];
+			logDebug() << "recurse try parse operands, ix " << ix << "\n";
+			Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
+				maybe_expr = this->tryParseOperands(ix + offset);
+			if(maybe_expr.isErr()) {
+				return maybe_expr;
+			}
+
+			const std::shared_ptr<ExpressionBase> expr = maybe_expr.unwrap().second[0];
+			ix = maybe_expr.unwrap().first;
+
 			if(indirect) {
 				expressions.push_back(std::make_shared<IndirectAddress>(
 					Token::isRegister(middle_token.type()) ? IndirectAddress::REGISTER
 														   : IndirectAddress::MEMORY,
-					middle_token.toBytes(), middle_token.lineno()));
+					expr, middle_token.lineno()));
 			} else {
 				expressions.push_back(std::make_shared<DirectAddress>(
 					Token::isRegister(middle_token.type()) ? DirectAddress::REGISTER
 														   : DirectAddress::MEMORY,
-					middle_token.toBytes(), middle_token.lineno()));
+					expr, middle_token.lineno()));
 			}
 
-			ix += indirect ? 4 : 2;
+			ix += indirect ? 2 : 1;
 			goto end;
 		}
 

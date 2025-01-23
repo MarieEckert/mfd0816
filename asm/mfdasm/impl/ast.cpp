@@ -155,16 +155,21 @@ std::string Identifier::name() const {
 
 /* class DirectAddress */
 
-DirectAddress::DirectAddress(Kind kind, std::vector<u8> value, u32 lineno)
-	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS, lineno), m_kind(kind), m_value(value) {
-	if(value.size() == 0) {
-		panic("shit");
+DirectAddress::DirectAddress(
+	Kind kind,
+	std::shared_ptr<ExpressionBase> value_expression,
+	u32 lineno)
+	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS, lineno),
+	  m_kind(kind),
+	  m_valueExpression(value_expression) {
+	if(value_expression == nullptr) {
+		panic("DirectAddress constructed with a nullptr value_expression");
 	}
 }
 
 Result<std::vector<u8>, AsmError> DirectAddress::resolveValue(
 	const ResolvalContext &resolval_context) const {
-	return Ok(m_value);
+	return m_valueExpression->resolveValue(resolval_context);
 }
 
 DirectAddress::Kind DirectAddress::kind() const {
@@ -173,25 +178,30 @@ DirectAddress::Kind DirectAddress::kind() const {
 
 std::string DirectAddress::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
-	std::string value_string;
-	for(const u8 byte: m_value) {
-		std::stringstream ss;
-		ss << std::hex << (int)byte;
-		value_string += "\n" + base_indent + "    0x" + ss.str() + ",";
-	}
+
+	std::string expression_string = m_valueExpression->toString(indentLevel + 2);
+
 	return base_indent + "DirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
-		   "\n" + base_indent + "  value: [" + value_string + "\n" + base_indent + "  ]\n" +
-		   base_indent + "}\n";
+		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}";
 }
 
 /* class IndirectAddress */
 
-IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value, u32 lineno)
-	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS, lineno), m_kind(kind), m_value(value) {}
+IndirectAddress::IndirectAddress(
+	Kind kind,
+	std::shared_ptr<ExpressionBase> value_expression,
+	u32 lineno)
+	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS, lineno),
+	  m_kind(kind),
+	  m_valueExpression(value_expression) {
+	if(value_expression == nullptr) {
+		panic("IndirectAddress constructed with a nullptr value_expression");
+	}
+}
 
 Result<std::vector<u8>, AsmError> IndirectAddress::resolveValue(
 	const ResolvalContext &resolval_context) const {
-	return Ok(m_value);
+	return m_valueExpression->resolveValue(resolval_context);
 }
 
 IndirectAddress::Kind IndirectAddress::kind() const {
@@ -200,15 +210,11 @@ IndirectAddress::Kind IndirectAddress::kind() const {
 
 std::string IndirectAddress::toString(u32 indentLevel) const {
 	const std::string base_indent = makeIndent(indentLevel);
-	std::string value_string;
-	for(const u8 byte: m_value) {
-		std::stringstream ss;
-		ss << std::hex << (int)byte;
-		value_string += "\n" + base_indent + "    0x" + ss.str() + ",";
-	}
-	return base_indent + "Indirect {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
-		   base_indent + "  value: [" + value_string + "\n" + base_indent + "  ]\n" + base_indent +
-		   "}\n";
+
+	std::string expression_string = m_valueExpression->toString(indentLevel + 2);
+
+	return base_indent + "IndirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
+		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}";
 }
 
 /* class Register */

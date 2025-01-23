@@ -167,6 +167,8 @@ namespace mfdasm::impl {
  */
 struct ResolvalContext {
 	std::unordered_map<std::string, std::vector<u8>> identifiers;
+	/** @brief <usize position in binary, pair<usize operand width, string identifier name>> */
+	std::unordered_map<usize, std::pair<usize, std::string>> unresolvedIdentifiers;
 	usize currentAddress;
 };
 
@@ -266,7 +268,7 @@ class DirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	DirectAddress(Kind kind, std::vector<u8> value, u32 lineno);
+	DirectAddress(Kind kind, std::shared_ptr<ExpressionBase> value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -278,7 +280,7 @@ class DirectAddress : public ExpressionBase {
    private:
 	Kind m_kind;
 
-	std::vector<u8> m_value;
+	std::shared_ptr<ExpressionBase> m_valueExpression;
 };
 
 class IndirectAddress : public ExpressionBase {
@@ -288,7 +290,7 @@ class IndirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	IndirectAddress(Kind kind, std::vector<u8> value, u32 lineno);
+	IndirectAddress(Kind kind, std::shared_ptr<ExpressionBase> value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -300,7 +302,7 @@ class IndirectAddress : public ExpressionBase {
    private:
 	Kind m_kind;
 
-	std::vector<u8> m_value;
+	std::shared_ptr<ExpressionBase> m_valueExpression;
 };
 
 class Register : public ExpressionBase {
