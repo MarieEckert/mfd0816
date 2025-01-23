@@ -11,10 +11,11 @@ section code at 0x1100
 test:
 
 section data at 0xd000
-					define			bufferSize,	0x400
+					define			bufferSize, 1 ;	0x400
 	buffer:			times			bufferSize
-								db	0
+								db	0xff
 	text:			ds "hello, world! \\ \" \\ \\\"" db 0
 
-section reset_vector at 0xfffe
+section reset_vector at 0xffe4
+	ds "RESET VECTOR; NO TOUCHING!"
 	reset_vector:	dw code
