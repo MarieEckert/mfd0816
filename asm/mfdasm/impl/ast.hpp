@@ -161,14 +161,19 @@
 
 namespace mfdasm::impl {
 
+struct UnresolvedIdentifier {
+	std::string name;
+	usize width;
+	u32 lineno;
+};
+
 /**
  * @brief Used to hold information about the absolute associated addresses
  * of all identifiers alongside the current address.
  */
 struct ResolvalContext {
 	std::unordered_map<std::string, std::vector<u8>> identifiers;
-	/** @brief <usize position in binary, pair<usize operand width, string identifier name>> */
-	std::unordered_map<usize, std::pair<usize, std::string>> unresolvedIdentifiers;
+	std::unordered_map<usize, UnresolvedIdentifier> unresolvedIdentifiers;
 	usize currentAddress;
 };
 

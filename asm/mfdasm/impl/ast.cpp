@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/int_ops.hpp>
 #include <mfdasm/log.hpp>
 #include <mfdasm/panic.hpp>
 #include <mfdasm/typedefs.hpp>
@@ -67,6 +68,10 @@ ExpressionBase::ExpressionBase(Kind kind, u32 lineno) : m_lineno(lineno), m_kind
 
 std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "ExpressionBase\n";
+}
+
+u32 ExpressionBase::lineno() const {
+	return m_lineno;
 }
 
 /* class StatementBase */
@@ -416,7 +421,9 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 
 			resolval_context.unresolvedIdentifiers.insert(
 				{resolval_context.currentAddress + 2 + ix,
-				 {reg ? 1 : 2, err.maybeMessage().value_or("")}});
+				 {.name = err.maybeMessage().value_or(""),
+				  .width = static_cast<usize>(reg ? 1 : 2),
+				  .lineno = m_expressions[ix]->lineno()}});
 			operands.push_back(0);
 			if(!reg) {
 				operands.push_back(0);
@@ -644,7 +651,7 @@ Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_c
 	case Statement::LABEL:
 		resolval_context.identifiers.emplace(
 			static_pointer_cast<Identifier>(m_expressions[0])->name(),
-			resolval_context.currentAddress);
+			intops::u64ToBytes(resolval_context.currentAddress));
 	case Statement::ADDRESSING_ABSOLUTE:
 	case Statement::ADDRESSING_RELATIVE:
 	case Statement::SECTION:

@@ -15,40 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MFDASM_IMPL_MRI_SECTION_TABLE_HPP
-#define MFDASM_IMPL_MRI_SECTION_TABLE_HPP
+#ifndef MFDASM_INT_OPS_HPP
+#define MFDASM_INT_OPS_HPP
 
-#include <map>
-#include <memory>
-#include <string>
+#include <vector>
 
-#include <mfdasm/impl/asmerror.hpp>
-#include <mfdasm/impl/ast.hpp>
 #include <mfdasm/typedefs.hpp>
 
-namespace mfdasm::impl::mri {
+namespace mfdasm::intops {
 
-struct Section {
-	u16 offset;
-	std::vector<u8> data;
-};
+[[nodiscard]] static inline std::vector<u8> u64ToBytes(u64 value) {
+	return {
+		static_cast<u8>((value >> 56) & 0xFF), static_cast<u8>((value >> 48) & 0xFF),
+		static_cast<u8>((value >> 40) & 0xFF), static_cast<u8>((value >> 32) & 0xFF),
+		static_cast<u8>((value >> 24) & 0xFF), static_cast<u8>((value >> 16) & 0xFF),
+		static_cast<u8>((value >> 8) & 0xFF),  static_cast<u8>((value >> 0) & 0xFF),
+	};
+}
 
-using SectionMap = std::map<std::string, std::shared_ptr<Section>>;
-
-class SectionTable {
-   public:
-	Result<std::shared_ptr<Section>, AsmError> addFromStatement(
-		const Statement &statement,
-		ResolvalContext &resolval_context);
-
-	const SectionMap &sectionMap() const;
-
-	std::shared_ptr<Section> findSectionByAddress(usize address);
-
-   private:
-	SectionMap m_sectionMap;
-};
-
-}  // namespace mfdasm::impl::mri
+}  // namespace mfdasm::intops
 
 #endif

@@ -67,4 +67,14 @@ const SectionMap &SectionTable::sectionMap() const {
 	return m_sectionMap;
 }
 
+std::shared_ptr<Section> SectionTable::findSectionByAddress(usize address) {
+	for(const auto &[key, value]: m_sectionMap) {
+		if(value->offset <= address && (value->offset + value->data.size()) >= address) {
+			return value;
+		}
+	}
+
+	return nullptr;
+}
+
 }  // namespace mfdasm::impl::mri

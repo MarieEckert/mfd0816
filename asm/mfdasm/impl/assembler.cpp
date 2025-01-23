@@ -123,9 +123,29 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 	/* resolve missing */
 
 	for(const auto &entry: resolval_context.unresolvedIdentifiers) {
+		const usize pos = entry.first;
+		const UnresolvedIdentifier unresolved_identifier = entry.second;
+
 		logDebug() << "unresolved identifier: pos = " << entry.first
-				   << "; width = " << entry.second.first << "; name = \"" << entry.second.second
-				   << "\";\n";
+				   << "; width = " << unresolved_identifier.width << "; name = \""
+				   << unresolved_identifier.name << "\";\n";
+		const auto identifier = resolval_context.identifiers.find(unresolved_identifier.name);
+		if(identifier == resolval_context.identifiers.end()) {
+			return Err(AsmError(
+				AsmError::NO_SUCH_IDENTIFIER, unresolved_identifier.lineno,
+				unresolved_identifier.name));
+		}
+
+		const std::shared_ptr<mri::Section> section = section_table.findSectionByAddress(pos);
+		if(section == nullptr) {
+			panic(
+				"no matching section for pos of unresolved identifier (pos = " +
+				std::to_string(pos) + ")");
+		}
+
+		std::copy(
+			std::prev(identifier->second.end(), unresolved_identifier.width),
+			identifier->second.end(), std::next(section->data.begin(), pos - section->offset));
 	}
 
 	return Ok(section_table);
