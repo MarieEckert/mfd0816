@@ -140,6 +140,8 @@ bool Token::isRegister(Type type) {
 	case DL:
 	case DH:
 	case DCL:
+	case AR:
+	case IID:
 		return true;
 	default:
 		return false;

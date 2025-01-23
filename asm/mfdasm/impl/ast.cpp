@@ -275,6 +275,12 @@ std::optional<Register> Register::fromToken(const Token &token) {
 	case Token::DCL:
 		kind = Register::DCL;
 		break;
+	case Token::AR:
+		kind = Register::AR;
+		break;
+	case Token::IID:
+		kind = Register::IID;
+		break;
 	default:
 		return std::nullopt;
 	}
