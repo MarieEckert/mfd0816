@@ -58,7 +58,7 @@ Result<std::shared_ptr<Section>, AsmError> SectionTable::addFromStatement(
 		(literal_value[literal_value.size() - 2] << 8) | literal_value[literal_value.size() - 1];
 
 	m_sectionMap.emplace(identifier->name(), section);
-	resolval_context.identifiers.emplace(identifier->name(), section->offset);
+	resolval_context.identifiers.emplace(identifier->name(), literal_value);
 
 	return Ok(section);
 }
