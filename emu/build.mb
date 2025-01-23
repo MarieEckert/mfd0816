@@ -13,6 +13,7 @@ sector config
     str src 'mfdemu/'
     list str sources
           'cli/args',
+          'impl/cpu',
           'log',
           'main',
           'panic'

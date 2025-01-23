@@ -53,13 +53,32 @@ class Cpu {
 	u8 gio;
 	bool irq;
 	bool reset;
-	bool ams();
-	bool gms();
-	bool clk();
-	bool ira() const;
+	inline bool ams() const { return m_pinAMS; }
+	inline bool gms() const { return m_pinGMS; }
+	inline bool clk() const { return m_pinCLK; }
+	inline bool ira() const { return m_pinIRA; }
 
    private:
+	enum class CpuState : u8 {
+		ABUS_READ,
+		ABUS_WRITE,
+		GIO_READ,
+		GIO_WRITE,
+		INST_EXEC,
+		INST_FETCH,
+	};
+
+	void abusRead();
+	void abusWrite();
+	void gioRead();
+	void gioWrite();
+	void fetchInst();
+	void execInst();
+
 	/** internal state */
+	CpuState m_state;
+	u8 m_stateStep;
+
 	u8 m_instStep;
 	u16 m_instruction;
 	Operand m_operand1;
