@@ -48,13 +48,19 @@ using namespace mfdasm;
 int main(int argc, char **argv) {
 	cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
 	cli::Argument<bool> arg_licenses("-l", "--licenses", true);
-	cli::Argument<bool> arg_print_ast("-p", "--print-ast", true);
+	cli::Argument<bool> arg_print_ast("-a", "--ast", true);
+	cli::Argument<std::string> arg_outfile("-o");
+	cli::Argument<std::string> arg_infile("-i");
+	cli::Argument<bool> arg_padded("-p", "--padded", true);
 
 	cli::ArgumentParser parser;
 	parser.addArgument(&arg_verbosity);
 	parser.addArgument(&arg_licenses);
 	parser.addArgument(&arg_print_ast);
-	parser.parse(argc, argv);
+	parser.addArgument(&arg_outfile);
+	parser.addArgument(&arg_infile);
+	parser.addArgument(&arg_padded);
+	parser.parse(argc - 1, argv + 1);
 
 	if(arg_licenses.get().value_or(false)) {
 		licenses();
@@ -67,8 +73,13 @@ int main(int argc, char **argv) {
 	std::cerr << "MFDASM, assembler for the mfd0816 fantasy architecture\n"
 			  << "Copyright (C) 2024  Marie Eckert\n\n";
 
+	if(!arg_infile.get().has_value()) {
+		logError() << "no input file specified! specify using \"-i <file>\"\n";
+		return 1;
+	}
+
 	std::stringstream buffer;
-	std::ifstream instream("test.asm");
+	std::ifstream instream(arg_infile.get().value());
 
 	buffer << instream.rdbuf();
 
@@ -95,8 +106,13 @@ int main(int argc, char **argv) {
 		std::exit(1);
 	}
 
-	impl::mri::writePaddedMRI("test.mri", bytes.unwrap(), false);
-	impl::mri::writeCompactMRI("compact_test.mri", bytes.unwrap(), false);
+	const std::string outfile = arg_outfile.get().value_or(arg_infile.get().value() + ".mri");
+
+	if(arg_padded.get().value_or(false)) {
+		impl::mri::writePaddedMRI(outfile, bytes.unwrap(), false);
+	} else {
+		impl::mri::writeCompactMRI(outfile, bytes.unwrap(), false);
+	}
 
 	return 0;
 }

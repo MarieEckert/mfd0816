@@ -15,7 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "args.hpp"
+#include <iostream>
+
+#include <mfdasm/cli/args.hpp>
 
 namespace mfdasm::cli {
 
@@ -44,6 +46,7 @@ void ArgumentParser::parse(int argc, char **argv) {
 	}
 
 	for(size_t ix = 0; ix < str_args.size(); ix++) {
+		bool found = false;
 		for(const auto &arg: this->args) {
 			ssize_t inc =
 				arg->check(str_args[ix], ix + 1 < str_args.size() ? str_args[ix + 1] : "");
@@ -52,8 +55,14 @@ void ArgumentParser::parse(int argc, char **argv) {
 				continue;
 			}
 
+			found = true;
 			ix += inc;
 			break;
+		}
+
+		if(!found) {
+			std::cerr << "invalid argument: " << str_args[ix] << "\n";
+			std::exit(1);
 		}
 	}
 }
