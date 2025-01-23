@@ -17,6 +17,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 #include <mfdasm/impl/mri/mri.hpp>
 #include <mfdasm/log.hpp>
@@ -59,8 +60,29 @@ void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 	outfile.write((char *)&header, sizeof(header));
 
 	logDebug() << "filesize: " << header.filesize << "\n";
-	for(usize ix = 0; ix < section_list.size(); ix += 2) {
-		//	if(ix + 1 >
+	for(usize ix = 0; ix < section_list.size(); ix++) {
+		std::shared_ptr<Section> section = section_list[ix];
+
+		if(ix == 0) {
+			std::fill_n(std::ostream_iterator<char>(outfile), section->offset, 0);
+		}
+
+		logDebug() << "current section offset: " << ((int)section->offset)
+				   << ", size: " << ((int)section->data.size()) << "\n";
+
+		outfile.write((char *)section->data.data(), section->data.size());
+
+		if(ix + 1 >= section_list.size()) {
+			break;
+		}
+
+		logDebug() << "filling "
+				   << (section_list[ix + 1]->offset - (section->data.size() + section->offset))
+				   << " bytes\n";
+
+		std::fill_n(
+			std::ostream_iterator<char>(outfile),
+			section_list[ix + 1]->offset - (section->data.size() + section->offset), 0);
 	}
 
 	outfile.close();
