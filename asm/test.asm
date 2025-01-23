@@ -6,6 +6,9 @@ section code at 0x1100
 									; stack into acl
 			ld	bcl,	[[0x1330]]
 			ld	ccl,	[[bcl]]
+			jmp _entry
+			jmp test
+test:
 
 section data at 0xd000
 					define			bufferSize,	0x400
