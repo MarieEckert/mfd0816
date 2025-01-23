@@ -1,0 +1,186 @@
+sector config
+  section files
+    ; Directories
+    str build_root 'build/'
+    str debug_dir '$(/config/files/build_root)debug/'
+    str release_dir '$(/config/files/build_root)release/'
+    str obj_dir 'obj/'
+
+    ; Binaries
+    str binname 'mfdemu'
+
+    ; Source Info
+    str src 'mfdemu/'
+    list str sources
+          'cli/args',
+          'log',
+          'main',
+          'panic'
+    list str includes '.', '3rdparty'
+  end
+
+  section tools
+    str clang-format 'clang-format'
+    str cc 'clang++'
+    str cflags '-fno-exceptions -std=c++20 -stdlib=libc++ -Wall -Wextra -I$(/config/files/includes)'
+
+    str ldflags '-stdlib=libc++'
+  end
+
+  section mariebuild
+    u8 default_log_level 2
+
+    list str targets 'clean-all', 'clean-release', 'clean-debug', 'debug', 'release'
+    str default 'debug'
+  end
+end
+
+sector targets
+  section clang-format
+    str exec '#!/bin/bash
+              for f in \$(find mfdemu -type f -name "*.*pp"); do
+                COMMAND="$(/config/tools/clang-format) -i $f"
+                echo "  $COMMAND"
+                $COMMAND
+              done
+    '
+  end
+
+  section clean-all
+    list str required_targets 'clean-debug', 'clean-release'
+  end
+
+  section clean-release
+    str exec '#!/bin/bash
+              COMMAND="rm -rf $(/config/files/release_dir)"
+              echo "  $COMMAND"
+              $COMMAND
+              COMMAND="mkdir -p $(/config/files/release_dir)$(/config/files/obj_dir)"
+              echo "  $COMMAND"
+              $COMMAND
+    '
+  end
+
+  section clean-debug
+    str exec '#!/bin/bash
+              COMMAND="rm -rf $(/config/files/debug_dir)"
+              echo "  $COMMAND"
+              $COMMAND
+              COMMAND="mkdir -p $(/config/files/debug_dir)$(/config/files/obj_dir)"
+              echo "  $COMMAND"
+              $COMMAND
+    '
+  end
+
+  section debug
+    str target_cflags '-O0 -g'
+    str target_ldflags '-rdynamic -g'
+    str target_builddir '$(/config/files/debug_dir)'
+    str target_objdir '$(/config/files/debug_dir)$(/config/files/obj_dir)'
+
+    list str c_rules 'compile', 'link'
+
+    ; compile flag generation
+    str exec '#!/bin/bash
+              _FLAGS="$(/config/tools/cflags) $(%target_cflags%)"
+
+              printf "" > compile_flags.txt
+              for f in $_FLAGS; do
+                echo $f >> compile_flags.txt
+              done
+    '
+  end
+
+  section release
+    str target_cflags '-O3 -DMFDEMU_RELEASE'
+    str target_ldflags ''
+    str target_builddir '$(/config/files/release_dir)'
+    str target_objdir '$(/config/files/release_dir)$(/config/files/obj_dir)'
+
+    list str required_targets 'clean-release'
+
+    list str c_rules 'compile', 'link'
+
+    str exec '#!/bin/bash
+              COMMAND="strip --strip-all $(/config/files/release_dir)$(/config/files/binname)"
+              echo "  $COMMAND"
+              $COMMAND
+
+              _FLAGS="$(/config/tools/cflags) $(%target_cflags%)"
+
+              printf "" > compile_flags.txt
+              for f in $_FLAGS; do
+                echo $f >> compile_flags.txt
+              done
+    '
+  end
+end
+
+sector c_rules
+  section depends
+    str build_type 'full'
+    str exec_mode 'singular'
+    bool parallel true
+    u8 max_procs 8
+
+    str input_src '/config/files/sources'
+
+    str input_format '$(/config/files/src)$(%element%).cpp'
+    str output_format '$(%target_objdir%)$(%element%).o'
+
+    str exec '#!/bin/bash
+              if [ "$(%input%)" -nt "$(%output%)" ]; then
+                exit
+              fi
+
+              FILES="\$($(/config/tools/cc) $(/config/tools/cflags) $(%input%) -MM | cut -d'':'' -f2 - | sed ''s/\\\\//'')"
+              for f in $FILES; do
+                if [ "$f" -nt "$(%input%)" ]; then
+                  echo "  $(%input%) needs rebuild, dependency is newer"
+                  touch "$(%input%)"
+                  break
+                fi
+              done
+    '
+  end
+
+  section compile
+    list str c_rules 'depends'
+
+    str exec_mode 'singular'
+    bool parallel true
+    u8 max_procs 3
+
+    str input_src '/config/files/sources'
+
+    str input_format '$(/config/files/src)$(%element%).cpp'
+    str output_format '$(%target_objdir%)$(%element%).o'
+
+    str exec '#!/bin/bash
+              if ! [ -d \$(dirname $(%output%)) ]; then
+                COMMAND="mkdir -p \$(dirname $(%output%))"
+                echo "  $COMMAND"
+                $COMMAND
+              fi
+              COMMAND="$(/config/tools/cc) $(/config/tools/cflags) $(%target_cflags%) -c $(%input%) -o $(%output%)"
+              echo "  $COMMAND"
+              $COMMAND
+    '
+  end
+
+  section link
+    str build_type 'full'
+    str exec_mode 'unify'
+
+    str input_src '/config/files/sources'
+
+    str input_format '$(%target_objdir%)$(%element%).o'
+    str output_format '$(%target_builddir%)$(/config/files/binname)'
+
+    str exec '#!/bin/bash
+              COMMAND="$(/config/tools/cc) -o $(%output%) $(%input%) $(/config/tools/ldflags) $(%target_ldflags%)"
+              echo "  $COMMAND"
+              $COMMAND
+    '
+  end
+end
