@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include <mfdasm/impl/mri/mri.hpp>
 #include <mfdasm/log.hpp>
@@ -27,19 +27,20 @@ static std::vector<std::shared_ptr<Section>> makeSortedSectionList(const Section
 	std::vector<std::shared_ptr<Section>> list;
 	list.reserve(sections.sectionMap().size());
 
-	for(const auto &[name, value] : sections.sectionMap()) {
+	for(const auto &[name, value]: sections.sectionMap()) {
 		list.push_back(value);
 	}
 
-	std::sort(list.begin(), list.end(), [](const std::shared_ptr<Section> &a, const std::shared_ptr<Section> &b) {
-		return a->offset < b->offset;
-	});
+	std::sort(
+		list.begin(), list.end(),
+		[](const std::shared_ptr<Section> &a, const std::shared_ptr<Section> &b) {
+			return a->offset < b->offset;
+		});
 
 	return list;
 }
 
-void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {
-}
+void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {}
 
 void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 	std::vector<std::shared_ptr<Section>> section_list = makeSortedSectionList(sections);
@@ -51,18 +52,18 @@ void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 		.magic = {MRI_MAGIC},
 		.version = MRI_VERSION,
 		.type = 0,
-		.filesize = BIGENDIAN32(static_cast<u32>(section_list.back()->offset + section_list.back()->data.size() + sizeof(Header))),
-		.data_offset = BIGENDIAN32(sizeof(Header))
-	};
+		.filesize = BIGENDIAN32(static_cast<u32>(
+			section_list.back()->offset + section_list.back()->data.size() + sizeof(Header))),
+		.data_offset = BIGENDIAN32(sizeof(Header))};
 
-	outfile.write((char*)&header, sizeof(header));
+	outfile.write((char *)&header, sizeof(header));
 
 	logDebug() << "filesize: " << header.filesize << "\n";
 	for(usize ix = 0; ix < section_list.size(); ix += 2) {
-	//	if(ix + 1 >
+		//	if(ix + 1 >
 	}
 
 	outfile.close();
 }
 
-}
+}  // namespace mfdasm::impl::mri
