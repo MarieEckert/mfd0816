@@ -20,13 +20,14 @@
 
 #include <mfdasm/impl/mri/section_table.hpp>
 #include <mfdasm/typedefs.hpp>
+#include <mfdasm/int_ops.hpp>
 
 namespace mfdasm::impl::mri {
 
-#pragma pack(push, 4)
+#pragma pack(push, 1)
 
-constexpr char mri_magic[4] = "MRI";
-constexpr u16 mri_version = 0x0100;
+#define MRI_MAGIC "MRI"
+#define MRI_VERSION BIGENDIAN16(0x0100)
 
 enum class TypeFlag : u16 {
 	COMPACT = 1 << 0,
@@ -54,9 +55,9 @@ struct Table {
 
 #pragma pack(pop)
 
-static void writeCompactMRI(std::string path, SectionTable sections, bool compressed);
+void writeCompactMRI(std::string path, SectionTable sections, bool compressed);
 
-static void writePaddedMRI(std::string path, SectionTable sections, bool compressed);
+void writePaddedMRI(std::string path, SectionTable sections, bool compressed);
 
 }  // namespace mfdasm::impl::mri
 

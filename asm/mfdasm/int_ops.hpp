@@ -19,6 +19,7 @@
 #define MFDASM_INT_OPS_HPP
 
 #include <vector>
+#include <endian.h>
 
 #include <mfdasm/typedefs.hpp>
 
@@ -31,6 +32,38 @@ namespace mfdasm::intops {
 		static_cast<u8>((value >> 24) & 0xFF), static_cast<u8>((value >> 16) & 0xFF),
 		static_cast<u8>((value >> 8) & 0xFF),  static_cast<u8>((value >> 0) & 0xFF),
 	};
+}
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define BIGENDIAN16(x) intops::swapendian16(x)
+#define BIGENDIAN32(x) intops::swapendian32(x)
+#define BIGENDIAN64(x) intops::swapendian64(x)
+#elif __BYTE_ORDER__ == __BIG_ENDIAN
+#define BIGENDIAN16(x) x
+#define BIGENDIAN32(x) x
+#define BIGENDIAN64(x) x
+#endif
+
+[[nodiscard]] static inline u16 swapendian16(u16 value) {
+	return ((value << 8) & 0xFF00) | ((value >> 8) & 0x00FF);
+}
+
+[[nodiscard]] static inline u32 swapendian32(u32 value) {
+	return ((value & 0x000000FF) << 24)
+		 | ((value & 0x0000FF00) << 8)
+		 | ((value & 0x00FF0000) >> 8)
+		 | ((value & 0xFF000000) >> 24);
+}
+
+[[nodiscard]] static inline u64 swapendian64(u64 value) {
+	return ((value & 0x00000000000000FF) << 56)
+		 | ((value & 0x000000000000FF00) << 40)
+		 | ((value & 0x0000000000FF0000) << 24)
+		 | ((value & 0x00000000FF000000) << 8)
+		 | ((value & 0x000000FF00000000) >> 8)
+		 | ((value & 0x0000FF0000000000) >> 24)
+		 | ((value & 0x00FF000000000000) >> 40) 
+		 | ((value & 0xFF00000000000000) >> 56);
 }
 
 }  // namespace mfdasm::intops

@@ -25,6 +25,7 @@
 #include <mfdasm/cli/args.hpp>
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
+#include <mfdasm/impl/mri/mri.hpp>
 #include <mfdasm/log.hpp>
 
 using namespace mfdasm;
@@ -93,6 +94,8 @@ int main(int argc, char **argv) {
 		logError() << "Assembler (translation time): " << bytes.unwrapErr().toString() << "\n";
 		std::exit(1);
 	}
+
+	impl::mri::writePaddedMRI("test.mri", bytes.unwrap(), false);
 
 	return 0;
 }
