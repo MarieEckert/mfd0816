@@ -48,11 +48,6 @@ struct TableEntry {
 	u16 length;
 };
 
-struct Table {
-	u32 entry_count;
-	TableEntry entries[];
-};
-
 #pragma pack(pop)
 
 void writeCompactMRI(std::string path, SectionTable sections, bool compressed);

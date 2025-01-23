@@ -20,7 +20,10 @@
 #include <memory>
 
 #include <mfdasm/impl/mri/mri.hpp>
+#include <mfdasm/int_ops.hpp>
 #include <mfdasm/log.hpp>
+
+#include "mfdasm/impl/mri/section_table.hpp"
 
 namespace mfdasm::impl::mri {
 
@@ -41,7 +44,49 @@ static std::vector<std::shared_ptr<Section>> makeSortedSectionList(const Section
 	return list;
 }
 
-void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {}
+void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {
+	std::vector<std::shared_ptr<Section>> section_list = makeSortedSectionList(sections);
+
+	std::ofstream outfile;
+	outfile.open(path);
+
+	Header header = {
+		.magic = {MRI_MAGIC},
+		.version = MRI_VERSION,
+		.type = static_cast<u16>(TypeFlag::COMPACT),
+		.filesize = 0,
+		.data_offset = BIGENDIAN32(sizeof(Header))};
+
+	std::vector<TableEntry> tables_entries;
+	u32 offset = 0;
+	for(const std::shared_ptr<Section> &section: section_list) {
+		TableEntry entry = {
+			.file_offset = offset,
+			.load_address = section->offset,
+			.length = static_cast<u16>(section->data.size()),
+		};
+
+		tables_entries.push_back(entry);
+
+		offset += entry.length;
+	}
+
+	header.filesize = BIGENDIAN32(
+		sizeof(header) + offset + sizeof(u32) + (sizeof(TableEntry) * tables_entries.size()));
+
+	outfile.write(reinterpret_cast<char *>(&header), sizeof(header));
+	outfile << tables_entries.size();
+
+	for(TableEntry &table_entry: tables_entries) {
+		outfile.write(reinterpret_cast<char *>(&table_entry), sizeof(table_entry));
+	}
+
+	for(const std::shared_ptr<Section> &section: section_list) {
+		outfile.write(reinterpret_cast<char *>(section->data.data()), section->data.size());
+	}
+
+	outfile.close();
+}
 
 void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 	std::vector<std::shared_ptr<Section>> section_list = makeSortedSectionList(sections);
@@ -57,9 +102,9 @@ void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 			section_list.back()->offset + section_list.back()->data.size() + sizeof(Header))),
 		.data_offset = BIGENDIAN32(sizeof(Header))};
 
-	outfile.write((char *)&header, sizeof(header));
+	outfile.write(reinterpret_cast<char *>(&header), sizeof(header));
 
-	logDebug() << "filesize: " << header.filesize << "\n";
+	logDebug() << "filesize: " << BIGENDIAN32(header.filesize) << "\n";
 	for(usize ix = 0; ix < section_list.size(); ix++) {
 		std::shared_ptr<Section> section = section_list[ix];
 
@@ -67,10 +112,10 @@ void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 			std::fill_n(std::ostream_iterator<char>(outfile), section->offset, 0);
 		}
 
-		logDebug() << "current section offset: " << ((int)section->offset)
-				   << ", size: " << ((int)section->data.size()) << "\n";
+		logDebug() << "current section offset: " << static_cast<usize>(section->offset)
+				   << ", size: " << static_cast<usize>(section->data.size()) << "\n";
 
-		outfile.write((char *)section->data.data(), section->data.size());
+		outfile.write(reinterpret_cast<char *>(section->data.data()), section->data.size());
 
 		if(ix + 1 >= section_list.size()) {
 			break;

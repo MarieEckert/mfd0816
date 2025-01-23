@@ -180,7 +180,7 @@ std::string DirectAddress::toString(u32 indentLevel) const {
 	std::string expression_string = m_valueExpression->toString(indentLevel + 2);
 
 	return base_indent + "DirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
-		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}";
+		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}\n";
 }
 
 /* class IndirectAddress */
@@ -212,7 +212,7 @@ std::string IndirectAddress::toString(u32 indentLevel) const {
 	std::string expression_string = m_valueExpression->toString(indentLevel + 2);
 
 	return base_indent + "IndirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
-		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}";
+		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}\n";
 }
 
 /* class Register */

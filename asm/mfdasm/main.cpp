@@ -96,6 +96,7 @@ int main(int argc, char **argv) {
 	}
 
 	impl::mri::writePaddedMRI("test.mri", bytes.unwrap(), false);
+	impl::mri::writeCompactMRI("compact_test.mri", bytes.unwrap(), false);
 
 	return 0;
 }
