@@ -38,10 +38,16 @@ namespace mfdasm::intops {
 #define BIGENDIAN16(x) intops::swapendian16(x)
 #define BIGENDIAN32(x) intops::swapendian32(x)
 #define BIGENDIAN64(x) intops::swapendian64(x)
+#define LITTLEENDIAN16(x) x
+#define LITTLEENDIAN32(x) x
+#define LITTLEENDIAN64(x) x
 #elif __BYTE_ORDER__ == __BIG_ENDIAN
 #define BIGENDIAN16(x) x
 #define BIGENDIAN32(x) x
 #define BIGENDIAN64(x) x
+#define LITTLEENDIAN16(x) intops::swapendian16(x)
+#define LITTLEENDIAN32(x) intops::swapendian32(x)
+#define LITTLEENDIAN64(x) intops::swapendian64(x)
 #endif
 
 [[nodiscard]] static inline u16 swapendian16(u16 value) {
