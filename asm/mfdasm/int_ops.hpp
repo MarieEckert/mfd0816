@@ -67,6 +67,11 @@ namespace mfdasm::intops {
 		   ((value & 0x00FF000000000000) >> 40) | ((value & 0xFF00000000000000) >> 56);
 }
 
+/** @brief helper function for accumulating u8 vector into u64 */
+static inline u64 accumulateU64(u64 acc, u8 val) {
+	return (acc << 8) + val;
+}
+
 }  // namespace mfdasm::intops
 
 #endif

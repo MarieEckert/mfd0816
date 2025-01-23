@@ -32,13 +32,6 @@
 #include <mfdasm/panic.hpp>
 #include <mfdasm/typedefs.hpp>
 
-namespace {
-/** @brief helper function for accumulating u8 vector into u64 */
-static u64 f(u64 acc, u8 val) {
-	return (acc << 8) + val;
-}
-}  // namespace
-
 namespace mfdasm::impl {
 
 /** @todo :duck: */
@@ -228,7 +221,7 @@ Register::Register(Kind kind, u32 lineno)
 	: ExpressionBase(ExpressionBase::REGISTER, lineno), m_kind(kind) {}
 
 Result<std::vector<u8>, AsmError> Register::resolveValue(
-	const ResolvalContext &resolval_context) const {
+	[[maybe_unused]] const ResolvalContext &resolval_context) const {
 	return Ok(std::vector<u8>{
 		static_cast<u8>(m_kind),
 	});
@@ -409,6 +402,8 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 			operand_bits |= 0b0010 | (static_cast<u8>(reg) * 0b1000);
 			break;
 		}
+		case ExpressionBase::STATEMENT_EXPRESSION:
+			panic("Instruction::toBytes() on Instruction with StatementExpression statement");
 		}
 
 		const Result<std::vector<u8>, AsmError> maybe_operand_bytes =
@@ -548,7 +543,8 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 
 		const std::vector<u8> raw_count = maybe_count.unwrap();
 
-		const u64 count = std::accumulate(raw_count.begin(), raw_count.end(), 0ll, f);
+		const u64 count =
+			std::accumulate(raw_count.begin(), raw_count.end(), 0ll, intops::accumulateU64);
 
 		std::vector<u8> result;
 		for(u64 ix = 0; ix < count; ix++) {
@@ -606,11 +602,12 @@ Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
 
 	std::vector<u8> value = maybe_value.unwrap();
 
-	if(width > 0) {
-		value.resize(width);
-	}
+	std::vector<u8> result;
 
-	return Ok(value);
+	result.insert(
+		result.begin(), std::prev(value.end(), width > 0 ? width : value.size()), value.end());
+
+	return Ok(result);
 }
 
 /* class Statement */
