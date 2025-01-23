@@ -268,6 +268,9 @@ class DirectAddress : public ExpressionBase {
 
 	DirectAddress(Kind kind, std::vector<u8> value, u32 lineno);
 
+	Result<std::vector<u8>, AsmError> resolveValue(
+		const ResolvalContext &resolval_context) const override;
+
 	Kind kind() const;
 
 	std::string toString(u32 indent_level = 0) const override;
@@ -287,6 +290,9 @@ class IndirectAddress : public ExpressionBase {
 
 	IndirectAddress(Kind kind, std::vector<u8> value, u32 lineno);
 
+	Result<std::vector<u8>, AsmError> resolveValue(
+		const ResolvalContext &resolval_context) const override;
+
 	Kind kind() const;
 
 	std::string toString(u32 indent_level = 0) const override;
@@ -300,24 +306,29 @@ class IndirectAddress : public ExpressionBase {
 class Register : public ExpressionBase {
    public:
 	enum Kind {
-		SP,
-		IP,
-		FL,
-		AL,
-		AH,
-		ACL,
-		BL,
-		BH,
-		BCL,
-		CL,
-		CH,
-		CCL,
-		DL,
-		DH,
-		DCL,
+		AL = 0x00,
+		AH = 0x01,
+		ACL = 0x02,
+		BL = 0x03,
+		BH = 0x04,
+		BCL = 0x05,
+		CL = 0x06,
+		CH = 0x07,
+		CCL = 0x08,
+		DL = 0x09,
+		DH = 0x0a,
+		DCL = 0x0b,
+		SP = 0x0c,
+		IP = 0x0d,
+		AR = 0x0e,
+		FL = 0x0f,
+		IID = 0x10,
 	};
 
 	Register(Kind kind, u32 lineno);
+
+	Result<std::vector<u8>, AsmError> resolveValue(
+		const ResolvalContext &resolval_context) const override;
 
 	static std::optional<Register> fromToken(const Token &token);
 

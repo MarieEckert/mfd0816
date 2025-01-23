@@ -162,6 +162,11 @@ DirectAddress::DirectAddress(Kind kind, std::vector<u8> value, u32 lineno)
 	}
 }
 
+Result<std::vector<u8>, AsmError> DirectAddress::resolveValue(
+	const ResolvalContext &resolval_context) const {
+	return Ok(m_value);
+}
+
 DirectAddress::Kind DirectAddress::kind() const {
 	return m_kind;
 }
@@ -184,6 +189,11 @@ std::string DirectAddress::toString(u32 indentLevel) const {
 IndirectAddress::IndirectAddress(Kind kind, std::vector<u8> value, u32 lineno)
 	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS, lineno), m_kind(kind), m_value(value) {}
 
+Result<std::vector<u8>, AsmError> IndirectAddress::resolveValue(
+	const ResolvalContext &resolval_context) const {
+	return Ok(m_value);
+}
+
 IndirectAddress::Kind IndirectAddress::kind() const {
 	return m_kind;
 }
@@ -205,6 +215,13 @@ std::string IndirectAddress::toString(u32 indentLevel) const {
 
 Register::Register(Kind kind, u32 lineno)
 	: ExpressionBase(ExpressionBase::REGISTER, lineno), m_kind(kind) {}
+
+Result<std::vector<u8>, AsmError> Register::resolveValue(
+	const ResolvalContext &resolval_context) const {
+	return Ok(std::vector<u8>{
+		static_cast<u8>(m_kind),
+	});
+}
 
 std::optional<Register> Register::fromToken(const Token &token) {
 	Register::Kind kind;
@@ -349,11 +366,12 @@ Instruction::Instruction(
 
 Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval_context) const {
 	std::vector<u8> result;
-	result.reserve(6);
 
 	result.push_back(m_kind);
 
 	u8 operand_bits = 0;
+
+	std::vector<u8> operands;
 
 	for(usize ix = 0; ix < 2 && ix < m_expressions.size(); ix++) {
 		switch(m_expressions[ix]->kind()) {
@@ -383,14 +401,29 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 		}
 		}
 
+		const Result<std::vector<u8>, AsmError> maybe_operand_bytes =
+			m_expressions[ix]->resolveValue(resolval_context);
+		if(maybe_operand_bytes.isErr()) {
+			return Err(maybe_operand_bytes.unwrapErr());
+		}
+
+		const std::vector<u8> operand_bytes = maybe_operand_bytes.unwrap();
+		operands.insert(
+			operands.end(), operand_bytes.end() - std::min<int>(operand_bytes.size(), 2),
+			operand_bytes.end());
+
 		if(ix == 0) {
 			operand_bits = operand_bits << 4;
 		}
 	}
 
 	result.push_back(operand_bits);
-	logDebug() << "operand bits for " << ((int)m_kind) << ": " << std::bitset<8>(operand_bits)
-			   << "\n";
+	result.insert(result.end(), operands.begin(), operands.end());
+
+	logDebug() << "instruction size: " << result.size() << "\n";
+	for(const u8 b: result) {
+		logDebug() << "\t" << std::hex << static_cast<int>(b) << "\n" << std::dec;
+	}
 
 	return Ok(result);
 }
