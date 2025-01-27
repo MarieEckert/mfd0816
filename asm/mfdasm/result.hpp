@@ -20,7 +20,7 @@
 #include <functional>
 #include <type_traits>
 
-#include <mfdasm/panic.hpp>
+#include <shared/panic.hpp>
 
 namespace mfdasm {
 struct None {};
@@ -743,7 +743,7 @@ struct Result {
 
 	T expect(const char *str) const {
 		if(!isOk()) {
-			panic(str);
+			shared::panic(str);
 		}
 		return expect_impl(std::is_same<T, void>());
 	}
@@ -804,7 +804,7 @@ struct Result {
 			return storage().template get<U>();
 		}
 
-		panic("Attempting to unwrap an error Result");
+		shared::panic("Attempting to unwrap an error Result");
 	}
 
 	E unwrapErr() const {
@@ -812,7 +812,7 @@ struct Result {
 			return storage().template get<E>();
 		}
 
-		panic("Attempting to unwrapErr an ok Result");
+		shared::panic("Attempting to unwrapErr an ok Result");
 	}
 
    private:

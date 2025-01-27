@@ -22,11 +22,11 @@
 #include <sstream>
 #include <string>
 
-#include <mfdasm/cli/args.hpp>
+#include <shared/cli/args.hpp>
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/mri/mri.hpp>
-#include <mfdasm/log.hpp>
+#include <shared/log.hpp>
 
 using namespace mfdasm;
 
@@ -46,14 +46,14 @@ using namespace mfdasm;
 }
 
 int main(int argc, char **argv) {
-	cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
-	cli::Argument<bool> arg_licenses("-l", "--licenses", true);
-	cli::Argument<bool> arg_print_ast("-a", "--ast", true);
-	cli::Argument<std::string> arg_outfile("-o");
-	cli::Argument<std::string> arg_infile("-i");
-	cli::Argument<bool> arg_padded("-p", "--padded", true);
+	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
+	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
+	shared::cli::Argument<bool> arg_print_ast("-a", "--ast", true);
+	shared::cli::Argument<std::string> arg_outfile("-o");
+	shared::cli::Argument<std::string> arg_infile("-i");
+	shared::cli::Argument<bool> arg_padded("-p", "--padded", true);
 
-	cli::ArgumentParser parser;
+	shared::cli::ArgumentParser parser;
 	parser.addArgument(&arg_verbosity);
 	parser.addArgument(&arg_licenses);
 	parser.addArgument(&arg_print_ast);
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 		licenses();
 	}
 
-	Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
+	shared::Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
 
 	/* start */
 

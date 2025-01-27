@@ -19,8 +19,8 @@
 #define MFDASM_IMPL_MRI_MRI_HPP
 
 #include <mfdasm/impl/mri/section_table.hpp>
-#include <mfdasm/int_ops.hpp>
-#include <mfdasm/typedefs.hpp>
+#include <shared/int_ops.hpp>
+#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl::mri {
 

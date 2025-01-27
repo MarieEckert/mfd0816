@@ -27,10 +27,10 @@
 #include <vector>
 
 #include <mfdasm/impl/ast.hpp>
-#include <mfdasm/int_ops.hpp>
-#include <mfdasm/log.hpp>
-#include <mfdasm/panic.hpp>
-#include <mfdasm/typedefs.hpp>
+#include <shared/int_ops.hpp>
+#include <shared/log.hpp>
+#include <shared/panic.hpp>
+#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl {
 
@@ -161,7 +161,7 @@ DirectAddress::DirectAddress(
 	  m_kind(kind),
 	  m_valueExpression(value_expression) {
 	if(value_expression == nullptr) {
-		panic("DirectAddress constructed with a nullptr value_expression");
+		shared::panic("DirectAddress constructed with a nullptr value_expression");
 	}
 }
 
@@ -193,7 +193,7 @@ IndirectAddress::IndirectAddress(
 	  m_kind(kind),
 	  m_valueExpression(value_expression) {
 	if(value_expression == nullptr) {
-		panic("IndirectAddress constructed with a nullptr value_expression");
+		shared::panic("IndirectAddress constructed with a nullptr value_expression");
 	}
 }
 
@@ -409,7 +409,7 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 			break;
 		}
 		case ExpressionBase::STATEMENT_EXPRESSION:
-			panic("Instruction::toBytes() on Instruction with StatementExpression statement");
+			shared::panic("Instruction::toBytes() on Instruction with StatementExpression statement");
 		}
 
 		const Result<std::vector<u8>, AsmError> maybe_operand_bytes =
@@ -494,7 +494,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 	switch(m_kind) {
 	case Kind::DEFINE: {
 		if(m_expressions.size() != 2) {
-			panic(
+			shared::panic(
 				"toBytes() on define directive with invalid expression count (expected 2, got " +
 				std::to_string(m_expressions.size()) + ")");
 		}
@@ -529,7 +529,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		return this->handleDefineNumberLiteral(resolval_context, 0);
 	case Kind::TIMES: {
 		if(m_expressions.size() != 2) {
-			panic(
+			shared::panic(
 				"toBytes() on times directive with invalid expression count (expected 2, got " +
 				std::to_string(m_expressions.size()) + ")");
 		}
@@ -538,7 +538,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		const std::shared_ptr<ExpressionBase> statement_expr = m_expressions[1];
 
 		if(statement_expr->kind() != ExpressionBase::STATEMENT_EXPRESSION) {
-			panic("second expression of times directive is not a statement expression");
+			shared::panic("second expression of times directive is not a statement expression");
 		}
 
 		const Result<std::vector<u8>, AsmError> maybe_count =
@@ -550,7 +550,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		const std::vector<u8> raw_count = maybe_count.unwrap();
 
 		const u64 count =
-			std::accumulate(raw_count.begin(), raw_count.end(), 0ll, intops::accumulateU64);
+			std::accumulate(raw_count.begin(), raw_count.end(), 0ll, shared::intops::accumulateU64);
 
 		std::vector<u8> result;
 		for(u64 ix = 0; ix < count; ix++) {
@@ -594,7 +594,7 @@ Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
 	ResolvalContext &resolval_context,
 	usize width) const {
 	if(m_expressions.size() != 1) {
-		panic(
+		shared::panic(
 			"handleDefineNumberLiteral() on directive with invalid expression count (expected 1, "
 			"got " +
 			std::to_string(m_expressions.size()) + ")");
@@ -630,7 +630,7 @@ Statement::Statement(
 	 * many such cases
 	 */
 	if(!statement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
-		panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
+		shared::panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
 }
 
@@ -654,19 +654,19 @@ Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_c
 	case Statement::LABEL:
 		resolval_context.identifiers.emplace(
 			static_pointer_cast<Identifier>(m_expressions[0])->name(),
-			intops::u64ToBytes(resolval_context.currentAddress));
+			shared::intops::u64ToBytes(resolval_context.currentAddress));
 	case Statement::ADDRESSING_ABSOLUTE:
 	case Statement::ADDRESSING_RELATIVE:
 	case Statement::SECTION:
 		return Ok(std::vector<u8>{});
 	case Statement::INSTRUCTION:
 		if(!m_subStatement.has_value()) {
-			panic("toBytes() called on Statement of kind INSTRUCTION without sub-statement");
+			shared::panic("toBytes() called on Statement of kind INSTRUCTION without sub-statement");
 		}
 		return static_pointer_cast<Instruction>(m_subStatement.value())->toBytes(resolval_context);
 	case Statement::DIRECTIVE:
 		if(!m_subStatement.has_value()) {
-			panic("toBytes() called on Statement of kind DIRECTIVE without sub-statement");
+			shared::panic("toBytes() called on Statement of kind DIRECTIVE without sub-statement");
 		}
 		return static_pointer_cast<Directive>(m_subStatement.value())->toBytes(resolval_context);
 	}

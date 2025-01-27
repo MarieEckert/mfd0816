@@ -21,7 +21,7 @@
 #include <optional>
 #include <string>
 
-#include <mfdasm/typedefs.hpp>
+#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl {
 class AsmError {

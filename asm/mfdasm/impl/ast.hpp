@@ -157,7 +157,7 @@
 #include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/token.hpp>
 #include <mfdasm/result.hpp>
-#include <mfdasm/typedefs.hpp>
+#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl {
 
@@ -492,7 +492,7 @@ class Statement : public StatementBase {
 	 * @param statement The concrete statement.
 	 * @note While the statement parameter is allowed to be nullptr some of the time, it is a fatal
 	 * error to not set it if kind is either INSTRUCTION or DIRECTIVE. If this is not done, the
-	 * constructor whil cause the program to panic.
+	 * constructor whil cause the program to shared::panic.
 	 */
 	Statement(
 		Kind kind,

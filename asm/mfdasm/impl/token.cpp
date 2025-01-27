@@ -22,8 +22,8 @@
 #include <vector>
 
 #include <mfdasm/impl/token.hpp>
-#include <mfdasm/int_ops.hpp>
-#include <mfdasm/panic.hpp>
+#include <shared/int_ops.hpp>
+#include <shared/panic.hpp>
 
 namespace mfdasm::impl {
 
@@ -206,7 +206,7 @@ std::vector<u8> Token::toBytes() const {
 	if(Token::isRegister(m_type)) {
 		const auto iterator = register_value_map.find(m_type);
 		if(iterator == register_value_map.end()) {
-			panic(
+			shared::panic(
 				"register missing in Token::register_value_map! (m_type =" +
 				std::to_string(m_type) + ")");
 		}
@@ -221,7 +221,7 @@ std::vector<u8> Token::toBytes() const {
 	if(Token::isNumberType(m_type)) {
 		const u64 value = std::stoull(m_maybeValue.value(), 0, Token::numberTypeBase(m_type));
 
-		return intops::u64ToBytes(value);
+		return shared::intops::u64ToBytes(value);
 	}
 
 	if(m_type == Token::STRING) {

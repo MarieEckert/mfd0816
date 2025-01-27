@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <mfdasm/typedefs.hpp>
+#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl {
 class Token {

@@ -12,7 +12,6 @@ sector config
     ; Source Info
     str src 'mfdasm/'
     list str sources
-          'cli/args',
           'impl/asmerror',
           'impl/assembler',
           'impl/ast',
@@ -21,9 +20,10 @@ sector config
           'impl/mri/mri',
           'impl/mri/section_table',
           'impl/token',
-          'log',
           'main',
-          'panic'
+          '../shared/panic',
+          '../shared/log',
+          '../shared/cli/args'
     list str includes '.', '3rdparty'
   end
 

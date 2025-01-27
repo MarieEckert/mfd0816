@@ -30,8 +30,8 @@
 #include <mfdasm/impl/directive_operand.hpp>
 #include <mfdasm/impl/instruction_operand.hpp>
 #include <mfdasm/impl/token.hpp>
-#include <mfdasm/log.hpp>
-#include <mfdasm/panic.hpp>
+#include <shared/log.hpp>
+#include <shared/panic.hpp>
 
 namespace mfdasm::impl {
 
@@ -138,7 +138,7 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 
 		const std::shared_ptr<mri::Section> section = section_table.findSectionByAddress(pos);
 		if(section == nullptr) {
-			panic(
+			shared::panic(
 				"no matching section for pos of unresolved identifier (pos = " +
 				std::to_string(pos) + ")");
 		}
@@ -400,7 +400,7 @@ Result<u32, AsmError> Parser::tryParseSectionAt(u32 ix) {
 	}
 
 	if(!literal_name.maybeValue().has_value() || !literal_value.maybeValue().has_value()) {
-		panic(
+		shared::panic(
 			"illegal state: literal_name.maybeValue() || literal_value.maybeValue() is "
 			"nullopt");
 	}
@@ -430,7 +430,7 @@ Result<u32, AsmError> Parser::tryParseLabelAt(u32 ix) {
 	const Token &token = m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
-		panic(
+		shared::panic(
 			"illegal state: token.type() == Token::LABEL && "
 			"!token.maybeValue().has_value()");
 	}
@@ -487,7 +487,7 @@ Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 	const Token &token = m_tokens[ix];
 
 	if(!token.maybeValue().has_value()) {
-		panic(
+		shared::panic(
 			"illegal state: token.type() == Token::UNKNOWN && "
 			"!token.maybeValue().has_value()");
 	}
@@ -533,7 +533,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 					const DirectAddress *tmp_directaddress =
 						dynamic_cast<DirectAddress *>(expr.get());
 					if(tmp_directaddress == nullptr) {
-						panic("could not cast ExpressionBase to DirectAddress in map func");
+						shared::panic("could not cast ExpressionBase to DirectAddress in map func");
 					}
 					return tmp_directaddress->kind() == DirectAddress::MEMORY
 							   ? InstructionOperand::DIRECT
@@ -543,7 +543,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 					const IndirectAddress *tmp_indirectaddress =
 						dynamic_cast<IndirectAddress *>(expr.get());
 					if(tmp_indirectaddress == nullptr) {
-						panic("could not cast ExpressionBase to IndirectAddress in map func");
+						shared::panic("could not cast ExpressionBase to IndirectAddress in map func");
 					}
 					return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
 							   ? InstructionOperand::DIRECT
@@ -555,7 +555,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 				case ExpressionBase::LITERAL:
 					return InstructionOperand::IMMEDIATE;
 				case ExpressionBase::STATEMENT_EXPRESSION:
-					panic("invalid state: tryParseOperands returned a StatementExpression");
+					shared::panic("invalid state: tryParseOperands returned a StatementExpression");
 				}
 			})
 			.to<std::vector<InstructionOperand::Kind>>();
@@ -621,7 +621,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 				case ExpressionBase::LITERAL:
 					return DirectiveOperand::IMMEDIATE;
 				case ExpressionBase::STATEMENT_EXPRESSION:
-					panic("invalid state: tryParseOperands returned a StatementExpression");
+					shared::panic("invalid state: tryParseOperands returned a StatementExpression");
 				}
 			})
 			.to<std::vector<DirectiveOperand::Kind>>();
@@ -699,7 +699,7 @@ Parser::tryParseOperands(u32 ix) {
 		if(Token::isRegister(token.type())) {
 			const std::optional<Register> reg = Register::fromToken(token);
 			if(!reg.has_value()) {
-				panic(
+				shared::panic(
 					"invalid return: token = " + token.toString() +
 					"; Token::isRegister() == true; Register::fromToken() returned "
 					"nullopt!");
@@ -802,7 +802,7 @@ void Parser::addStatement(Statement statement) {
 
 	m_timesDirectiveDeclared = false;
 	if(m_lastTimesDirective == nullptr) {
-		panic("m_timesDirectiveDeclared true but m_lastTimesDirective == nullptr");
+		shared::panic("m_timesDirectiveDeclared true but m_lastTimesDirective == nullptr");
 	}
 
 	m_lastTimesDirective->addExpression(

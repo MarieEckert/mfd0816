@@ -16,7 +16,7 @@
  */
 
 #include <mfdasm/impl/mri/section_table.hpp>
-#include <mfdasm/log.hpp>
+#include <shared/log.hpp>
 
 namespace mfdasm::impl::mri {
 
@@ -50,7 +50,7 @@ Result<std::shared_ptr<Section>, AsmError> SectionTable::addFromStatement(
 
 	const std::vector<u8> literal_value = maybe_literal_value.unwrap();
 	if(literal_value.size() < 2) {
-		panic("section position literal constructed with invalid byte size!");
+		shared::panic("section position literal constructed with invalid byte size!");
 	}
 
 	auto section = std::make_shared<Section>();
