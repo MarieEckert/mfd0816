@@ -57,25 +57,30 @@ void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {
 		.filesize = 0,
 		.data_offset = BIGENDIAN32(sizeof(Header))};
 
+	const u32 base_filesize =
+		sizeof(header) + sizeof(u32) + (sizeof(TableEntry) * section_list.size());
+
 	std::vector<TableEntry> tables_entries;
-	u32 offset = 0;
+	u32 offset = base_filesize;
 	for(const std::shared_ptr<Section> &section: section_list) {
+		const u16 section_size = section->data.size();
 		TableEntry entry = {
-			.file_offset = offset,
-			.load_address = section->offset,
-			.length = static_cast<u16>(section->data.size()),
+			.file_offset = BIGENDIAN32(offset),
+			.load_address = BIGENDIAN16(section->offset),
+			.length = BIGENDIAN16(section_size),
 		};
 
 		tables_entries.push_back(entry);
 
-		offset += entry.length;
+		offset += section_size;
 	}
 
-	header.filesize = BIGENDIAN32(
-		sizeof(header) + offset + sizeof(u32) + (sizeof(TableEntry) * tables_entries.size()));
+	header.filesize = BIGENDIAN32(offset);
 
 	outfile.write(reinterpret_cast<char *>(&header), sizeof(header));
-	outfile << tables_entries.size();
+
+	const u32 tablesize_be = BIGENDIAN32(tables_entries.size());
+	outfile.write(reinterpret_cast<const char *>(&tablesize_be), sizeof(tablesize_be));
 
 	for(TableEntry &table_entry: tables_entries) {
 		outfile.write(reinterpret_cast<char *>(&table_entry), sizeof(table_entry));
