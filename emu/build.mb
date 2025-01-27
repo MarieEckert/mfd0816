@@ -12,11 +12,11 @@ sector config
     ; Source Info
     str src 'mfdemu/'
     list str sources
-          'cli/args',
           'impl/cpu',
-          'log',
           'main',
-          'panic'
+          '../shared/panic',
+          '../shared/log',
+          '../shared/cli/args'
     list str includes '.', '3rdparty'
   end
 

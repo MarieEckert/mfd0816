@@ -18,7 +18,7 @@
 #ifndef MFDEMU_IMPL_CPU_HPP
 #define MFDEMU_IMPL_CPU_HPP
 
-#include <mfdemu/typedefs.hpp>
+#include <shared/typedefs.hpp>
 
 namespace mfdemu::impl {
 

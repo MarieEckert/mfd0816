@@ -22,10 +22,8 @@
 #include <sstream>
 #include <string>
 
-#include <mfdemu/cli/args.hpp>
-#include <mfdemu/log.hpp>
-
-using namespace mfdemu;
+#include <shared/cli/args.hpp>
+#include <shared/log.hpp>
 
 [[noreturn]] static void licenses() {
 	std::cerr << "MFDASM "
@@ -45,11 +43,11 @@ using namespace mfdemu;
 }
 
 int main(int argc, char **argv) {
-	cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
-	cli::Argument<bool> arg_licenses("-l", "--licenses", true);
-	cli::Argument<std::string> arg_infile("-i");
+	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
+	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
+	shared::cli::Argument<std::string> arg_infile("-i");
 
-	cli::ArgumentParser parser;
+	shared::cli::ArgumentParser parser;
 	parser.addArgument(&arg_verbosity);
 	parser.addArgument(&arg_licenses);
 	parser.addArgument(&arg_infile);
@@ -59,7 +57,7 @@ int main(int argc, char **argv) {
 		licenses();
 	}
 
-	Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
+	shared::Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
 
 	/* start */
 
