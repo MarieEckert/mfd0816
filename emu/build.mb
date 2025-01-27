@@ -23,7 +23,7 @@ sector config
   section tools
     str clang-format 'clang-format'
     str cc 'clang++'
-    str cflags '-fno-exceptions -std=c++20 -stdlib=libc++ -Wall -Wextra -I$(/config/files/includes)'
+    str cflags '-fno-exceptions -std=c++20 -stdlib=libc++ -Wall -Wextra -I$(/config/files/includes) -DPROGRAM_NAME="''"$(/config/files/binname)"''"'
 
     str ldflags '-stdlib=libc++'
   end

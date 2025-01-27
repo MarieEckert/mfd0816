@@ -76,7 +76,7 @@ static void backtrace() {
 }
 
 [[noreturn]] void panic(const std::string &error) {
-	std::cerr << "shared panic'd: " << error << "\n";
+	std::cerr << PROGRAM_NAME << " panic'd: " << error << "\n";
 	std::cerr << "backtrace:\n";
 	backtrace();
 	std::exit(100);
