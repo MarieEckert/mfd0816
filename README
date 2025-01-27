@@ -21,6 +21,7 @@ REPOSITORY STRUCTURE
   ├── emu            : MFD0816 emulator implementation
   │   ├── 3rdparty   : External / Third Party Components used
   │   └── mfdasm     : Implementation
+  ├── shared         : Sources shared between MFDASM and MFDEMU
   ├── DESIGN         : MFD0816 design/specficiation
   ├── INSTRUCTIONS   : MFD0816 instruction set reference
   ├── MFDASM         : MFD0816 assembler specification
@@ -45,3 +46,4 @@ LICENSES
   Files / Directories:
     ► /asm
     ► /emu
+    ► /shared
