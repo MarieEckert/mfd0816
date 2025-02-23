@@ -76,23 +76,23 @@ void Cpu::abusRead() {
 	}
 
 	switch(m_stateStep) {
-	case 0: /* priming pulse, AMS high */
+	case 0: /* T0: priming pulse, AMS high */
 		m_addressDevice->mode = true;
 		m_addressDevice->clck();
 		m_stateStep = 1;
 		break;
-	case 1: /* address out, AMS high */
+	case 1: /* T1: address out, AMS high */
 		m_addressDevice->mode = true;
 		m_addressDevice->io = m_addressBusAddress;
 		m_addressDevice->clck();
 		m_stateStep = 2;
 		break;
-	case 2: /* mode pulse, AMS low */
+	case 2: /* T2: mode pulse, AMS low */
 		m_addressDevice->mode = false;
 		m_addressDevice->clck();
 		m_stateStep = 3;
 		break;
-	case 3: /* read pulse, AMS Low */
+	case 3: /* T3: read pulse, AMS Low */
 		m_addressDevice->mode = false;
 		m_addressDevice->clck();
 		m_addressBusInput = m_addressDevice->io;
@@ -108,23 +108,23 @@ void Cpu::abusWrite() {
 	}
 
 	switch(m_stateStep) {
-	case 0: /* priming pulse, AMS high */
+	case 0: /* T0: priming pulse, AMS high */
 		m_addressDevice->mode = true;
 		m_addressDevice->clck();
 		m_stateStep = 1;
 		break;
-	case 1: /* address out, AMS high */
+	case 1: /* T1: address out, AMS high */
 		m_addressDevice->mode = true;
 		m_addressDevice->io = m_addressBusAddress;
 		m_addressDevice->clck();
 		m_stateStep = 2;
 		break;
-	case 2: /* mode pulse, AMS high */
+	case 2: /* T2: mode pulse, AMS high */
 		m_addressDevice->mode = true;
 		m_addressDevice->clck();
 		m_stateStep = 3;
 		break;
-	case 3: /* write pulse, AMS Low */
+	case 3: /* T3: write pulse, AMS Low */
 		m_addressDevice->mode = false;
 		m_addressDevice->io = m_addressBusOutput;
 		m_addressDevice->clck();
@@ -135,11 +135,85 @@ void Cpu::abusWrite() {
 }
 
 void Cpu::gioRead() {
-	/** @todo implement */
+	if(m_ioDevice == nullptr) {
+		shared::panic("m_ioDevice == nullptr");
+	}
+
+	switch(m_stateStep) {
+	case 0: /* T0: Priming pulse, GMS high */
+		m_ioDevice->mode = true;
+		m_ioDevice->clck();
+
+		m_stateStep = 1;
+		break;
+	case 1: /* T1: Address High-Byte pulse, GMS high */
+		m_ioDevice->mode = true;
+		m_ioDevice->io = (m_ioBusAddress >> 8) & 0xFF;
+		m_ioDevice->clck();
+
+		m_stateStep = 2;
+		break;
+	case 2: /* T2: Address Low-Byte pulse, GMS low */
+		m_ioDevice->mode = false;
+		m_ioDevice->io = m_ioBusAddress & 0xFF;
+		m_ioDevice->clck();
+
+		m_stateStep = 3;
+		break;
+	case 3: /* T3: Data High-Byte read pulse */
+		m_ioDevice->clck();
+		m_ioBusInput = m_ioDevice->io & 0xFF00;
+
+		m_stateStep = 4;
+		break;
+	case 4: /* T4: Data Low-Byte read pulse */
+		m_ioDevice->clck();
+		m_ioBusInput |= m_ioDevice->io & 0xFF;
+
+		finishState();
+		break;
+	}
 }
 
 void Cpu::gioWrite() {
-	/** @todo implement */
+	if(m_ioDevice == nullptr) {
+		shared::panic("m_ioDevice == nullptr");
+	}
+
+	switch(m_stateStep) {
+	case 0: /* T0: Priming pulse, GMS high */
+		m_ioDevice->mode = true;
+		m_ioDevice->clck();
+
+		m_stateStep = 1;
+		break;
+	case 1: /* T1: Address High-Byte pulse, GMS high */
+		m_ioDevice->mode = true;
+		m_ioDevice->io = (m_ioBusAddress >> 8) & 0xFF;
+		m_ioDevice->clck();
+
+		m_stateStep = 2;
+		break;
+	case 2: /* T2: Address Low-Byte pulse, GMS high */
+		m_ioDevice->mode = true;
+		m_ioDevice->io = m_ioBusAddress & 0xFF;
+		m_ioDevice->clck();
+
+		m_stateStep = 3;
+		break;
+	case 3: /* T3: Data High-Byte write pulse */
+		m_ioDevice->io = (m_ioBusOutput >> 8) & 0xFF;
+		m_ioDevice->clck();
+
+		m_stateStep = 4;
+		break;
+	case 4: /* T4: Data Low-Byte write pulse */
+		m_ioDevice->io = m_ioBusOutput & 0xFF;
+		m_ioDevice->clck();
+
+		finishState();
+		break;
+	}
 }
 
 void Cpu::fetchInst() {

@@ -99,12 +99,12 @@ class Cpu {
 	 * # Instruction
 	 * TODO: not documented yet
 	 *
-	 * # Address Bus
-	 * m_addressBusInput is used to temporarily store data read from the
-	 * address bus before assigning it to the correct register.
-	 * m_addressBusOutput is used to store the data which should be written
+	 * # Address & IO Bus
+	 * m_addressBusInput/m_ioBusInput is used to temporarily store data read from the
+	 * address/io bus before assigning it to the correct register.
+	 * m_addressBusOutput/m_ioBusOutput is used to store the data which should be written
 	 * to the bus.
-	 * m_addressBusAddress is used to store the target address.
+	 * m_addressBusAddress/m_ioBusAddress is used to store the target address.
 	 */
 
 	/**
@@ -135,6 +135,10 @@ class Cpu {
 	u16 m_addressBusInput{0};
 	u16 m_addressBusOutput{0};
 	u16 m_addressBusAddress{0};
+
+	u16 m_ioBusInput{0};
+	u16 m_ioBusOutput{0};
+	u16 m_ioBusAddress{0};
 
 	/** exclusively output pins */
 	bool m_pinAMS{false};
