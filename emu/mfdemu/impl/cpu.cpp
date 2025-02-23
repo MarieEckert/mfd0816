@@ -15,14 +15,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <memory>
+
+#include <mfdemu/impl/bus_device.hpp>
 #include <mfdemu/impl/cpu.hpp>
 
 namespace mfdemu::impl {
 
 /** class Cpu **/
 
+void Cpu::connectAddressDevice(std::shared_ptr<BaseBusDevice> device) {
+	m_addressDevice = device;
+}
+
+void Cpu::connectIoDevice(std::shared_ptr<BaseBusDevice> device) {
+	m_ioDevice = device;
+}
+
 void Cpu::iclck() {
-	switch(m_state) {
+	if(reset) {
+		while(!m_state.empty()) {
+			m_state.pop();
+		}
+
+		m_state.push(CpuState::INST_FETCH);
+		m_state.push(CpuState::RESET);
+		m_stateStep = 0;
+	}
+
+	switch(m_state.top()) {
 	case CpuState::ABUS_READ:
 		this->abusRead();
 		break;
@@ -40,6 +61,10 @@ void Cpu::iclck() {
 		break;
 	case CpuState::INST_EXEC:
 		this->execInst();
+		break;
+	case CpuState::RESET:
+		this->execReset();
+		break;
 	}
 }
 
@@ -65,6 +90,33 @@ void Cpu::fetchInst() {
 
 void Cpu::execInst() {
 	/** @todo implement */
+}
+
+void Cpu::execReset() {
+	switch(m_stateStep) {
+	case 0:
+		m_stateStep = 1;
+
+		newState(CpuState::ABUS_READ);
+		break;
+	case 1:
+		m_regIP = m_addressBusInput;
+
+		finishState();
+		break;
+	}
+}
+
+void Cpu::newState(CpuState state) {
+	m_state.push(state);
+	m_stepStash.push(m_stateStep);
+	m_stateStep = 0;
+}
+
+void Cpu::finishState() {
+	m_stateStep = m_stepStash.top();
+	m_stepStash.pop();
+	m_state.pop();
 }
 
 }  // namespace mfdemu::impl

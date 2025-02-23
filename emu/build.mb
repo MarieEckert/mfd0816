@@ -12,6 +12,8 @@ sector config
     ; Source Info
     str src 'mfdemu/'
     list str sources
+          'cli/args',
+          'impl/aio_device',
           'impl/cpu',
           'main',
           '../shared/panic',

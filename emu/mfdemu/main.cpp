@@ -15,15 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define VERSION "0.0 (develop)"
-
+#include <chrono>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <thread>
 
+#include "mfdemu/impl/bus_device.hpp"
+
+#include <mfdemu/impl/aio_device.hpp>
+#include <mfdemu/impl/cpu.hpp>
 #include <shared/cli/args.hpp>
 #include <shared/log.hpp>
+
+#define VERSION "0.0 (develop)"
+
+using namespace mfdemu;
 
 [[noreturn]] static void licenses() {
 	std::cerr << "MFDASM "
@@ -67,6 +77,31 @@ int main(int argc, char **argv) {
 	if(!arg_infile.get().has_value()) {
 		logError() << "no input file specified! specify using \"-i <file>\"\n";
 		return 1;
+	}
+
+	std::ifstream stream(arg_infile.get().value(), std::ios::in | std::ios::binary);
+	std::vector<u8> contents(
+		(std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+	impl::Cpu cpu;
+	impl::AioDevice test_dev(false, UINT16_MAX);
+
+	test_dev.setData(contents);
+
+	cpu.connectAddressDevice(
+		std::static_pointer_cast<impl::BaseBusDevice>(std::make_shared<impl::AioDevice>(test_dev)));
+
+	cpu.reset = true;
+
+	u64 cycle_count = 0;
+	while(true) {
+		if(cycle_count == 1) {
+			cpu.reset = false;
+		}
+		cycle_count++;
+		cpu.iclck();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		logDebug() << "cycle " << cycle_count << "\r";
 	}
 
 	return 0;
