@@ -33,6 +33,12 @@ class AioDevice : public BaseBusDevice {
 	void setData(std::vector<u8> data);
 
    private:
+	/** internal state */
+	u8 m_step{0};
+	u32 m_address;
+	bool m_write;
+
+	/** data */
 	bool m_readOnly;
 	std::vector<u8> m_data;
 };

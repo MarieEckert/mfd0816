@@ -23,8 +23,51 @@ AioDevice::AioDevice(bool read_only, usize size) : m_readOnly(read_only) {
 	m_data.reserve(size);
 }
 
-/** @todo implement */
-void AioDevice::clck() {}
+void AioDevice::clck() {
+	switch(m_step) {
+	case 0:
+		if(mode) {
+			m_step = 1;
+		}
+		break;
+	case 1:
+		if(!mode) {
+			m_step = 0;
+			break;
+		}
+
+		m_address = io + 16; /** @todo HACK!! this is for skipping the MRI header because I am
+								currently to lazy to parse it here */
+		m_step = 2;
+		break;
+	case 2:
+		m_write = mode;
+		m_step = 3;
+		break;
+	case 3:
+		if(m_write) {
+			if(m_readOnly) {
+				m_step = 0;
+				break;
+			}
+
+			if(m_address >= m_data.size() || m_address + 1 >= m_data.size()) { /* discard */
+				m_step = 0;
+				break;
+			}
+
+			m_data[m_address] = (io >> 8) & 0xFF;
+			m_data[m_address + 1] = io & 0xFF;
+		} else {
+			io = m_address >= m_data.size() || m_address + 1 >= m_data.size()
+					 ? 0
+					 : (m_data[m_address] << 8) | m_data[m_address + 1];
+		}
+
+		m_step = 0;
+		break;
+	}
+}
 
 void AioDevice::setData(std::vector<u8> data) {
 	m_data = data;
