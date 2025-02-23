@@ -20,6 +20,7 @@
 #include <mfdemu/impl/bus_device.hpp>
 #include <mfdemu/impl/cpu.hpp>
 #include <shared/log.hpp>
+#include <shared/panic.hpp>
 
 namespace mfdemu::impl {
 
@@ -70,6 +71,10 @@ void Cpu::iclck() {
 }
 
 void Cpu::abusRead() {
+	if(m_addressDevice == nullptr) {
+		shared::panic("m_addressDevice == nullptr");
+	}
+
 	switch(m_stateStep) {
 	case 0: /* priming pulse, AMS high */
 		m_addressDevice->mode = true;
@@ -98,6 +103,10 @@ void Cpu::abusRead() {
 }
 
 void Cpu::abusWrite() {
+	if(m_addressDevice == nullptr) {
+		shared::panic("m_addressDevice == nullptr");
+	}
+
 	switch(m_stateStep) {
 	case 0: /* priming pulse, AMS high */
 		m_addressDevice->mode = true;
