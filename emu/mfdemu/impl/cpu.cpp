@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <array>
 #include <memory>
 
 #include <mfdemu/impl/bus_device.hpp>
@@ -35,6 +36,8 @@ void Cpu::connectIoDevice(std::shared_ptr<BaseBusDevice> device) {
 }
 
 void Cpu::iclck() {
+	logDebug() << "IP = 0x" << std::hex << m_regIP << std::dec << "\n";
+
 	if(reset) {
 		while(!m_state.empty()) {
 			m_state.pop();
@@ -216,8 +219,143 @@ void Cpu::gioWrite() {
 	}
 }
 
+static std::array<u8, 0x4e> INSTRUCTION_OPERAND_COUNT = {
+	/* 0x00: ADC .........*/ 1,
+	/* 0x01: ADD .........*/ 1,
+	/* 0x02: AND .........*/ 1,
+	/* 0x03: BIN .........*/ 2,
+	/* 0x04: BOT .........*/ 2,
+	/* 0x05: CALL ........*/ 1,
+	/* 0x06: _RESERVED_00 */ 0,
+	/* 0x07: CMP .........*/ 2,
+	/* 0x08: DEC .........*/ 1,
+	/* 0x09: DIV .........*/ 1,
+	/* 0x0a: IDIV ........*/ 1,
+	/* 0x0b: IMUL ........*/ 1,
+	/* 0x0c: IN ..........*/ 2,
+	/* 0x0d: INC .........*/ 1,
+	/* 0x0e: INT .........*/ 1,
+	/* 0x0f: IRET ........*/ 0,
+	/* 0x10: JMP .........*/ 1,
+	/* 0x11: JZ ..........*/ 1,
+	/* 0x12: JG ..........*/ 1,
+	/* 0x13: JGE .........*/ 1,
+	/* 0x14: JL ..........*/ 1,
+	/* 0x15: JLE .........*/ 1,
+	/* 0x16: JC ..........*/ 1,
+	/* 0x17: JS ..........*/ 1,
+	/* 0x18: JNZ .........*/ 1,
+	/* 0x19: JNC .........*/ 1,
+	/* 0x1a: JNS .........*/ 1,
+	/* 0x1b: LD ..........*/ 2,
+	/* 0x1c: MOV .........*/ 2,
+	/* 0x1d: MUL .........*/ 1,
+	/* 0x1e: NEG .........*/ 1,
+	/* 0x1f: NOP .........*/ 0,
+	/* 0x20: NOT .........*/ 1,
+	/* 0x21: OR ..........*/ 1,
+	/* 0x22: OUT .........*/ 2,
+	/* 0x23: POP .........*/ 1,
+	/* 0x24: PUSH ........*/ 1,
+	/* 0x25: RET .........*/ 0,
+	/* 0x26: ROL .........*/ 2,
+	/* 0x27: ROR .........*/ 2,
+	/* 0x28: SL ..........*/ 2,
+	/* 0x29: SR ..........*/ 2,
+	/* 0x2a: ST ..........*/ 2,
+	/* 0x2b: CLO .........*/ 0,
+	/* 0x2c: CLC .........*/ 0,
+	/* 0x2d: CLZ .........*/ 0,
+	/* 0x2e: CLN .........*/ 0,
+	/* 0x2f: CLI .........*/ 0,
+	/* 0x30: _RESERVED_01 */ 0,
+	/* 0x31: _RESERVED_02 */ 0,
+	/* 0x32: _RESERVED_03 */ 0,
+	/* 0x33: _RESERVED_04 */ 0,
+	/* 0x34: _RESERVED_05 */ 0,
+	/* 0x35: _RESERVED_06 */ 0,
+	/* 0x36: _RESERVED_07 */ 0,
+	/* 0x37: _RESERVED_08 */ 0,
+	/* 0x38: _RESERVED_09 */ 0,
+	/* 0x39: _RESERVED_10 */ 0,
+	/* 0x3a: _RESERVED_11 */ 0,
+	/* 0x3b: STO .........*/ 0,
+	/* 0x3c: STC .........*/ 0,
+	/* 0x3d: STZ .........*/ 0,
+	/* 0x3e: STN .........*/ 0,
+	/* 0x3f: STI .........*/ 0,
+	/* 0x40: _RESERVED_12 */ 0,
+	/* 0x41: _RESERVED_13 */ 0,
+	/* 0x42: _RESERVED_14 */ 0,
+	/* 0x43: _RESERVED_15 */ 0,
+	/* 0x44: _RESERVED_16 */ 0,
+	/* 0x45: _RESERVED_17 */ 0,
+	/* 0x46: _RESERVED_18 */ 0,
+	/* 0x47: _RESERVED_19 */ 0,
+	/* 0x48: _RESERVED_20 */ 0,
+	/* 0x49: _RESERVED_21 */ 0,
+	/* 0x4a: _RESERVED_22 */ 0,
+	/* 0x4b: SUB .........*/ 1,
+	/* 0x4c: TEST ........*/ 1,
+	/* 0x4d: XOR .........*/ 1,
+};
+
 void Cpu::fetchInst() {
-	/** @todo implement */
+	switch(m_stateStep) {
+	case 0:
+		m_addressBusAddress = m_regIP;
+		m_stateStep = 1;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 1: { /* Determine instruction length, decode operands. */
+		m_instruction = (m_addressBusInput >> 8) & 0xFF;
+
+		auto transform_operand_bits = [](u8 bits) -> AddressingMode {
+			return {
+				.immediate = bits == 0,
+				.direct = (bits & 0b1) > 0,
+				.indirect = (bits & 0b10) > 0,
+				.is_register = (bits & 0b1000) > 0,
+				.relative = (bits & 0b100) > 0,
+			};
+		};
+
+		const u8 operand_count = INSTRUCTION_OPERAND_COUNT[m_instruction];
+		if(operand_count == 0) {
+			finishState();
+		}
+
+		m_operand1 = {.mode = transform_operand_bits(m_addressBusInput & 0b11110000), .value = 0};
+		m_operand2 = {.mode = transform_operand_bits(m_addressBusInput & 0b1111), .value = 0};
+
+		m_stateStep = 2;
+		break;
+	}
+	case 2: /* Fetch operand 1 */
+		m_addressBusAddress = m_regIP + 2;
+
+		m_stateStep = 3;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 3: /* Store operand 1, Fetch operand 2 */
+		if(INSTRUCTION_OPERAND_COUNT[m_instruction] == 1) {
+			finishState();
+			break;
+		}
+
+		m_operand1.value = m_addressBusInput;
+
+		m_addressBusAddress = m_regIP + 2 + (m_operand1.mode.is_register ? 1 : 2);
+
+		m_stateStep = 4;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 4: /* Store operand 2, done */
+		m_operand2.value = m_addressBusInput;
+
+		finishState();
+		break;
+	}
 }
 
 void Cpu::execInst() {
