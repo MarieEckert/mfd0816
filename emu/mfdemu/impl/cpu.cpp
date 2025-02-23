@@ -19,6 +19,7 @@
 
 #include <mfdemu/impl/bus_device.hpp>
 #include <mfdemu/impl/cpu.hpp>
+#include <shared/log.hpp>
 
 namespace mfdemu::impl {
 
@@ -145,11 +146,25 @@ void Cpu::execReset() {
 	case 0:
 		m_stateStep = 1;
 
+		m_regFL.rt = true;
+
 		m_addressBusAddress = RESET_VECTOR;
 		newState(CpuState::ABUS_READ);
 		break;
 	case 1:
 		m_regIP = m_addressBusInput;
+
+		m_regFL = {
+			.of = false,
+			.cf = false,
+			.zf = false,
+			.nf = false,
+			.ie = false,
+			.rt = false,
+			.rs = false,
+		};
+
+		logDebug() << "\nreset, IP = " << std::hex << m_regIP << std::dec << "\n";
 
 		finishState();
 		break;
@@ -163,6 +178,17 @@ void Cpu::newState(CpuState state) {
 }
 
 void Cpu::finishState() {
+	if(m_stepStash.empty()) {
+		m_stateStep = 0;
+
+		while(!m_state.empty()) {
+			m_state.pop();
+		}
+
+		m_state.push(CpuState::INST_FETCH);
+		return;
+	}
+
 	m_stateStep = m_stepStash.top();
 	m_stepStash.pop();
 	m_state.pop();
