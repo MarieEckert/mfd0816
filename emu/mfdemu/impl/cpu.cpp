@@ -69,11 +69,59 @@ void Cpu::iclck() {
 }
 
 void Cpu::abusRead() {
-	/** @todo implement */
+	switch(m_stateStep) {
+	case 0: /* priming pulse, AMS high */
+		m_addressDevice->mode = true;
+		m_addressDevice->clck();
+		m_stateStep = 1;
+		break;
+	case 1: /* address out, AMS high */
+		m_addressDevice->mode = true;
+		m_addressDevice->io = m_addressBusAddress;
+		m_addressDevice->clck();
+		m_stateStep = 2;
+		break;
+	case 2: /* mode pulse, AMS low */
+		m_addressDevice->mode = false;
+		m_addressDevice->clck();
+		m_stateStep = 3;
+		break;
+	case 3: /* read pulse, AMS Low */
+		m_addressDevice->mode = false;
+		m_addressDevice->clck();
+		m_addressBusInput = m_addressDevice->io;
+
+		finishState();
+		break;
+	}
 }
 
 void Cpu::abusWrite() {
-	/** @todo implement */
+	switch(m_stateStep) {
+	case 0: /* priming pulse, AMS high */
+		m_addressDevice->mode = true;
+		m_addressDevice->clck();
+		m_stateStep = 1;
+		break;
+	case 1: /* address out, AMS high */
+		m_addressDevice->mode = true;
+		m_addressDevice->io = m_addressBusAddress;
+		m_addressDevice->clck();
+		m_stateStep = 2;
+		break;
+	case 2: /* mode pulse, AMS high */
+		m_addressDevice->mode = true;
+		m_addressDevice->clck();
+		m_stateStep = 3;
+		break;
+	case 3: /* write pulse, AMS Low */
+		m_addressDevice->mode = false;
+		m_addressDevice->io = m_addressBusOutput;
+		m_addressDevice->clck();
+
+		finishState();
+		break;
+	}
 }
 
 void Cpu::gioRead() {
@@ -97,6 +145,7 @@ void Cpu::execReset() {
 	case 0:
 		m_stateStep = 1;
 
+		m_addressBusAddress = RESET_VECTOR;
 		newState(CpuState::ABUS_READ);
 		break;
 	case 1:

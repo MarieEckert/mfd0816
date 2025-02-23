@@ -26,6 +26,8 @@
 
 namespace mfdemu::impl {
 
+constexpr u16 RESET_VECTOR = 0xfffe;
+
 struct CpuFlags {
 	bool of;
 	bool cf;
@@ -98,8 +100,6 @@ class Cpu {
 	 * TODO: not documented yet
 	 *
 	 * # Address Bus
-	 * m_addressBusWrite is used to internally tell if the current/next
-	 * address bus operation should be a read or write.
 	 * m_addressBusInput is used to temporarily store data read from the
 	 * address bus before assigning it to the correct register.
 	 * m_addressBusOutput is used to store the data which should be written
@@ -132,7 +132,6 @@ class Cpu {
 	Operand m_operand1;
 	Operand m_operand2;
 
-	bool m_addressBusWrite{false};
 	u16 m_addressBusInput{0};
 	u16 m_addressBusOutput{0};
 	u16 m_addressBusAddress{0};
