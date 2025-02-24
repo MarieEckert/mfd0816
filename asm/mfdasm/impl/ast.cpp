@@ -26,11 +26,12 @@
 #include <utility>
 #include <vector>
 
-#include <mfdasm/impl/ast.hpp>
 #include <shared/int_ops.hpp>
 #include <shared/log.hpp>
 #include <shared/panic.hpp>
 #include <shared/typedefs.hpp>
+
+#include <mfdasm/impl/ast.hpp>
 
 namespace mfdasm::impl {
 
@@ -409,7 +410,8 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 			break;
 		}
 		case ExpressionBase::STATEMENT_EXPRESSION:
-			shared::panic("Instruction::toBytes() on Instruction with StatementExpression statement");
+			shared::panic(
+				"Instruction::toBytes() on Instruction with StatementExpression statement");
 		}
 
 		const Result<std::vector<u8>, AsmError> maybe_operand_bytes =
@@ -630,7 +632,8 @@ Statement::Statement(
 	 * many such cases
 	 */
 	if(!statement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
-		shared::panic("bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
+		shared::panic(
+			"bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
 }
 
@@ -661,7 +664,8 @@ Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_c
 		return Ok(std::vector<u8>{});
 	case Statement::INSTRUCTION:
 		if(!m_subStatement.has_value()) {
-			shared::panic("toBytes() called on Statement of kind INSTRUCTION without sub-statement");
+			shared::panic(
+				"toBytes() called on Statement of kind INSTRUCTION without sub-statement");
 		}
 		return static_pointer_cast<Instruction>(m_subStatement.value())->toBytes(resolval_context);
 	case Statement::DIRECTIVE:

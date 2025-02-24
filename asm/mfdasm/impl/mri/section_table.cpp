@@ -15,8 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <mfdasm/impl/mri/section_table.hpp>
 #include <shared/log.hpp>
+
+#include <mfdasm/impl/mri/section_table.hpp>
 
 namespace mfdasm::impl::mri {
 

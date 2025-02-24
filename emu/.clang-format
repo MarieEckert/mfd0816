@@ -14,12 +14,14 @@ IndentCaseBlocks: false
 IndentCaseLabels: false
 IncludeCategories:
   - Regex: "<algorithm|any|array|atomic|backward|barrier|bit|bits|bitset|cassert|ccomplex|cctype|cerrno|cfenv|cfloat|charconv|chrono|cinttypes|ciso646|climits|clocale|cmath|codecvt|compare|complex|complex.h|concepts|condition_variable|coroutine|csetjmp|csignal|cstdalign|cstdarg|cstdbool|cstddef|cstdint|cstdio|cstdlib|cstring|ctgmath|ctime|cuchar|cwchar|cwctype|cxxabi.h|debug|decimal|deque|exception|execution|experimental|ext|fenv.h|filesystem|forward_list|fstream|functional|future|initializer_list|iomanip|ios|iosfwd|iostream|istream|iterator|latch|limits|list|locale|map|math.h|memory|memory_resource|mutex|new|numbers|numeric|optional|ostream|parallel|pstl|queue|random|ranges|ratio|regex|scoped_allocator|semaphore|set|shared_mutex|source_location|span|sstream|stack|stdexcept|stdlib.h|stop_token|streambuf|string|string_view|syncstream|system_error|tgmath.h|thread|tr1|tr2|tuple|typeindex|typeinfo|type_traits|unordered_map|unordered_set|utility|valarray|variant|vector|version>"
-    Priority: -3
+    Priority: -4
   - Regex: "<.*\\.h>"
-    Priority: -2
+    Priority: -3
   - Regex: "<3rdparty"
+    Priority: -2
+  - Regex: "<shared"
     Priority: -1
-  - Regex: "^<mfdasm"
+  - Regex: "<mfdemu"
     Priority: 0
   - Regex: "^\""
     Priority: 1000

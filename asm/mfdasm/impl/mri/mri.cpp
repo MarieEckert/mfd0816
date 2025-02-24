@@ -19,12 +19,12 @@
 #include <iostream>
 #include <memory>
 
-#include <mfdasm/impl/mri/mri.hpp>
-#include <mfdasm/impl/mri/section_table.hpp>
-
 #include <shared/int_ops.hpp>
 #include <shared/log.hpp>
 #include <shared/mri_types.hpp>
+
+#include <mfdasm/impl/mri/mri.hpp>
+#include <mfdasm/impl/mri/section_table.hpp>
 
 using namespace shared::mri_types;
 

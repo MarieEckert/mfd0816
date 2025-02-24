@@ -22,9 +22,10 @@
 #include <memory>
 #include <string>
 
+#include <shared/typedefs.hpp>
+
 #include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/ast.hpp>
-#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl::mri {
 

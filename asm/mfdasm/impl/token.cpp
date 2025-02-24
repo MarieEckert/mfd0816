@@ -21,9 +21,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <mfdasm/impl/token.hpp>
 #include <shared/int_ops.hpp>
 #include <shared/panic.hpp>
+
+#include <mfdasm/impl/token.hpp>
 
 namespace mfdasm::impl {
 

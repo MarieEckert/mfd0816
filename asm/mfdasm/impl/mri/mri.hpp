@@ -18,10 +18,10 @@
 #ifndef MFDASM_IMPL_MRI_MRI_HPP
 #define MFDASM_IMPL_MRI_MRI_HPP
 
-#include <mfdasm/impl/mri/section_table.hpp>
-
 #include <shared/int_ops.hpp>
 #include <shared/typedefs.hpp>
+
+#include <mfdasm/impl/mri/section_table.hpp>
 
 namespace mfdasm::impl::mri {
 

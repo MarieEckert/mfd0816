@@ -21,8 +21,9 @@
 #include <memory>
 #include <stack>
 
-#include <mfdemu/impl/bus_device.hpp>
 #include <shared/typedefs.hpp>
+
+#include <mfdemu/impl/bus_device.hpp>
 
 namespace mfdemu::impl {
 

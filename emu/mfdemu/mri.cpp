@@ -17,8 +17,9 @@
 
 #include <cstring>
 
-#include <mfdemu/mri.hpp>
 #include <shared/log.hpp>
+
+#include <mfdemu/mri.hpp>
 
 #define CHECK_BIT(value, bit) ((value & static_cast<u64>(bit)) != 0)
 

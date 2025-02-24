@@ -24,14 +24,15 @@
 #include <string>
 #include <vector>
 
+#include <shared/log.hpp>
+#include <shared/panic.hpp>
+
 #include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/directive_operand.hpp>
 #include <mfdasm/impl/instruction_operand.hpp>
 #include <mfdasm/impl/token.hpp>
-#include <shared/log.hpp>
-#include <shared/panic.hpp>
 
 namespace mfdasm::impl {
 
@@ -543,7 +544,8 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 					const IndirectAddress *tmp_indirectaddress =
 						dynamic_cast<IndirectAddress *>(expr.get());
 					if(tmp_indirectaddress == nullptr) {
-						shared::panic("could not cast ExpressionBase to IndirectAddress in map func");
+						shared::panic(
+							"could not cast ExpressionBase to IndirectAddress in map func");
 					}
 					return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
 							   ? InstructionOperand::DIRECT

@@ -23,10 +23,11 @@
 #include <string>
 
 #include <shared/cli/args.hpp>
+#include <shared/log.hpp>
+
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/mri/mri.hpp>
-#include <shared/log.hpp>
 
 using namespace mfdasm;
 

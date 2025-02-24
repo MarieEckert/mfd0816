@@ -18,10 +18,12 @@
 #include <array>
 #include <memory>
 
-#include <mfdemu/impl/bus_device.hpp>
-#include <mfdemu/impl/cpu.hpp>
 #include <shared/log.hpp>
 #include <shared/panic.hpp>
+
+#include <mfdemu/impl/bus_device.hpp>
+#include <mfdemu/impl/cpu.hpp>
+#include <mfdemu/impl/instructions.hpp>
 
 namespace mfdemu::impl {
 

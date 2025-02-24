@@ -23,13 +23,14 @@
 #include <string>
 #include <thread>
 
-#include "mfdemu/impl/bus_device.hpp"
+#include <shared/cli/args.hpp>
+#include <shared/log.hpp>
 
 #include <mfdemu/impl/aio_device.hpp>
 #include <mfdemu/impl/cpu.hpp>
 #include <mfdemu/mri.hpp>
-#include <shared/cli/args.hpp>
-#include <shared/log.hpp>
+
+#include "mfdemu/impl/bus_device.hpp"
 
 #define VERSION "0.0 (develop)"
 

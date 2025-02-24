@@ -154,10 +154,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include <shared/typedefs.hpp>
+
 #include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/token.hpp>
 #include <mfdasm/result.hpp>
-#include <shared/typedefs.hpp>
 
 namespace mfdasm::impl {
 
