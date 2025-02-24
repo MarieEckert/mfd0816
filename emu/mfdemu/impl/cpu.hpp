@@ -188,7 +188,6 @@ class Cpu {
 	std::stack<u8> m_stepStash;
 	u8 m_stateStep{0};
 
-	u8 m_instStep{0};
 	u16 m_instruction{0};
 	Operand m_operand1;
 	Operand m_operand2;
