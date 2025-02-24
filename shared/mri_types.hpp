@@ -15,20 +15,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MFDASM_IMPL_MRI_MRI_HPP
-#define MFDASM_IMPL_MRI_MRI_HPP
+#ifndef SHARED_MRI_TYPES_HPP
+#define SHARED_MRI_TYPES_HPP
 
-#include <mfdasm/impl/mri/section_table.hpp>
+#include "typedefs.hpp"
 
-#include <shared/int_ops.hpp>
-#include <shared/typedefs.hpp>
+namespace shared::mri_types {
 
-namespace mfdasm::impl::mri {
+#pragma pack(push, 1)
 
-void writeCompactMRI(std::string path, SectionTable sections, bool compressed);
+#define MRI_MAGIC "MRI"
+#define MRI_VERSION BIGENDIAN16(0x0100)
 
-void writePaddedMRI(std::string path, SectionTable sections, bool compressed);
+enum class TypeFlag : u16 {
+  COMPACT = 1 << 0,
+  DATA_COMPRESSED = 1 << 1,
+};
 
-}  // namespace mfdasm::impl::mri
+struct Header {
+  char magic[4];
+  u16 version;
+  u16 type;
+  u32 filesize;
+  u32 data_offset;
+};
+
+struct TableEntry {
+  u32 file_offset;
+  u16 load_address;
+  u16 length;
+};
+
+#pragma pack(pop)
+
+} // namespace shared::mri_types
 
 #endif
