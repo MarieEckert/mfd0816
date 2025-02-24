@@ -83,12 +83,10 @@ int main(int argc, char **argv) {
 	std::vector<u8> contents(
 		(std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-	parseMRIFromBytes(contents);
-
 	impl::Cpu cpu;
 	impl::AioDevice test_dev(false, UINT16_MAX);
 
-	test_dev.setData(contents);
+	test_dev.setData(parseMRIFromBytes(contents));
 
 	cpu.connectAddressDevice(
 		std::static_pointer_cast<impl::BaseBusDevice>(std::make_shared<impl::AioDevice>(test_dev)));

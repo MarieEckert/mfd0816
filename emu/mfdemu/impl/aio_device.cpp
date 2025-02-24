@@ -36,8 +36,7 @@ void AioDevice::clck() {
 			break;
 		}
 
-		m_address = io + 16; /** @todo HACK!! this is for skipping the MRI header because I am
-								currently to lazy to parse it here */
+		m_address = io;
 		m_step = 2;
 		break;
 	case 2:
