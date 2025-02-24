@@ -327,7 +327,9 @@ void Cpu::fetchInst() {
 #ifdef PRINT_FETCHED_INSTRUCTION
 			printFetchedInstruction();
 #endif
-			finishState();
+			m_stateStep = 0;
+			newState(CpuState::INST_EXEC);
+			break;
 		}
 
 		m_operand1 = {
@@ -348,7 +350,8 @@ void Cpu::fetchInst() {
 #ifdef PRINT_FETCHED_INSTRUCTION
 			printFetchedInstruction();
 #endif
-			finishState();
+			m_stateStep = 0;
+			newState(CpuState::INST_EXEC);
 			break;
 		}
 
@@ -365,14 +368,95 @@ void Cpu::fetchInst() {
 #ifdef PRINT_FETCHED_INSTRUCTION
 		printFetchedInstruction();
 #endif
-
-		finishState();
+		m_stateStep = 0;
+		newState(CpuState::INST_EXEC);
 		break;
 	}
 }
 
+#define MAP_TO_INSTRUCTION_FUNC(name) \
+	case OPCODE_##name:               \
+		execInst##name();             \
+		break
+
+constexpr u8 EXEC_INST_STEP_INC_IP = 255;
+
 void Cpu::execInst() {
-	/** @todo implement */
+	switch(m_instruction) {
+		MAP_TO_INSTRUCTION_FUNC(ADC);
+		MAP_TO_INSTRUCTION_FUNC(ADD);
+		MAP_TO_INSTRUCTION_FUNC(AND);
+		MAP_TO_INSTRUCTION_FUNC(BIN);
+		MAP_TO_INSTRUCTION_FUNC(BOT);
+		MAP_TO_INSTRUCTION_FUNC(CALL);
+		MAP_TO_INSTRUCTION_FUNC(CMP);
+		MAP_TO_INSTRUCTION_FUNC(DEC);
+		MAP_TO_INSTRUCTION_FUNC(DIV);
+		MAP_TO_INSTRUCTION_FUNC(IDIV);
+		MAP_TO_INSTRUCTION_FUNC(IMUL);
+		MAP_TO_INSTRUCTION_FUNC(IN);
+		MAP_TO_INSTRUCTION_FUNC(INC);
+		MAP_TO_INSTRUCTION_FUNC(INT);
+		MAP_TO_INSTRUCTION_FUNC(IRET);
+		MAP_TO_INSTRUCTION_FUNC(JMP);
+		MAP_TO_INSTRUCTION_FUNC(JZ);
+		MAP_TO_INSTRUCTION_FUNC(JG);
+		MAP_TO_INSTRUCTION_FUNC(JGE);
+		MAP_TO_INSTRUCTION_FUNC(JL);
+		MAP_TO_INSTRUCTION_FUNC(JLE);
+		MAP_TO_INSTRUCTION_FUNC(JC);
+		MAP_TO_INSTRUCTION_FUNC(JS);
+		MAP_TO_INSTRUCTION_FUNC(JNZ);
+		MAP_TO_INSTRUCTION_FUNC(JNC);
+		MAP_TO_INSTRUCTION_FUNC(JNS);
+		MAP_TO_INSTRUCTION_FUNC(LD);
+		MAP_TO_INSTRUCTION_FUNC(MOV);
+		MAP_TO_INSTRUCTION_FUNC(MUL);
+		MAP_TO_INSTRUCTION_FUNC(NEG);
+		MAP_TO_INSTRUCTION_FUNC(NOP);
+		MAP_TO_INSTRUCTION_FUNC(NOT);
+		MAP_TO_INSTRUCTION_FUNC(OR);
+		MAP_TO_INSTRUCTION_FUNC(OUT);
+		MAP_TO_INSTRUCTION_FUNC(POP);
+		MAP_TO_INSTRUCTION_FUNC(PUSH);
+		MAP_TO_INSTRUCTION_FUNC(RET);
+		MAP_TO_INSTRUCTION_FUNC(ROL);
+		MAP_TO_INSTRUCTION_FUNC(ROR);
+		MAP_TO_INSTRUCTION_FUNC(SL);
+		MAP_TO_INSTRUCTION_FUNC(SR);
+		MAP_TO_INSTRUCTION_FUNC(ST);
+		MAP_TO_INSTRUCTION_FUNC(CLO);
+		MAP_TO_INSTRUCTION_FUNC(CLC);
+		MAP_TO_INSTRUCTION_FUNC(CLZ);
+		MAP_TO_INSTRUCTION_FUNC(CLN);
+		MAP_TO_INSTRUCTION_FUNC(CLI);
+		MAP_TO_INSTRUCTION_FUNC(STO);
+		MAP_TO_INSTRUCTION_FUNC(STC);
+		MAP_TO_INSTRUCTION_FUNC(STZ);
+		MAP_TO_INSTRUCTION_FUNC(STN);
+		MAP_TO_INSTRUCTION_FUNC(STI);
+		MAP_TO_INSTRUCTION_FUNC(SUB);
+		MAP_TO_INSTRUCTION_FUNC(TEST);
+		MAP_TO_INSTRUCTION_FUNC(XOR);
+	case EXEC_INST_STEP_INC_IP: {
+		u8 amount = 2;
+		const u8 operand_count = INSTRUCTION_OPERAND_COUNT[m_instruction];
+		if(operand_count == 1) {
+			amount += m_operand1.mode.is_register ? 1 : 2;
+		} else {
+			amount += m_operand1.mode.is_register ? 1 : 2;
+			amount += m_operand2.mode.is_register ? 1 : 2;
+		}
+
+		m_regIP += amount;
+		finishState();
+		break;
+	}
+	default:
+		logError() << "illegal instruction!\n";
+		finishState();
+		break;
+	}
 }
 
 void Cpu::execReset() {
@@ -404,6 +488,171 @@ void Cpu::execReset() {
 		break;
 	}
 }
+
+/** @todo: implement */
+void Cpu::execInstADC() {}
+
+/** @todo: implement */
+void Cpu::execInstADD() {}
+
+/** @todo: implement */
+void Cpu::execInstAND() {}
+
+/** @todo: implement */
+void Cpu::execInstBIN() {}
+
+/** @todo: implement */
+void Cpu::execInstBOT() {}
+
+/** @todo: implement */
+void Cpu::execInstCALL() {}
+
+/** @todo: implement */
+void Cpu::execInstCMP() {}
+
+/** @todo: implement */
+void Cpu::execInstDEC() {}
+
+/** @todo: implement */
+void Cpu::execInstDIV() {}
+
+/** @todo: implement */
+void Cpu::execInstIDIV() {}
+
+/** @todo: implement */
+void Cpu::execInstIMUL() {}
+
+/** @todo: implement */
+void Cpu::execInstIN() {}
+
+/** @todo: implement */
+void Cpu::execInstINC() {}
+
+/** @todo: implement */
+void Cpu::execInstINT() {}
+
+/** @todo: implement */
+void Cpu::execInstIRET() {}
+
+/** @todo: implement */
+void Cpu::execInstJMP() {}
+
+/** @todo: implement */
+void Cpu::execInstJZ() {}
+
+/** @todo: implement */
+void Cpu::execInstJG() {}
+
+/** @todo: implement */
+void Cpu::execInstJGE() {}
+
+/** @todo: implement */
+void Cpu::execInstJL() {}
+
+/** @todo: implement */
+void Cpu::execInstJLE() {}
+
+/** @todo: implement */
+void Cpu::execInstJC() {}
+
+/** @todo: implement */
+void Cpu::execInstJS() {}
+
+/** @todo: implement */
+void Cpu::execInstJNZ() {}
+
+/** @todo: implement */
+void Cpu::execInstJNC() {}
+
+/** @todo: implement */
+void Cpu::execInstJNS() {}
+
+/** @todo: implement */
+void Cpu::execInstLD() {}
+
+/** @todo: implement */
+void Cpu::execInstMOV() {}
+
+/** @todo: implement */
+void Cpu::execInstMUL() {}
+
+/** @todo: implement */
+void Cpu::execInstNEG() {}
+
+/** @todo: implement */
+void Cpu::execInstNOP() {}
+
+/** @todo: implement */
+void Cpu::execInstNOT() {}
+
+/** @todo: implement */
+void Cpu::execInstOR() {}
+
+/** @todo: implement */
+void Cpu::execInstOUT() {}
+
+/** @todo: implement */
+void Cpu::execInstPOP() {}
+
+/** @todo: implement */
+void Cpu::execInstPUSH() {}
+
+/** @todo: implement */
+void Cpu::execInstRET() {}
+
+/** @todo: implement */
+void Cpu::execInstROL() {}
+
+/** @todo: implement */
+void Cpu::execInstROR() {}
+
+/** @todo: implement */
+void Cpu::execInstSL() {}
+
+/** @todo: implement */
+void Cpu::execInstSR() {}
+
+/** @todo: implement */
+void Cpu::execInstST() {}
+
+/** @todo: implement */
+void Cpu::execInstCLO() {}
+
+/** @todo: implement */
+void Cpu::execInstCLC() {}
+
+/** @todo: implement */
+void Cpu::execInstCLZ() {}
+
+/** @todo: implement */
+void Cpu::execInstCLN() {}
+
+/** @todo: implement */
+void Cpu::execInstCLI() {}
+
+/** @todo: implement */
+void Cpu::execInstSTO() {}
+
+/** @todo: implement */
+void Cpu::execInstSTC() {}
+
+/** @todo: implement */
+void Cpu::execInstSTZ() {}
+
+/** @todo: implement */
+void Cpu::execInstSTN() {}
+
+/** @todo: implement */
+void Cpu::execInstSTI() {}
+
+/** @todo: implement */
+void Cpu::execInstSUB() {}
+
+/** @todo: implement */
+void Cpu::execInstTEST() {}
+
+/** @todo: implement */
+void Cpu::execInstXOR() {}
 
 void Cpu::newState(CpuState state) {
 	m_state.push(state);

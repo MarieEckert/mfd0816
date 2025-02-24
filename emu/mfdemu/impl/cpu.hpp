@@ -80,6 +80,8 @@ class Cpu {
 		RESET,
 	};
 
+	/** general operations */
+
 	void abusRead();
 	void abusWrite();
 	void gioRead();
@@ -87,6 +89,64 @@ class Cpu {
 	void fetchInst();
 	void execInst();
 	void execReset();
+
+	/** instructions */
+
+	void execInstADC();
+	void execInstADD();
+	void execInstAND();
+	void execInstBIN();
+	void execInstBOT();
+	void execInstCALL();
+	void execInstCMP();
+	void execInstDEC();
+	void execInstDIV();
+	void execInstIDIV();
+	void execInstIMUL();
+	void execInstIN();
+	void execInstINC();
+	void execInstINT();
+	void execInstIRET();
+	void execInstJMP();
+	void execInstJZ();
+	void execInstJG();
+	void execInstJGE();
+	void execInstJL();
+	void execInstJLE();
+	void execInstJC();
+	void execInstJS();
+	void execInstJNZ();
+	void execInstJNC();
+	void execInstJNS();
+	void execInstLD();
+	void execInstMOV();
+	void execInstMUL();
+	void execInstNEG();
+	void execInstNOP();
+	void execInstNOT();
+	void execInstOR();
+	void execInstOUT();
+	void execInstPOP();
+	void execInstPUSH();
+	void execInstRET();
+	void execInstROL();
+	void execInstROR();
+	void execInstSL();
+	void execInstSR();
+	void execInstST();
+	void execInstCLO();
+	void execInstCLC();
+	void execInstCLZ();
+	void execInstCLN();
+	void execInstCLI();
+	void execInstSTO();
+	void execInstSTC();
+	void execInstSTZ();
+	void execInstSTN();
+	void execInstSTI();
+	void execInstSUB();
+	void execInstTEST();
+	void execInstXOR();
 
 	/** internal state
 	 *
