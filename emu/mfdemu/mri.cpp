@@ -60,7 +60,7 @@ std::vector<u8> parseCompact(const std::vector<u8> &data, const Header &header) 
 	}
 
 	std::vector<u8> result;
-	result.reserve(UINT16_MAX);
+	result.reserve(UINT16_MAX + 1);
 	result.insert(result.begin(), result.capacity(), 0);
 
 	for(const TableEntry &entry: entries) {
