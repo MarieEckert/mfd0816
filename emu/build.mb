@@ -75,7 +75,7 @@ sector targets
   end
 
   section debug
-    str target_cflags '-O0 -g'
+    str target_cflags '-O0 -g -DPRINT_FETCHED_INSTRUCTION'
     str target_ldflags '-rdynamic -g'
     str target_builddir '$(/config/files/debug_dir)'
     str target_objdir '$(/config/files/debug_dir)$(/config/files/obj_dir)'
@@ -94,7 +94,7 @@ sector targets
   end
 
   section release
-    str target_cflags '-O3 -DMFDEMU_RELEASE'
+    str target_cflags '-O3 -DRELEASE'
     str target_ldflags ''
     str target_builddir '$(/config/files/release_dir)'
     str target_objdir '$(/config/files/release_dir)$(/config/files/obj_dir)'

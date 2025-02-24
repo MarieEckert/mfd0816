@@ -322,10 +322,14 @@ void Cpu::fetchInst() {
 
 		const u8 operand_count = INSTRUCTION_OPERAND_COUNT[m_instruction];
 		if(operand_count == 0) {
+#ifdef PRINT_FETCHED_INSTRUCTION
+			printFetchedInstruction();
+#endif
 			finishState();
 		}
 
-		m_operand1 = {.mode = transform_operand_bits(m_addressBusInput & 0b11110000), .value = 0};
+		m_operand1 = {
+			.mode = transform_operand_bits((m_addressBusInput & 0b11110000) >> 4), .value = 0};
 		m_operand2 = {.mode = transform_operand_bits(m_addressBusInput & 0b1111), .value = 0};
 
 		m_stateStep = 2;
@@ -339,6 +343,9 @@ void Cpu::fetchInst() {
 		break;
 	case 3: /* Store operand 1, Fetch operand 2 */
 		if(INSTRUCTION_OPERAND_COUNT[m_instruction] == 1) {
+#ifdef PRINT_FETCHED_INSTRUCTION
+			printFetchedInstruction();
+#endif
 			finishState();
 			break;
 		}
@@ -352,6 +359,10 @@ void Cpu::fetchInst() {
 		break;
 	case 4: /* Store operand 2, done */
 		m_operand2.value = m_addressBusInput;
+
+#ifdef PRINT_FETCHED_INSTRUCTION
+		printFetchedInstruction();
+#endif
 
 		finishState();
 		break;
@@ -413,6 +424,24 @@ void Cpu::finishState() {
 	m_stateStep = m_stepStash.top();
 	m_stepStash.pop();
 	m_state.pop();
+}
+
+void Cpu::printFetchedInstruction() const {
+	logDebug() << "fetched instruction 0x" << std::hex << static_cast<u32>(m_instruction) << "\n"
+			   << "\t-> Operand 1: value = 0x" << static_cast<u32>(m_operand1.value)
+			   << ", addressing mode {\n"
+			   << "\t\t-> is_register: " << std::to_string(m_operand1.mode.is_register) << "\n"
+			   << "\t\t-> direct: " << std::to_string(m_operand1.mode.direct) << "\n"
+			   << "\t\t-> indirect: " << std::to_string(m_operand1.mode.indirect) << "\n"
+			   << "\t\t-> relative: " << std::to_string(m_operand1.mode.relative) << "\n"
+			   << "\t\t-> immediate: " << std::to_string(m_operand1.mode.immediate) << "\n"
+			   << "\t-> Operand 2: value = 0x" << static_cast<u32>(m_operand2.value)
+			   << ", addressing mode {\n"
+			   << "\t\t-> is_register: " << std::to_string(m_operand2.mode.is_register) << "\n"
+			   << "\t\t-> direct: " << std::to_string(m_operand2.mode.direct) << "\n"
+			   << "\t\t-> indirect: " << std::to_string(m_operand2.mode.indirect) << "\n"
+			   << "\t\t-> relative: " << std::to_string(m_operand2.mode.relative) << "\n"
+			   << "\t\t-> immediate: " << std::to_string(m_operand2.mode.immediate) << "\n";
 }
 
 }  // namespace mfdemu::impl

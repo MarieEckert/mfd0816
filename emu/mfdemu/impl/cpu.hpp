@@ -160,6 +160,9 @@ class Cpu {
 	/** connected devices (for impl.) */
 	std::shared_ptr<BaseBusDevice> m_addressDevice;
 	std::shared_ptr<BaseBusDevice> m_ioDevice;
+
+	/** debug utils */
+	void printFetchedInstruction() const;
 };
 
 }  // namespace mfdemu::impl
