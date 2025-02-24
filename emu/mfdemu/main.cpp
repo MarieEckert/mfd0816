@@ -27,6 +27,7 @@
 
 #include <mfdemu/impl/aio_device.hpp>
 #include <mfdemu/impl/cpu.hpp>
+#include <mfdemu/mri.hpp>
 #include <shared/cli/args.hpp>
 #include <shared/log.hpp>
 
@@ -81,6 +82,8 @@ int main(int argc, char **argv) {
 	std::ifstream stream(arg_infile.get().value(), std::ios::in | std::ios::binary);
 	std::vector<u8> contents(
 		(std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+	parseMRIFromBytes(contents);
 
 	impl::Cpu cpu;
 	impl::AioDevice test_dev(false, UINT16_MAX);

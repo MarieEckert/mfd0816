@@ -15,6 +15,7 @@ sector config
           'impl/aio_device',
           'impl/cpu',
           'main',
+          'mri',
           '../shared/panic',
           '../shared/log',
           '../shared/cli/args'

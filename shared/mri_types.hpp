@@ -18,6 +18,7 @@
 #ifndef SHARED_MRI_TYPES_HPP
 #define SHARED_MRI_TYPES_HPP
 
+#include "int_ops.hpp"
 #include "typedefs.hpp"
 
 namespace shared::mri_types {
@@ -26,6 +27,14 @@ namespace shared::mri_types {
 
 #define MRI_MAGIC "MRI"
 #define MRI_VERSION BIGENDIAN16(0x0100)
+
+constexpr usize HEADER_MAGIC_OFFSET = 0;
+constexpr usize HEADER_VERSION_OFFSET = 4;
+constexpr usize HEADER_TYPE_OFFSET = 6;
+constexpr usize HEADER_FILESIZE_OFFSET = 8;
+constexpr usize HEADER_DATA_OFFSET_OFFSET = 12;
+constexpr usize TABLE_ENTRY_COUNT_OFFSET = 16;
+constexpr usize TABLE_ENTRY_START_OFFSET = 20;
 
 enum class TypeFlag : u16 {
   COMPACT = 1 << 0,
@@ -47,6 +56,8 @@ struct TableEntry {
 };
 
 #pragma pack(pop)
+
+constexpr usize MRI_MIN_SIZE = sizeof(shared::mri_types::Header) + 1;
 
 } // namespace shared::mri_types
 
