@@ -26,7 +26,7 @@ using namespace shared::mri_types;
 
 namespace mfdemu {
 
-std::vector<u8> parseCompact(const std::vector<u8> &data, const Header &header) {
+std::vector<u8> parseCompact(const std::vector<u8> &data) {
 	const usize base_required_size = MRI_MIN_SIZE + sizeof(u32);
 	if(data.size() < base_required_size) {
 		logError() << "invalid MRI: input smaller than minimal needed size (2)\n";
@@ -37,8 +37,6 @@ std::vector<u8> parseCompact(const std::vector<u8> &data, const Header &header) 
 		(data[TABLE_ENTRY_COUNT_OFFSET] << 24) | (data[TABLE_ENTRY_COUNT_OFFSET + 1] << 16) |
 		(data[TABLE_ENTRY_COUNT_OFFSET + 2] << 8) | data[TABLE_ENTRY_COUNT_OFFSET + 3];
 	const usize required_size = base_required_size + entry_count * sizeof(TableEntry);
-
-	logDebug() << "required size: " << required_size << "\n";
 
 	if(data.size() < required_size) {
 		logError() << "invalid MRI: input smaller than minimal needed size (3)\n";
@@ -108,7 +106,7 @@ std::vector<u8> parseMRIFromBytes(const std::vector<u8> &data) {
 	header.data_offset = BIGENDIAN32(header.data_offset);
 
 	if(CHECK_BIT(header.type, TypeFlag::COMPACT)) {
-		return parseCompact(data, header);
+		return parseCompact(data);
 	}
 
 	return std::vector<u8>(data.begin() + header.data_offset, data.end());
