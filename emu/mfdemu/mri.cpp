@@ -33,9 +33,9 @@ std::vector<u8> parseCompact(const std::vector<u8> &data) {
 		std::exit(1);
 	}
 
-	const u32 entry_count =
-		(data[TABLE_ENTRY_COUNT_OFFSET] << 24) | (data[TABLE_ENTRY_COUNT_OFFSET + 1] << 16) |
-		(data[TABLE_ENTRY_COUNT_OFFSET + 2] << 8) | data[TABLE_ENTRY_COUNT_OFFSET + 3];
+	const u32 entry_count = BIGENDIAN32(
+		data[TABLE_ENTRY_COUNT_OFFSET] | (data[TABLE_ENTRY_COUNT_OFFSET + 1] << 8) |
+		(data[TABLE_ENTRY_COUNT_OFFSET + 2] << 16) | (data[TABLE_ENTRY_COUNT_OFFSET + 3] << 24));
 	const usize required_size = base_required_size + entry_count * sizeof(TableEntry);
 
 	if(data.size() < required_size) {
