@@ -29,7 +29,7 @@
 namespace shared {
 
 static Logger::Level _log_level =
-#ifndef MFDASM_RELEASE
+#ifndef RELEASE
 	Logger::Level::DEBUG
 #else
 	Logger::Level::INFO
