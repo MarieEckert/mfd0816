@@ -36,7 +36,6 @@ struct CpuFlags {
 	bool nf;
 	bool ie;
 	bool rt;
-	bool rs;
 };
 
 struct AddressingMode {
@@ -214,8 +213,11 @@ class Cpu {
 	u16 m_regSP{0};
 	u16 m_regIP{0};
 	u16 m_regAR{0};
-	CpuFlags m_regFL{0, 0, 0, 0, 0, 0, 0};
+	CpuFlags m_regFL{0, 0, 0, 0, 0, 0};
 	u16 m_regIID{0};
+
+	void setRegister(u8 target, u16 value);
+	u16 getRegister(u8 source);
 
 	/** connected devices (for impl.) */
 	std::shared_ptr<BaseBusDevice> m_addressDevice;

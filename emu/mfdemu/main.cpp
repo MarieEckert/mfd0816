@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 		}
 		cycle_count++;
 		cpu.iclck();
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		logDebug() << "cycle " << cycle_count << "\r";
 	}
 

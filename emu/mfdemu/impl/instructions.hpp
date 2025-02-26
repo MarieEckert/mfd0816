@@ -101,6 +101,26 @@ constexpr u8 OPCODE_SUB = 0x4b;
 constexpr u8 OPCODE_TEST = 0x4c;
 constexpr u8 OPCODE_XOR = 0x4d;
 
+/** registers */
+
+constexpr u8 REGISTER_AL = 0x00;
+constexpr u8 REGISTER_AH = 0x01;
+constexpr u8 REGISTER_ACL = 0x02;
+constexpr u8 REGISTER_BL = 0x03;
+constexpr u8 REGISTER_BH = 0x04;
+constexpr u8 REGISTER_BCL = 0x05;
+constexpr u8 REGISTER_CL = 0x06;
+constexpr u8 REGISTER_CH = 0x07;
+constexpr u8 REGISTER_CCL = 0x08;
+constexpr u8 REGISTER_DL = 0x09;
+constexpr u8 REGISTER_DH = 0x0a;
+constexpr u8 REGISTER_DCL = 0x0b;
+constexpr u8 REGISTER_SP = 0x0c;
+constexpr u8 REGISTER_IP = 0x0d;
+constexpr u8 REGISTER_AR = 0x0e;
+constexpr u8 REGISTER_FL = 0x0f;
+constexpr u8 REGISTER_IID = 0x10;
+
 }  // namespace mfdemu::impl
 
 #endif

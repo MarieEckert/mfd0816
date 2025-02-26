@@ -16,6 +16,7 @@
  */
 
 #include <array>
+#include <cstdint>
 #include <memory>
 
 #include <shared/log.hpp>
@@ -479,13 +480,121 @@ void Cpu::execReset() {
 			.nf = false,
 			.ie = false,
 			.rt = false,
-			.rs = false,
 		};
 
 		logDebug() << "\nreset, IP = " << std::hex << m_regIP << std::dec << "\n";
 
 		finishState();
 		break;
+	}
+}
+
+#define CHECK_BIT(value, bit) ((value & static_cast<u64>(bit)) != 0)
+
+#define SET_LOW(dest, _value) dest = (dest & 0xFF00) | (value & 0x00FF)
+#define SET_HIGH(dest, value) dest = (dest & 0x00FF) | (value & 0xFF00)
+
+void Cpu::setRegister(u8 target, u16 value) {
+	switch(target) {
+	case REGISTER_AL:
+		SET_LOW(m_regACL, value);
+		break;
+	case REGISTER_BL:
+		SET_LOW(m_regBCL, value);
+		break;
+	case REGISTER_CL:
+		SET_LOW(m_regCCL, value);
+		break;
+	case REGISTER_DL:
+		SET_LOW(m_regDCL, value);
+		break;
+	case REGISTER_AH:
+		SET_HIGH(m_regACL, value);
+		break;
+	case REGISTER_BH:
+		SET_HIGH(m_regBCL, value);
+		break;
+	case REGISTER_CH:
+		SET_HIGH(m_regCCL, value);
+		break;
+	case REGISTER_DH:
+		SET_HIGH(m_regDCL, value);
+		break;
+	case REGISTER_ACL:
+		m_regACL = value;
+		break;
+	case REGISTER_BCL:
+		m_regBCL = value;
+		break;
+	case REGISTER_CCL:
+		m_regCCL = value;
+		break;
+	case REGISTER_DCL:
+		m_regDCL = value;
+		break;
+	case REGISTER_SP:
+		m_regSP = value;
+		break;
+	case REGISTER_IP:
+		m_regIP = value;
+		break;
+	case REGISTER_AR:
+		m_regAR = value;
+		break;
+	case REGISTER_FL:
+		m_regFL = {CHECK_BIT(value, 1 << 15), CHECK_BIT(value, 1 << 14), CHECK_BIT(value, 1 << 13),
+				   CHECK_BIT(value, 1 << 12), CHECK_BIT(value, 1 << 11), CHECK_BIT(value, 1 << 10)};
+		break;
+	case REGISTER_IID:
+		m_regIID = value;
+		break;
+	default:
+		shared::panic("invalid register " + std::to_string(target));
+	}
+}
+
+#define GET_LOW(value) value & 0x00FF
+#define GET_HIGH(value) value & 0xFF00
+
+u16 Cpu::getRegister(u8 source) {
+	switch(source) {
+	case REGISTER_AL:
+		return GET_LOW(m_regACL);
+	case REGISTER_BL:
+		return GET_LOW(m_regBCL);
+	case REGISTER_CL:
+		return GET_LOW(m_regCCL);
+	case REGISTER_DL:
+		return GET_LOW(m_regDCL);
+	case REGISTER_AH:
+		return GET_HIGH(m_regACL);
+	case REGISTER_BH:
+		return GET_HIGH(m_regBCL);
+	case REGISTER_CH:
+		return GET_HIGH(m_regCCL);
+	case REGISTER_DH:
+		return GET_HIGH(m_regDCL);
+	case REGISTER_ACL:
+		return m_regACL;
+	case REGISTER_BCL:
+		return m_regBCL;
+	case REGISTER_CCL:
+		return m_regCCL;
+	case REGISTER_DCL:
+		return m_regDCL;
+	case REGISTER_SP:
+		return m_regSP;
+	case REGISTER_IP:
+		return m_regIP;
+	case REGISTER_AR:
+		return m_regAR;
+	case REGISTER_FL:
+		return UINT16_MAX & (m_regFL.of << 15 | m_regFL.cf << 14 | m_regFL.zf << 13 |
+							 m_regFL.nf << 12 | m_regFL.ie << 11 | m_regFL.rt << 10);
+	case REGISTER_IID:
+		return m_regIID;
+	default:
+		shared::panic("invalid register " + std::to_string(source));
 	}
 }
 
@@ -571,7 +680,15 @@ void Cpu::execInstJNS() {}
 void Cpu::execInstLD() {}
 
 /** @todo: implement */
-void Cpu::execInstMOV() {}
+void Cpu::execInstMOV() {
+	switch(m_stateStep) {
+	case 0:
+		setRegister(
+			m_operand2.value,
+			(m_operand1.mode.is_register ? getRegister(m_operand1.value) : m_operand1.value));
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstMUL() {}
