@@ -383,6 +383,21 @@ void Cpu::fetchInst() {
 constexpr u8 EXEC_INST_STEP_INC_IP = 255;
 
 void Cpu::execInst() {
+	if(m_stateStep == EXEC_INST_STEP_INC_IP) {
+		u8 amount = 2;
+		const u8 operand_count = INSTRUCTION_OPERAND_COUNT[m_instruction];
+		if(operand_count == 1) {
+			amount += m_operand1.mode.is_register ? 1 : 2;
+		} else {
+			amount += m_operand1.mode.is_register ? 1 : 2;
+			amount += m_operand2.mode.is_register ? 1 : 2;
+		}
+
+		m_regIP += amount;
+		finishState();
+		return;
+	}
+
 	switch(m_instruction) {
 		MAP_TO_INSTRUCTION_FUNC(ADC);
 		MAP_TO_INSTRUCTION_FUNC(ADD);
@@ -439,20 +454,6 @@ void Cpu::execInst() {
 		MAP_TO_INSTRUCTION_FUNC(SUB);
 		MAP_TO_INSTRUCTION_FUNC(TEST);
 		MAP_TO_INSTRUCTION_FUNC(XOR);
-	case EXEC_INST_STEP_INC_IP: {
-		u8 amount = 2;
-		const u8 operand_count = INSTRUCTION_OPERAND_COUNT[m_instruction];
-		if(operand_count == 1) {
-			amount += m_operand1.mode.is_register ? 1 : 2;
-		} else {
-			amount += m_operand1.mode.is_register ? 1 : 2;
-			amount += m_operand2.mode.is_register ? 1 : 2;
-		}
-
-		m_regIP += amount;
-		finishState();
-		break;
-	}
 	default:
 		logError() << "illegal instruction!\n";
 		finishState();
@@ -681,13 +682,11 @@ void Cpu::execInstLD() {}
 
 /** @todo: implement */
 void Cpu::execInstMOV() {
-	switch(m_stateStep) {
-	case 0:
-		setRegister(
-			m_operand2.value,
-			(m_operand1.mode.is_register ? getRegister(m_operand1.value) : m_operand1.value));
-		break;
-	}
+	logDebug() << "move\n";
+	setRegister(
+		m_operand2.value & 0xFF00,
+		(m_operand1.mode.is_register ? getRegister(m_operand1.value & 0xFF00) : m_operand1.value));
+	m_stateStep = EXEC_INST_STEP_INC_IP;
 }
 
 /** @todo: implement */
