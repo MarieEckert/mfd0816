@@ -732,34 +732,64 @@ void Cpu::execInstSR() {}
 void Cpu::execInstST() {}
 
 /** @todo: implement */
-void Cpu::execInstCLO() {}
+void Cpu::execInstCLO() {
+	m_regFL.of = false;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstCLC() {}
+void Cpu::execInstCLC() {
+	m_regFL.cf = false;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstCLZ() {}
+void Cpu::execInstCLZ() {
+	m_regFL.zf = false;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstCLN() {}
+void Cpu::execInstCLN() {
+	m_regFL.nf = false;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstCLI() {}
+void Cpu::execInstCLI() {
+	m_regFL.ie = false;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstSTO() {}
+void Cpu::execInstSTO() {
+	m_regFL.of = true;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstSTC() {}
+void Cpu::execInstSTC() {
+	m_regFL.cf = true;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstSTZ() {}
+void Cpu::execInstSTZ() {
+	m_regFL.zf = true;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstSTN() {}
+void Cpu::execInstSTN() {
+	m_regFL.nf = true;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
-void Cpu::execInstSTI() {}
+void Cpu::execInstSTI() {
+	m_regFL.ie = true;
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
 void Cpu::execInstSUB() {}
