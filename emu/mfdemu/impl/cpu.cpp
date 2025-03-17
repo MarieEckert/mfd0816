@@ -702,8 +702,9 @@ void Cpu::execInstMUL() {}
 /** @todo: implement */
 void Cpu::execInstNEG() {}
 
-/** @todo: implement */
-void Cpu::execInstNOP() {}
+void Cpu::execInstNOP() {
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
 void Cpu::execInstNOT() {}
