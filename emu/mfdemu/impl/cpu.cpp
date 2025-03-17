@@ -735,7 +735,6 @@ void Cpu::execInstSL() {}
 /** @todo: implement */
 void Cpu::execInstSR() {}
 
-/** @todo: implement */
 void Cpu::execInstST() {
 	constexpr u8 READ_VALUE = 16;
 	constexpr u8 WRITE_VALUE = 32;
