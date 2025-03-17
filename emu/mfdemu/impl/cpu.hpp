@@ -200,6 +200,12 @@ class Cpu {
 	u16 m_ioBusOutput{0};
 	u16 m_ioBusAddress{0};
 
+	/* Internal stashing registers */
+	u16 m_stash1{0};
+	u16 m_stash2{0};
+	u16 m_stash3{0};
+	u16 m_stash4{0};
+
 	/** exclusively output pins */
 	bool m_pinAMS{false};
 	bool m_pinGMS{false};

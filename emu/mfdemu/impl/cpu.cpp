@@ -321,7 +321,7 @@ void Cpu::fetchInst() {
 
 		auto transform_operand_bits = [](u8 bits) -> AddressingMode {
 			return {
-				.immediate = bits == 0,
+				.immediate = bits == 0 || bits == 0b1000,
 				.direct = (bits & 0b1) > 0,
 				.indirect = (bits & 0b10) > 0,
 				.is_register = (bits & 0b1000) > 0,
@@ -735,7 +735,38 @@ void Cpu::execInstSL() {}
 void Cpu::execInstSR() {}
 
 /** @todo: implement */
-void Cpu::execInstST() {}
+void Cpu::execInstST() {
+	constexpr u8 READ_VALUE = 16;
+	constexpr u8 WRITE_VALUE = 32;
+
+	switch(m_stateStep) {
+	case 0:
+		m_stash1 = m_operand1.mode.is_register ? this->getRegister((m_operand1.value & 0xFF00) >> 8)
+											   : m_operand1.value;
+		m_stash2 = m_operand2.mode.is_register ? this->getRegister((m_operand2.value & 0xFF00) >> 8)
+											   : m_operand2.value;
+
+		if(!m_operand2.mode.immediate) {
+			m_addressBusAddress = m_stash2;
+			m_stateStep = READ_VALUE;
+			newState(m_operand2.mode.direct ? CpuState::ABUS_READ : CpuState::ABUS_READ_INDIRECT);
+			break;
+		}
+	case READ_VALUE:
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_stash1;
+			m_stateStep = WRITE_VALUE;
+			newState(m_operand1.mode.direct ? CpuState::ABUS_READ : CpuState::ABUS_READ_INDIRECT);
+			break;
+		}
+	case WRITE_VALUE:
+		m_addressBusAddress = m_stash2;
+		m_addressBusOutput = m_stash1;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		newState(CpuState::ABUS_WRITE);
+		break;
+	}
+}
 
 void Cpu::execInstCLO() {
 	m_regFL.of = false;
