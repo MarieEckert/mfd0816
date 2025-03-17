@@ -690,8 +690,9 @@ void Cpu::execInstLD() {}
 void Cpu::execInstMOV() {
 	logDebug() << "move\n";
 	setRegister(
-		m_operand2.value & 0xFF00,
-		(m_operand1.mode.is_register ? getRegister(m_operand1.value & 0xFF00) : m_operand1.value));
+		(m_operand2.value & 0xFF00) >> 8,
+		(m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									 : m_operand1.value));
 	m_stateStep = EXEC_INST_STEP_INC_IP;
 }
 
