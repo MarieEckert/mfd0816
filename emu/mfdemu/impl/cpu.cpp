@@ -52,6 +52,7 @@ void Cpu::iclck() {
 	}
 
 	switch(m_state.top()) {
+	case CpuState::ABUS_READ_INDIRECT:
 	case CpuState::ABUS_READ:
 		this->abusRead();
 		break;
@@ -103,7 +104,12 @@ void Cpu::abusRead() {
 		m_addressDevice->clck();
 		m_addressBusInput = m_addressDevice->io;
 
+		const CpuState old_state = m_state.top();
 		finishState();
+		if(old_state == CpuState::ABUS_READ_INDIRECT) {
+			m_addressBusAddress = m_addressBusInput;
+			newState(CpuState::ABUS_READ);
+		}
 		break;
 	}
 }

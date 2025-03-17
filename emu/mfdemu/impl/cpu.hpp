@@ -71,6 +71,7 @@ class Cpu {
    private:
 	enum class CpuState : u8 {
 		ABUS_READ,
+		ABUS_READ_INDIRECT,
 		ABUS_WRITE,
 		GIO_READ,
 		GIO_WRITE,
