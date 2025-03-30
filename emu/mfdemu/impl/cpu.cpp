@@ -353,6 +353,8 @@ void Cpu::fetchInst() {
 		newState(CpuState::ABUS_READ);
 		break;
 	case 3: /* Store operand 1, Fetch operand 2 */
+		m_operand1.value = m_addressBusInput;
+
 		if(INSTRUCTION_OPERAND_COUNT[m_instruction] == 1) {
 #ifdef PRINT_FETCHED_INSTRUCTION
 			printFetchedInstruction();
@@ -361,8 +363,6 @@ void Cpu::fetchInst() {
 			newState(CpuState::INST_EXEC);
 			break;
 		}
-
-		m_operand1.value = m_addressBusInput;
 
 		m_addressBusAddress = m_regIP + 2 + (m_operand1.mode.is_register ? 1 : 2);
 
