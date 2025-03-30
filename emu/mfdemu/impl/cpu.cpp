@@ -683,10 +683,31 @@ void Cpu::execInstJNC() {}
 /** @todo: implement */
 void Cpu::execInstJNS() {}
 
-/** @todo: implement */
-void Cpu::execInstLD() {}
+void Cpu::execInstLD() {
+	constexpr u8 MOVE_TO_STASH = 16;
 
-/** @todo: implement */
+	switch(m_stateStep) {
+	case 0:
+		if(!m_operand2.mode.immediate) {
+			m_addressBusAddress = m_operand2.value;
+			m_stateStep = MOVE_TO_STASH;
+			newState(m_operand2.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
+			break;
+		}
+
+		m_stash1 = m_operand2.mode.is_register ? getRegister((m_operand2.value & 0xFF00) >> 8)
+											   : m_operand2.value;
+		goto WRITE_TO_REGISTER;
+	case MOVE_TO_STASH:
+		m_stash1 = m_addressBusInput;
+	WRITE_TO_REGISTER:
+		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		logDebug() << "LD instruction finished.\n";
+		break;
+	}
+}
+
 void Cpu::execInstMOV() {
 	logDebug() << "move\n";
 	setRegister(
