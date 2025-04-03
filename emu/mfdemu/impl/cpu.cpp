@@ -675,35 +675,95 @@ void Cpu::execInstJMP() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstJZ() {}
+void Cpu::execInstJZ() {
+	if(!m_regFL.zf) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
 
-/** @todo: implement */
-void Cpu::execInstJG() {}
+	this->execInstJMP();
+}
 
-/** @todo: implement */
-void Cpu::execInstJGE() {}
+void Cpu::execInstJG() {
+	if(!(!m_regFL.zf && (m_regFL.nf == m_regFL.of))) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
 
-/** @todo: implement */
-void Cpu::execInstJL() {}
+	this->execInstJMP();
+}
 
-/** @todo: implement */
-void Cpu::execInstJLE() {}
+void Cpu::execInstJGE() {
+	if(!(m_regFL.nf == m_regFL.of)) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
 
-/** @todo: implement */
-void Cpu::execInstJC() {}
+	this->execInstJMP();
+}
 
-/** @todo: implement */
-void Cpu::execInstJS() {}
+void Cpu::execInstJL() {
+	if(m_regFL.nf == m_regFL.of) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
 
-/** @todo: implement */
-void Cpu::execInstJNZ() {}
+	this->execInstJMP();
+}
 
-/** @todo: implement */
-void Cpu::execInstJNC() {}
+void Cpu::execInstJLE() {
+	if(!m_regFL.zf && m_regFL.nf == m_regFL.of) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
 
-/** @todo: implement */
-void Cpu::execInstJNS() {}
+	this->execInstJMP();
+}
+
+void Cpu::execInstJC() {
+	if(!m_regFL.cf) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
+
+	this->execInstJMP();
+}
+
+void Cpu::execInstJS() {
+	if(!m_regFL.nf) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
+
+	this->execInstJMP();
+}
+
+void Cpu::execInstJNZ() {
+	if(m_regFL.zf) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
+
+	this->execInstJMP();
+}
+
+void Cpu::execInstJNC() {
+	if(m_regFL.cf) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
+
+	this->execInstJMP();
+}
+
+void Cpu::execInstJNS() {
+	if(m_regFL.nf) {
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		return;
+	}
+
+	this->execInstJMP();
+}
 
 void Cpu::execInstLD() {
 	constexpr u8 MOVE_TO_STASH = 16;
