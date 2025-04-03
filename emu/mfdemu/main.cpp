@@ -15,11 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <thread>
 
@@ -94,15 +97,40 @@ int main(int argc, char **argv) {
 
 	cpu.reset = true;
 
+	struct timespec ts;
+	u64 last_time = 0;
 	u64 cycle_count = 0;
+
+	/* used for speed display */
+	u64 last_clock_time = 0;
+	u64 clock_cycles = 0;
+
 	while(true) {
 		if(cycle_count == 1) {
 			cpu.reset = false;
 		}
+
+		assert(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
+		const u64 current_time = (ts.tv_sec * (1000 * 1000 * 1000)) + ts.tv_nsec;
+
+		if(current_time - last_clock_time >= 1000 * 1000 * 1000) {
+			std::cout << "\rSpeed: " << clock_cycles << " cps" << std::flush;
+			clock_cycles = 0;
+			last_clock_time = current_time;
+		}
+
+		if(current_time - last_time < 1000) {
+			continue;
+		}
+
+		last_time = current_time;
+
 		cycle_count++;
+		clock_cycles++;
+
 		cpu.iclck();
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		logDebug() << "cycle " << cycle_count << "\r";
+		// std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		// logDebug() << "cycle " << cycle_count << "\r";
 	}
 
 	return 0;
