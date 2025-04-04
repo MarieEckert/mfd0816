@@ -60,11 +60,13 @@ int main(int argc, char **argv) {
 	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
 	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
 	shared::cli::Argument<std::string> arg_infile("-i");
+	shared::cli::Argument<u64> arg_cycle_span("-c", "--cycle-span");
 
 	shared::cli::ArgumentParser parser;
 	parser.addArgument(&arg_verbosity);
 	parser.addArgument(&arg_licenses);
 	parser.addArgument(&arg_infile);
+	parser.addArgument(&arg_cycle_span);
 	parser.parse(argc - 1, argv + 1);
 
 	if(arg_licenses.get().value_or(false)) {
@@ -72,6 +74,9 @@ int main(int argc, char **argv) {
 	}
 
 	shared::Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
+
+	constexpr u64 default_cycle_span = 1000; /* ~10MHz */
+	const u64 cycle_span = arg_cycle_span.get().value_or(default_cycle_span);
 
 	/* start */
 
@@ -119,7 +124,7 @@ int main(int argc, char **argv) {
 			last_clock_time = current_time;
 		}
 
-		if(current_time - last_time < 1000) {
+		if(current_time - last_time < cycle_span) {
 			continue;
 		}
 
