@@ -1,0 +1,131 @@
+
+                       MFD0816 ROM IMAGE (MRI) FILE FORMAT
+                                  VERSION  1.1
+                                 March     2025
+
+CONTENTS
+────────────────────────────────────────────────────────────────────────────────
+
+  1..... INTRODUCTION & OVERVIEW
+  2..... HEADER FORMAT
+  2.1... TYPES
+  2.2... SECTION TABLE
+  3..... DATA FORMATS
+  3.1... PADDED IMAGE
+  3.2... COMPACT IMAGE
+  ...... LICENSE
+
+1. INTRODUCTION & OVERVIEW
+────────────────────────────────────────────────────────────────────────────────
+
+  The MFD0816 ROM IMAGE (MRI) file format is the default file format used for
+  creating, saving and loading images for a MFD0816 system.
+  This is the default file format which created by mfdasm and can also be used
+  in mfdemu.
+
+  The MRI format is a binary format intended to be easily parsed. Like the
+  MFD0816, the data in an MRI is to be interpreted as big-endian, no matter
+  the host architecture.
+
+2. HEADER FORMAT
+────────────────────────────────────────────────────────────────────────────────
+
+  The base header for an MRI contains a 4 byte long "magic" string used to
+  identify MRI files alongside a 2 byte version field. It also contains a
+  2 byte "type" field which denotes metadata (e.g. is it a compact or padded
+  image?), the total file size as an unsigned 32-bit integer and another
+  unsigned 32-bit integer specifying the offset of where the actual data starts.
+
+    ┌────────┬──────┬──────┬─────────────┐
+    │ OFFSET │ SIZE │ TYPE │ NAME        │
+    ├────────┼──────┼──────┼─────────────┤
+    ├────────┼──────┼──────┼─────────────┤
+    │ 0      │ 4 B  │ raw  │ magic       │
+    ├────────┼──────┼──────┼─────────────┤
+    │ 4      │ 2 B  │ u16  │ version     │
+    ├────────┼──────┼──────┼─────────────┤
+    │ 6      │ 2 B  │ u16  │ type        │
+    ├────────┼──────┼──────┼─────────────┤
+    │ 8      │ 4 B  │ u32  │ filesize    │
+    ├────────┼──────┼──────┼─────────────┤
+    │ 12     │ 4 B  │ u32  │ data offset │
+    └────────┴──────┴──────┴─────────────┘
+
+  NOTE: The high-byte of the version field is used to denote the major version
+        while the low byte is used to denote the minor version. For version 1.1
+        the value of the version field in hexadecimal notation would be:
+          0x0101
+
+2.1. TYPES
+────────────────────────────────────────────────────────────────────────────────
+
+  The type field in the header encodes some metadata about the MRI as mentioned
+  before. Each bit within this type field is used as a "flag". The list below
+  explains the meaning of each flag, starting from the least significant bit
+  as bit 0 to the most significant bit as bit 15.
+
+    BIT 0:
+    > SET..: The image data is in the compact format.
+             A section table is required
+    > UNSET: The image data is in the padded format.
+             No section table is required.
+    BIT 1:
+    > SET..: The image header contains a section table.
+    > UNSET: The image header contains no section table.
+
+    BITS 2-15: unassigned.
+
+2.2. SECTION TABLE
+────────────────────────────────────────────────────────────────────────────────
+
+  A 32-bit unsigned integer is located immediatly before the actual table
+  entries. This integer contains the number of entries present in the table.
+
+  The section table contains a list of all sections present in the data of the
+  image and their respective load address, load device id, length in bytes,
+  location in the file (relative to the data offset field in the header) and
+  a 20 byte long name.
+
+  The name of the section can contain any data whatsoever but must be unique
+  and always exactly 20 bytes long.
+
+    ┌────────┬──────┬──────┬────────────────┐
+    │ OFFSET │ SIZE │ TYPE │ NAME           │
+    ├────────┼──────┼──────┼────────────────┤
+    ├────────┼──────┼──────┼────────────────┤
+    │ 0      │ 4 B  │ u32  │ file offset    │
+    ├────────┼──────┼──────┼────────────────┤
+    │ 4      │ 2 B  │ u16  │ load address   │
+    ├────────┼──────┼──────┼────────────────┤
+    │ 6      │ 2 B  │ u16  │ data length    │
+    ├────────┼──────┼──────┼────────────────┤
+    │ 8      │ 2 B  │ u32  │ load device id │
+    ├────────┼──────┼──────┼────────────────┤
+    │ 12     │ 20 B │ raw  │ section name   │
+    └────────┴──────┴──────┴────────────────┘
+
+3. DATA FORMATS
+3.1. PADDED IMAGE
+────────────────────────────────────────────────────────────────────────────────
+
+  Padded images are the simplest images and don't require a section table to
+  be present in the MRI. These start at the value to be placed at address 0
+  and pad empty space before/between/after sections with zeros.
+
+  If the image should contain data for multiple devices, the main ROM or RAM of
+  the system is considered as the first device. The ordering of the following
+  devices is implementation dependant. The data for new device starts after
+  every 2^16 bytes.
+
+3.2. COMPACT IMAGE
+────────────────────────────────────────────────────────────────────────────────
+
+  Compact images rely on the existance of a section table. All data is stored
+  in one large block without any padding between different sections or devices
+  and can thus only reliably be mapped using the section table as a reference.
+
+LICENSE
+────────────────────────────────────────────────────────────────────────────────
+
+ MFD0816 ROM IMAGE (MRI) FILE FORMAT by Marie Eckert is licensed under
+ CC BY-SA 4.0, see <https://creativecommons.org/licenses/by-sa/4.0/>
