@@ -104,17 +104,16 @@ int main(int argc, char **argv) {
 
 	struct timespec ts;
 	u64 last_time = 0;
-	u64 cycle_count = 0;
 
 	/* used for speed display */
 	u64 last_clock_time = 0;
 	u64 clock_cycles = 0;
 
-	while(true) {
-		if(cycle_count == 1) {
-			cpu.reset = false;
-		}
+	/* properly trigger reset before starting*/
+	cpu.iclck();
+	cpu.reset = false;
 
+	while(true) {
 		assert(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
 		const u64 current_time = (ts.tv_sec * (1000 * 1000 * 1000)) + ts.tv_nsec;
 
@@ -130,12 +129,9 @@ int main(int argc, char **argv) {
 
 		last_time = current_time;
 
-		cycle_count++;
 		clock_cycles++;
 
 		cpu.iclck();
-		// std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		// logDebug() << "cycle " << cycle_count << "\r";
 	}
 
 	return 0;
