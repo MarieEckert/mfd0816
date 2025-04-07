@@ -73,6 +73,7 @@ class Cpu {
 		ABUS_READ,
 		ABUS_READ_INDIRECT,
 		ABUS_WRITE,
+		ABUS_WRITE_INDIRECT,
 		GIO_READ,
 		GIO_WRITE,
 		INST_EXEC,
@@ -84,6 +85,7 @@ class Cpu {
 
 	void abusRead();
 	void abusWrite();
+	void abusWriteIndirect();
 	void gioRead();
 	void gioWrite();
 	void fetchInst();

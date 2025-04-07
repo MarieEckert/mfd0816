@@ -59,6 +59,9 @@ void Cpu::iclck() {
 	case CpuState::ABUS_WRITE:
 		this->abusWrite();
 		break;
+	case CpuState::ABUS_WRITE_INDIRECT:
+		this->abusWriteIndirect();
+		break;
 	case CpuState::GIO_READ:
 		this->gioRead();
 		break;
@@ -142,6 +145,24 @@ void Cpu::abusWrite() {
 		m_addressDevice->clck();
 
 		finishState();
+		break;
+	}
+}
+
+void Cpu::abusWriteIndirect() {
+	if(m_addressDevice == nullptr) {
+		shared::panic("m_addressDevice == nullptr");
+	}
+
+	switch(m_stateStep) {
+	case 0:
+		m_stateStep = 1;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 1:
+		m_addressBusAddress = m_addressBusInput;
+		finishState();
+		newState(CpuState::ABUS_WRITE);
 		break;
 	}
 }
@@ -819,10 +840,57 @@ void Cpu::execInstOR() {}
 void Cpu::execInstOUT() {}
 
 /** @todo: implement */
-void Cpu::execInstPOP() {}
+void Cpu::execInstPOP() {
+	switch(m_stateStep) {
+	case 0:
+		m_addressBusAddress = m_regSP;
+		m_stateStep = 1;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 1:
+		m_regSP += 2;
+		if(m_operand1.mode.immediate && m_operand1.mode.is_register) {
+			setRegister((m_operand1.value & 0xFF00) >> 8, m_addressBusInput);
+			m_stateStep = EXEC_INST_STEP_INC_IP;
+			break;
+		}
 
-/** @todo: implement */
-void Cpu::execInstPUSH() {}
+		m_addressBusAddress = m_operand1.mode.is_register
+								  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+								  : m_operand1.value;
+		m_addressBusOutput = m_addressBusInput;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		newState(m_operand1.mode.direct ? CpuState::ABUS_WRITE : CpuState::ABUS_WRITE_INDIRECT);
+		break;
+	}
+}
+
+void Cpu::execInstPUSH() {
+	constexpr u8 MOVE_TO_STASH = 16;
+
+	switch(m_stateStep) {
+	case 0:
+		if(!m_operand2.mode.immediate) {
+			m_addressBusAddress = m_operand2.value;
+			m_stateStep = MOVE_TO_STASH;
+			newState(m_operand2.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
+			break;
+		}
+
+		m_stash1 = m_operand2.mode.is_register ? getRegister((m_operand2.value & 0xFF00) >> 8)
+											   : m_operand2.value;
+		goto WRITE_TO_STACK;
+	case MOVE_TO_STASH:
+		m_stash1 = m_addressBusInput;
+	WRITE_TO_STACK:
+		m_regSP -= 2;
+		m_addressBusAddress = m_regSP;
+		m_addressBusOutput = m_stash1;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		newState(CpuState::ABUS_WRITE);
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstRET() {}
