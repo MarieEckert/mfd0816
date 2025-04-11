@@ -782,7 +782,7 @@ Parser::tryParseOperands(u32 ix) {
 		}
 
 		if(token.type() != Token::UNKNOWN) {
-			return Err(AsmError(AsmError::ILLEGAL_OPERAND, token.lineno()));
+			break;
 		}
 
 		expressions.push_back(std::make_shared<Identifier>(
