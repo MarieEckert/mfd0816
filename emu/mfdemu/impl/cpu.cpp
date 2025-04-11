@@ -692,8 +692,35 @@ void Cpu::execInstADD() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstAND() {}
+void Cpu::execInstAND() {
+	constexpr u8 MOVE_TO_STASH = 16;
+
+	switch(m_stateStep) {
+	case 0:
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_operand1.value;
+			m_stateStep = MOVE_TO_STASH;
+			newState(m_operand1.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
+			break;
+		}
+
+		m_stash1 = m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
+											   : m_operand1.value;
+		goto CALCULATE;
+	case MOVE_TO_STASH:
+		m_stash1 = m_addressBusInput;
+	CALCULATE:
+		const u32 tmp = m_regAR & m_stash1;
+
+		/* this might be off */
+		m_regFL.of = 0;
+		m_regFL.cf = 0;
+		m_regFL.zf = tmp == 0;
+		m_regAR = tmp;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstBIN() {}
