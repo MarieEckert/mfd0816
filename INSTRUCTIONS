@@ -138,10 +138,9 @@ CONTENTS
   0x00 ADC <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     Adds the value of AR with the first operand and the carry flag and stores
-    the result in AR. SF is modified to indicate if the result is
-    signed (SF = 1) or unsigned (SF = 0). Sets CF on carry for unsigned math,
-    OF on overflow for signed math and NF flag to indicate the sign of the
-    signed result. Sets ZF if the result is 0 (AR = 0 && CF = 0 && OF = 0).
+    the result in AR. Sets CF on carry for unsigned math, OF on overflow for 
+    signed math and NF flag to indicate the sign of the signed result.
+    Sets ZF if the result is 0 (AR = 0 && CF = 0 && OF = 0).
 
     The first operand can be immediate, register immediate, direct,
     register direct, indirect or register indirect.
