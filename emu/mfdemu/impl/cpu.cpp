@@ -410,13 +410,14 @@ void Cpu::fetchInst() {
 constexpr u8 EXEC_INST_STEP_INC_IP = 255;
 
 #define NEXT_IP_VALUE                                  \
-	2 + (INSTRUCTION_OPERAND_COUNT[m_instruction] == 1 \
+	m_regIP + 2 +                                      \
+		(INSTRUCTION_OPERAND_COUNT[m_instruction] == 1 \
 			 ? (m_operand1.mode.is_register ? 1 : 2)   \
 			 : (m_operand1.mode.is_register ? 1 : 2) + (m_operand2.mode.is_register ? 1 : 2))
 
 void Cpu::execInst() {
 	if(m_stateStep == EXEC_INST_STEP_INC_IP) {
-		m_regIP += NEXT_IP_VALUE;
+		m_regIP = NEXT_IP_VALUE;
 		finishState();
 		return;
 	}
@@ -715,6 +716,7 @@ void Cpu::execInstCALL() {
 		m_regSP -= 2;
 		m_addressBusAddress = m_regSP;
 		m_addressBusOutput = NEXT_IP_VALUE;
+		logInfo() << "wrote " << (int)m_addressBusOutput << " as return address\n";
 		m_stateStep = SET_NEW_IP;
 		newState(CpuState::ABUS_WRITE);
 		break;
@@ -954,8 +956,20 @@ void Cpu::execInstPUSH() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstRET() {}
+void Cpu::execInstRET() {
+	switch(m_stateStep) {
+	case 0:
+		m_addressBusAddress = m_regSP;
+		m_stateStep = 1;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 1:
+		m_regSP += 2;
+		m_regIP = m_addressBusInput;
+		finishState();
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstROL() {}
