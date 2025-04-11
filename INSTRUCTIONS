@@ -142,6 +142,9 @@ CONTENTS
     signed math and NF flag to indicate the sign of the signed result.
     Sets ZF if the result is 0 (AR = 0 && CF = 0 && OF = 0).
 
+    For an example of how the carry and overflow flags are set, see the
+    reference for the instruction 0x01 ADD.
+
     The first operand can be immediate, register immediate, direct,
     register direct, indirect or register indirect.
 
@@ -166,9 +169,10 @@ CONTENTS
 
     Carry and Overflow example:
 
-      0111b + 0001b = 0_1000b ; Signed int overflow,   OF = 1 CF = 0
-      0111b + 1001b = 1_0000b ; Unsigned int overflow, OF = 0 CF = 1
-      0001b + 0001b = 0010b   ; No overflow/carry,     OF = 0 CF = 0
+      0111b + 0001b = 0_1000b ; Signed int overflow,        OF = 1 CF = 0
+      0111b + 1001b = 1_0000b ; Unsigned int overflow,      OF = 0 CF = 1
+      1111b + 1000b = 1_0111b ; Unsigned & Signed overflow, OF = 1 CF1
+      0001b + 0001b = 0010b   ; No overflow/carry,          OF = 0 CF = 0
 
   0x02 AND <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
