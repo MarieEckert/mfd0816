@@ -750,8 +750,11 @@ void Cpu::execInstCMP() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstDEC() {}
+void Cpu::execInstDEC() {
+	const u8 target = (m_operand1.value & 0xFF00) >> 8;
+	setRegister(target, getRegister(target) - 1);
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
 void Cpu::execInstDIV() {}
@@ -765,8 +768,11 @@ void Cpu::execInstIMUL() {}
 /** @todo: implement */
 void Cpu::execInstIN() {}
 
-/** @todo: implement */
-void Cpu::execInstINC() {}
+void Cpu::execInstINC() {
+	const u8 target = (m_operand1.value & 0xFF00) >> 8;
+	setRegister(target, getRegister(target) + 1);
+	m_stateStep = EXEC_INST_STEP_INC_IP;
+}
 
 /** @todo: implement */
 void Cpu::execInstINT() {}
