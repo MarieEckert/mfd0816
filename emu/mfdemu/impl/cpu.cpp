@@ -713,8 +713,28 @@ void Cpu::execInstBOT() {}
 /** @todo: implement */
 void Cpu::execInstCALL() {}
 
-/** @todo: implement */
-void Cpu::execInstCMP() {}
+void Cpu::execInstCMP() {
+	constexpr u8 MOVE_O1_TO_STASH = 16;
+	constexpr u8 MOVE_O2_TO_STASH = 32;
+	constexpr u8 GET_O2 = 48;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
+	GET_OPERAND2:
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, DO_COMPARE, GET_O2, MOVE_O2_TO_STASH)
+	DO_COMPARE:
+		const u32 tmp = m_stash1 - m_stash2;
+		const u8 ar_signbit = m_regAR & (1 << 15);
+		const u8 tmp_signbit = tmp & (1 << 15);
+
+		m_regFL.of = tmp_signbit != ar_signbit && ar_signbit == tmp_signbit;
+		m_regFL.cf = tmp > UINT16_MAX;
+		m_regFL.nf = tmp_signbit != 0;
+		m_regFL.zf = tmp == 0 && m_regFL.cf == 0 && m_regFL.of == 0;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstDEC() {}
@@ -1021,8 +1041,24 @@ void Cpu::execInstSTI() {
 	m_stateStep = EXEC_INST_STEP_INC_IP;
 }
 
-/** @todo: implement */
-void Cpu::execInstSUB() {}
+void Cpu::execInstSUB() {
+	constexpr u8 MOVE_TO_STASH = 16;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, DO_COMPARE, 0, MOVE_TO_STASH)
+	DO_COMPARE:
+		const u32 tmp = m_stash1 - m_stash2;
+		const u8 ar_signbit = m_regAR & (1 << 15);
+		const u8 tmp_signbit = tmp & (1 << 15);
+
+		m_regFL.of = tmp_signbit != ar_signbit && ar_signbit == tmp_signbit;
+		m_regFL.cf = tmp > UINT16_MAX;
+		m_regFL.nf = tmp_signbit != 0;
+		m_regFL.zf = tmp == 0 && m_regFL.cf == 0 && m_regFL.of == 0;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstTEST() {}
