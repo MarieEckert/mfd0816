@@ -14,6 +14,7 @@ sector config
     list str sources
           'impl/aio_device',
           'impl/cpu',
+          'impl/system',
           'main',
           'mri',
           '../shared/panic',
@@ -151,7 +152,7 @@ sector c_rules
     list str c_rules 'depends'
 
     str exec_mode 'singular'
-    bool parallel true
+    bool parallel false
     u8 max_procs 3
 
     str input_src '/config/files/sources'

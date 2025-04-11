@@ -203,10 +203,13 @@ class Cpu {
 	u16 m_ioBusAddress{0};
 
 	/* Internal stashing registers */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
 	u16 m_stash1{0};
 	u16 m_stash2{0};
 	u16 m_stash3{0};
 	u16 m_stash4{0};
+#pragma clang diagnostic pop
 
 	/** exclusively output pins */
 	bool m_pinAMS{false};

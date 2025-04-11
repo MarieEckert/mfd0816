@@ -15,23 +15,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MFDEMU_IMPL_IO_DEVICE_HPP
-#define MFDEMU_IMPL_IO_DEVICE_HPP
+#ifndef MFDEMU_IMPL_SYSTEM_HPP
+#define MFDEMU_IMPL_SYSTEM_HPP
+
+#include <memory>
+#include <vector>
 
 #include <shared/typedefs.hpp>
 
+#include <mfdemu/impl/aio_device.hpp>
+#include <mfdemu/impl/cpu.hpp>
+
 namespace mfdemu::impl {
-
-class BaseBusDevice {
+class System {
    public:
-	virtual ~BaseBusDevice() = default;
+	System(u32 cycle_span, u16 main_memory_size);
 
-	virtual void clck() = 0;
+	void setMainMemoryData(std::vector<u8> data);
 
-	bool mode;
-	u16 io;
+	void run();
+
+   private:
+	u32 m_cycleSpan;
+	Cpu m_cpu;
+	std::shared_ptr<AioDevice> m_mainMemory;
+	/* AsciiConsole m_console; */
 };
-
 }  // namespace mfdemu::impl
 
 #endif

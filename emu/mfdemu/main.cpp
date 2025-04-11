@@ -15,44 +15,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
-#include <chrono>
 #include <cstdint>
-#include <ctime>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <string>
-#include <thread>
 
 #include <shared/cli/args.hpp>
 #include <shared/log.hpp>
 
-#include <mfdemu/impl/aio_device.hpp>
-#include <mfdemu/impl/cpu.hpp>
+#include <mfdemu/impl/system.hpp>
 #include <mfdemu/mri.hpp>
-
-#include "mfdemu/impl/bus_device.hpp"
 
 #define VERSION "0.0 (develop)"
 
 using namespace mfdemu;
 
 [[noreturn]] static void licenses() {
-	std::cerr << "MFDASM "
+	std::cerr << "MFDEMU "
 				 "---------------------------------------------------------------"
 				 "----------\n\n"
 			  << "Copyright (C) 2024  Marie Eckert\n"
 			  << "Licensed under the GPL v3 License.\n"
 			  << "See <https://www.gnu.org/licenses/>.\n";
-	std::cerr << "\nresult.hpp "
-				 "---------------------------------------------------------------"
-				 "------\n\n"
-			  << "Mathieu Stefani, 03 mai 2016\n"
-			  << "Marie Eckert, 2024 (Modified for use in MFDASM)\n"
-			  << "Licensed under the Apache License, Version 2.0.\n"
-			  << "See <http://www.apache.org/licenses/>\n";
 	std::exit(0);
 }
 
@@ -78,8 +63,6 @@ int main(int argc, char **argv) {
 	constexpr u64 default_cycle_span = 1000; /* ~10MHz */
 	const u64 cycle_span = arg_cycle_span.get().value_or(default_cycle_span);
 
-	/* start */
-
 	std::cerr << "MFDEMU, emulator for the mfd0816 fantasy architecture\n"
 			  << "Copyright (C) 2024  Marie Eckert\n\n";
 
@@ -92,47 +75,9 @@ int main(int argc, char **argv) {
 	std::vector<u8> contents(
 		(std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-	impl::Cpu cpu;
-	impl::AioDevice test_dev(false, UINT16_MAX);
-
-	test_dev.setData(parseMRIFromBytes(contents));
-
-	cpu.connectAddressDevice(
-		std::static_pointer_cast<impl::BaseBusDevice>(std::make_shared<impl::AioDevice>(test_dev)));
-
-	cpu.reset = true;
-
-	struct timespec ts;
-	u64 last_time = 0;
-
-	/* used for speed display */
-	u64 last_clock_time = 0;
-	u64 clock_cycles = 0;
-
-	/* properly trigger reset before starting*/
-	cpu.iclck();
-	cpu.reset = false;
-
-	while(true) {
-		assert(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
-		const u64 current_time = (ts.tv_sec * (1000 * 1000 * 1000)) + ts.tv_nsec;
-
-		if(current_time - last_clock_time >= 1000 * 1000 * 1000) {
-			std::cout << "\rSpeed: " << clock_cycles << " cps" << std::flush;
-			clock_cycles = 0;
-			last_clock_time = current_time;
-		}
-
-		if(current_time - last_time < cycle_span) {
-			continue;
-		}
-
-		last_time = current_time;
-
-		clock_cycles++;
-
-		cpu.iclck();
-	}
+	impl::System the_system(cycle_span, UINT16_MAX);
+	the_system.setMainMemoryData(parseMRIFromBytes(contents));
+	the_system.run();
 
 	return 0;
 }
