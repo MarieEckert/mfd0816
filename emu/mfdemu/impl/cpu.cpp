@@ -626,23 +626,29 @@ u16 Cpu::getRegister(u8 source) {
 	}
 }
 
+/**
+ * @brief Helper macro for accessing operands which can be immediate, register immediate, direct,
+ * register direct, indirect and register indirect.
+ */
+#define GET_OPERAND_MOVE_TO_STASH(operand, stash, exec_label, start_step, stashing_step)           \
+	case start_step:                                                                               \
+		if(!operand.mode.immediate) {                                                              \
+			m_addressBusAddress = operand.value;                                                   \
+			m_stateStep = stashing_step;                                                           \
+			newState(operand.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);  \
+			break;                                                                                 \
+		}                                                                                          \
+		stash =                                                                                    \
+			operand.mode.is_register ? getRegister((operand.value & 0xFF00) >> 8) : operand.value; \
+		goto exec_label;                                                                           \
+	case stashing_step:                                                                            \
+		stash = m_addressBusInput;
+
 void Cpu::execInstADC() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
-	case 0:
-		if(!m_operand1.mode.immediate) {
-			m_addressBusAddress = m_operand1.value;
-			m_stateStep = MOVE_TO_STASH;
-			newState(m_operand1.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
-			break;
-		}
-
-		m_stash1 = m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
-											   : m_operand1.value;
-		goto CALCULATE;
-	case MOVE_TO_STASH:
-		m_stash1 = m_addressBusInput;
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
 	CALCULATE:
 		const u32 tmp = m_stash1 + m_regAR + static_cast<u32>(m_regFL.cf);
 		const u8 ar_signbit = m_regAR & (1 << 15);
@@ -663,19 +669,7 @@ void Cpu::execInstADD() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
-	case 0:
-		if(!m_operand1.mode.immediate) {
-			m_addressBusAddress = m_operand1.value;
-			m_stateStep = MOVE_TO_STASH;
-			newState(m_operand1.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
-			break;
-		}
-
-		m_stash1 = m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
-											   : m_operand1.value;
-		goto CALCULATE;
-	case MOVE_TO_STASH:
-		m_stash1 = m_addressBusInput;
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
 	CALCULATE:
 		const u32 tmp = m_stash1 + m_regAR;
 		const u8 ar_signbit = m_regAR & (1 << 15);
@@ -696,19 +690,7 @@ void Cpu::execInstAND() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
-	case 0:
-		if(!m_operand1.mode.immediate) {
-			m_addressBusAddress = m_operand1.value;
-			m_stateStep = MOVE_TO_STASH;
-			newState(m_operand1.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
-			break;
-		}
-
-		m_stash1 = m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
-											   : m_operand1.value;
-		goto CALCULATE;
-	case MOVE_TO_STASH:
-		m_stash1 = m_addressBusInput;
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
 	CALCULATE:
 		const u32 tmp = m_regAR & m_stash1;
 
@@ -762,19 +744,7 @@ void Cpu::execInstJMP() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
-	case 0:
-		if(!m_operand1.mode.immediate) {
-			m_addressBusAddress = m_operand1.value;
-			m_stateStep = MOVE_TO_STASH;
-			newState(m_operand1.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
-			break;
-		}
-
-		m_stash1 = m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
-											   : m_operand1.value;
-		goto DO_JUMP;
-	case MOVE_TO_STASH:
-		m_stash1 = m_addressBusInput;
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, DO_JUMP, 0, MOVE_TO_STASH)
 	DO_JUMP:
 		m_regIP = m_stash1;
 		logDebug() << "JMP instruction finished.\n";
@@ -877,29 +847,15 @@ void Cpu::execInstLD() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
-	case 0:
-		if(!m_operand2.mode.immediate) {
-			m_addressBusAddress = m_operand2.value;
-			m_stateStep = MOVE_TO_STASH;
-			newState(m_operand2.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
-			break;
-		}
-
-		m_stash1 = m_operand2.mode.is_register ? getRegister((m_operand2.value & 0xFF00) >> 8)
-											   : m_operand2.value;
-		goto WRITE_TO_REGISTER;
-	case MOVE_TO_STASH:
-		m_stash1 = m_addressBusInput;
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash1, WRITE_TO_REGISTER, 0, MOVE_TO_STASH)
 	WRITE_TO_REGISTER:
 		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
 		m_stateStep = EXEC_INST_STEP_INC_IP;
-		logDebug() << "LD instruction finished.\n";
 		break;
 	}
 }
 
 void Cpu::execInstMOV() {
-	logDebug() << "move\n";
 	setRegister(
 		(m_operand2.value & 0xFF00) >> 8,
 		(m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
@@ -956,19 +912,7 @@ void Cpu::execInstPUSH() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
-	case 0:
-		if(!m_operand2.mode.immediate) {
-			m_addressBusAddress = m_operand2.value;
-			m_stateStep = MOVE_TO_STASH;
-			newState(m_operand2.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);
-			break;
-		}
-
-		m_stash1 = m_operand2.mode.is_register ? getRegister((m_operand2.value & 0xFF00) >> 8)
-											   : m_operand2.value;
-		goto WRITE_TO_STACK;
-	case MOVE_TO_STASH:
-		m_stash1 = m_addressBusInput;
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, WRITE_TO_STACK, 0, MOVE_TO_STASH)
 	WRITE_TO_STACK:
 		m_regSP -= 2;
 		m_addressBusAddress = m_regSP;
