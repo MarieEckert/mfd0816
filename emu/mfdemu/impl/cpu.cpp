@@ -409,18 +409,14 @@ void Cpu::fetchInst() {
 
 constexpr u8 EXEC_INST_STEP_INC_IP = 255;
 
+#define NEXT_IP_VALUE                                  \
+	2 + (INSTRUCTION_OPERAND_COUNT[m_instruction] == 1 \
+			 ? (m_operand1.mode.is_register ? 1 : 2)   \
+			 : (m_operand1.mode.is_register ? 1 : 2) + (m_operand2.mode.is_register ? 1 : 2))
+
 void Cpu::execInst() {
 	if(m_stateStep == EXEC_INST_STEP_INC_IP) {
-		u8 amount = 2;
-		const u8 operand_count = INSTRUCTION_OPERAND_COUNT[m_instruction];
-		if(operand_count == 1) {
-			amount += m_operand1.mode.is_register ? 1 : 2;
-		} else {
-			amount += m_operand1.mode.is_register ? 1 : 2;
-			amount += m_operand2.mode.is_register ? 1 : 2;
-		}
-
-		m_regIP += amount;
+		m_regIP += NEXT_IP_VALUE;
 		finishState();
 		return;
 	}
@@ -709,8 +705,25 @@ void Cpu::execInstBIN() {}
 /** @todo: implement */
 void Cpu::execInstBOT() {}
 
-/** @todo: implement */
-void Cpu::execInstCALL() {}
+void Cpu::execInstCALL() {
+	constexpr u8 MOVE_TO_STASH = 16;
+	constexpr u8 SET_NEW_IP = 32;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, WRITE_TO_STACK, 0, MOVE_TO_STASH)
+	WRITE_TO_STACK:
+		m_regSP -= 2;
+		m_addressBusAddress = m_regSP;
+		m_addressBusOutput = NEXT_IP_VALUE;
+		m_stateStep = SET_NEW_IP;
+		newState(CpuState::ABUS_WRITE);
+		break;
+	case SET_NEW_IP:
+		m_regIP = m_stash1;
+		finishState();
+		break;
+	}
+}
 
 void Cpu::execInstCMP() {
 	constexpr u8 MOVE_O1_TO_STASH = 16;
