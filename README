@@ -9,7 +9,9 @@ DOCUMENTS
 
   ► DESIGN – The core specification of the MFD0816
   ► INSTRUCTIONS – The instruction set reference/specification
-  ► [TODO] MFDAS – The specification for the MFD0816 assembler language
+  ► MRI – The specification for the MRI file format, used for
+          storing/distributing programs
+  ► [TODO] MFDASM – The specification for the MFD0816 assembler language
 
 REPOSITORY STRUCTURE
 ────────────────────────────────────────────────────────────────────────────────
@@ -24,7 +26,8 @@ REPOSITORY STRUCTURE
   ├── shared         : Sources shared between MFDASM and MFDEMU
   ├── DESIGN         : MFD0816 design/specficiation
   ├── INSTRUCTIONS   : MFD0816 instruction set reference
-  ├── MFDASM         : MFD0816 assembler specification
+  ├── MFDASM         : MFD0816 assembler specification (paused)
+  ├── MRI            : MFD Rom Image File Format specification
   └── README
 
 LICENSES
@@ -40,6 +43,7 @@ LICENSES
     ► /DESIGN
     ► /INSTRUCTIONS
     ► /MFDASM
+    ► /MRI
 
   License: GNU GPL v3
   Link...: <https://www.gnu.org/licenses/>
