@@ -262,36 +262,38 @@ CONTENTS
 
   0x0a IDIV <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Divides the value of AR by Operand 1 as a signed value and stores the
-    result in AR.
+    Divides the value of ACL:AR (dividend) by Operand 1 (divisor) as a signed
+    value and stores the quotient in AR and the remainder in in ACL. The high
+    word of the dividend is stored in ACL and the low word in AR.
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
 
     Operation:
 
-      AR := AR / Operand1;
+      AR := AR div Operand1;
+      ACL := AR rem Operand1;
 
   0x0b IMUL <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     Multiplies the value of AR by Operand 1 as a signed value and stores the
-    result in AR. CF and OF are set if the most signficant bit,
-    including the sign bit, are carried over into AH. If the result fits into
-    AL, CF and OF are cleared.
+    result in ACL:AR. AR stores the low word of the product whilst ACL stores
+    the high word of the product. CF and OF are set if the sign extension of
+    AR differs from the value of ACL:AR after the multiplication.
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
 
     Operation:
 
-      AR := AR * Operand 1;
+      AR:ACL := AR * Operand1;
 
-      if AR = AL then
+      if SignExtend(AR) = AL then
         CF := 0;
         OF := 0;
       else
         CF := 1;
-        OF := 0;
+        OF := 1;
       end
 
   0x0c IN <r/imm/m> <r/imm/m>
