@@ -762,8 +762,27 @@ void Cpu::execInstDIV() {}
 /** @todo: implement */
 void Cpu::execInstIDIV() {}
 
-/** @todo: implement */
-void Cpu::execInstIMUL() {}
+void Cpu::execInstIMUL() {
+	constexpr u8 MOVE_TO_STASH = 16;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
+	CALCULATE:
+		const i32 tmp = static_cast<i32>(m_regAR) * static_cast<i32>(m_stash1);
+		const u16 tmp_lo = static_cast<u16>(tmp & 0xFFFF);
+		const u16 tmp_hi = static_cast<u16>((tmp >> 16) & 0xFFFF);
+		const i32 sign_extended = static_cast<i32>(static_cast<i16>(tmp_lo));
+
+		const bool overflowed = sign_extended != tmp;
+
+		m_regFL.of = overflowed;
+		m_regFL.cf = overflowed;
+		m_regAR = tmp_lo;
+		m_regACL = tmp_hi;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstIN() {}
