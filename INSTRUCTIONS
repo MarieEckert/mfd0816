@@ -250,15 +250,17 @@ CONTENTS
 
   0x09 DIV <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    Divides the value of AR by Operand 1 as an unsigned value and stores the
-    result in AR.
+    Divides the value of ACL:AR (dividend) by Operand 1 (divisor) as an unsigned
+    value and stores the quotient in AR and the remainder in in ACL. The high
+    word of the dividend is stored in ACL and the low word in AR.
 
     Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
 
     Operation:
 
-      AR := AR / Operand1;
+      AR := ACL:AR div Operand1;
+      ACL := ACL:AR rem Operand1;
 
   0x0a IDIV <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -271,8 +273,8 @@ CONTENTS
 
     Operation:
 
-      AR := AR div Operand1;
-      ACL := AR rem Operand1;
+      AR := ACL:AR div Operand1;
+      ACL := ACL:AR rem Operand1;
 
   0x0b IMUL <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -414,7 +416,7 @@ CONTENTS
 
       if ZF = 1 or (NF <> OF) then
         IP := Operand1;
-      end;
+      end
 
   0x16 JC <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -453,7 +455,7 @@ CONTENTS
 
       if ZF = 0 then
         IP := Operand1;
-      end;
+      end
 
   0x19 JNC <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -466,7 +468,7 @@ CONTENTS
 
       if CF = 0 then
         IP := Operand1;
-      end;
+      end
 
   0x1a JNS <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -479,7 +481,7 @@ CONTENTS
 
       if NF = 0 then
         IP := Operand1;
-      end;
+      end
 
   0x1b LD <r> <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -503,11 +505,22 @@ CONTENTS
   0x1d MUL <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     Multiplies (unsigned) the value of AR by Operand 1 and stores the result in
-    AR. If the result fits into AR, CF and OF are cleared otherwise both get
-    set.
+    ACL:AR. The low word of the result is stored in AR and the high word in ACL.
+    If the result fits into AR, CF and OF are cleared otherwise both get set.
 
     Operand 2 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
+
+    Operation:
+
+      ACL:AR := AR * Operand1;
+      if ACL = 0 then
+        CF := 0;
+        OF := 0;
+      else
+        CF := 1;
+        OF := 1;
+      end
 
   0x1e NEG <r/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
