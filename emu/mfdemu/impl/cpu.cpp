@@ -983,11 +983,57 @@ void Cpu::execInstROL() {}
 /** @todo: implement */
 void Cpu::execInstROR() {}
 
-/** @todo: implement */
-void Cpu::execInstSL() {}
+void Cpu::execInstSL() {
+	constexpr u8 MOVE_O1_TO_STASH = 16;
+	constexpr u8 MOVE_O2_TO_STASH = 32;
+	constexpr u8 GET_O2 = 48;
 
-/** @todo: implement */
-void Cpu::execInstSR() {}
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
+	GET_OPERAND2:
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, DO_SHIFT, GET_O2, MOVE_O2_TO_STASH)
+	DO_SHIFT:
+		const u32 tmp = m_stash1 << m_stash2;
+
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(m_operand1.mode.immediate && m_operand1.mode.is_register) {
+			setRegister((m_operand1.value & 0xFF00) >> 8, tmp & 0xFFFF);
+			break;
+		}
+
+		m_addressBusAddress = m_operand1.value;
+		m_addressBusOutput = tmp & 0xFFFF;
+		newState(m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
+		break;
+	}
+}
+
+void Cpu::execInstSR() {
+	constexpr u8 MOVE_O1_TO_STASH = 16;
+	constexpr u8 MOVE_O2_TO_STASH = 32;
+	constexpr u8 GET_O2 = 48;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
+	GET_OPERAND2:
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, DO_SHIFT, GET_O2, MOVE_O2_TO_STASH)
+	DO_SHIFT:
+		const u32 tmp = m_stash1 >> m_stash2;
+
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(m_operand1.mode.immediate && m_operand1.mode.is_register) {
+			setRegister((m_operand1.value & 0xFF00) >> 8, tmp & 0xFFFF);
+			break;
+		}
+
+		m_addressBusAddress = m_operand1.value;
+		m_addressBusOutput = tmp & 0xFFFF;
+		newState(m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
+		break;
+	}
+}
 
 void Cpu::execInstST() {
 	constexpr u8 READ_VALUE = 16;
