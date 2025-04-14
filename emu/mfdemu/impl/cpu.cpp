@@ -922,8 +922,26 @@ void Cpu::execInstMOV() {
 	m_stateStep = EXEC_INST_STEP_INC_IP;
 }
 
-/** @todo: implement */
-void Cpu::execInstMUL() {}
+void Cpu::execInstMUL() {
+	constexpr u8 MOVE_TO_STASH = 16;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
+	CALCULATE:
+		const u32 tmp = m_regAR * m_stash1;
+		const u16 tmp_lo = tmp & 0xFFFF;
+		const u16 tmp_hi = (tmp >> 16) & 0xFFFF;
+
+		const bool overflowed = tmp_hi != 0;
+
+		m_regFL.of = overflowed;
+		m_regFL.cf = overflowed;
+		m_regAR = tmp_lo;
+		m_regACL = tmp_hi;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstNEG() {}
