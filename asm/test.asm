@@ -2,13 +2,14 @@ addressing absolute
 
 section code at 0x1100
 	_entry:	mov	0x1000,	sp			; initialise stack pointer
-			ld	acl,	[sp]		; load the word from the top of the
+			ld		acl,	[sp]	; load the word from the top of the
 									; stack into acl
-			ld	bcl,	[[0x1330]]
-			ld	ccl,	[[bcl]]
-			jmp _entry
-			jmp test
-test:
+			ld		bcl,	[[0x1330]]
+			ld		ccl,	[[bcl]]
+
+			call	test
+			jmp		_entry
+	test:	ret
 
 section data at 0xd000
 					define			bufferSize, 1 ;	0x400
