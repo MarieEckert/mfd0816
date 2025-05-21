@@ -1074,11 +1074,65 @@ void Cpu::execInstRET() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstROL() {}
+void Cpu::execInstROL() {
+	constexpr u8 MOVE_O1_TO_STASH = 16;
+	constexpr u8 MOVE_O2_TO_STASH = 32;
+	constexpr u8 GET_O2 = 48;
 
-/** @todo: implement */
-void Cpu::execInstROR() {}
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
+	GET_OPERAND2:
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, CALCULATE, GET_O2, MOVE_O2_TO_STASH)
+	CALCULATE:
+		const u32 tmp =  m_stash1 << m_stash2;
+		const u16 result = tmp | ((tmp >> 16) & 0xFF);
+
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_operand1.mode.is_register
+									  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									  : m_operand1.value;
+			m_addressBusOutput = result;
+			newState(
+				m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
+			break;
+		}
+
+		setRegister((m_operand1.value & 0xFF00) >> 8, result);
+		break;
+	}
+}
+
+void Cpu::execInstROR() {
+	constexpr u8 MOVE_O1_TO_STASH = 16;
+	constexpr u8 MOVE_O2_TO_STASH = 32;
+	constexpr u8 GET_O2 = 48;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
+	GET_OPERAND2:
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, CALCULATE, GET_O2, MOVE_O2_TO_STASH)
+	CALCULATE:
+		const u32 tmp = (m_stash1 << 8) >> m_stash2;
+		const u16 result = (m_stash1 >> m_stash2) | ((tmp & 0xFF) << 8);
+
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_operand1.mode.is_register
+									  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									  : m_operand1.value;
+			m_addressBusOutput = result;
+			newState(
+				m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
+			break;
+		}
+
+		setRegister((m_operand1.value & 0xFF00) >> 8, result);
+		break;
+	}
+}
 
 void Cpu::execInstSL() {
 	constexpr u8 MOVE_O1_TO_STASH = 16;
