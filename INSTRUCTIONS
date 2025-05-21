@@ -549,7 +549,7 @@ CONTENTS
 
     Operation:
 
-      Operand1 := 0 - Operand1;
+      Operand1 := NOT Operand1;
 
   0x21 OR <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
