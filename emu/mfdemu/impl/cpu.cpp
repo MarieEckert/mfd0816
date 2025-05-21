@@ -999,8 +999,22 @@ void Cpu::execInstNOT() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstOR() {}
+void Cpu::execInstOR() {
+	constexpr u8 MOVE_TO_STASH = 16;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
+	CALCULATE:
+		const u32 tmp = m_regAR | m_stash1;
+
+		m_regFL.of = 0;
+		m_regFL.cf = 0;
+		m_regFL.zf = tmp == 0;
+		m_regAR = tmp;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstOUT() {}
