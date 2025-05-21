@@ -7,6 +7,11 @@ section code at 0x1100
 			ld		bcl,	[[0x1330]]
 			ld		ccl,	[[bcl]]
 
+			ld		dcl,	0x1111
+			st		dcl,	[0x5000]
+			neg		[0x5000]
+			not		[0x5000]
+
 			call	test
 			jmp		_entry
 	test:	ret
