@@ -630,7 +630,9 @@ u16 Cpu::getRegister(u8 source) {
 #define GET_OPERAND_MOVE_TO_STASH(operand, stash, exec_label, start_step, stashing_step)           \
 	case start_step:                                                                               \
 		if(!operand.mode.immediate) {                                                              \
-			m_addressBusAddress = operand.value;                                                   \
+			m_addressBusAddress = operand.mode.is_register                                         \
+									  ? getRegister((operand.value & 0xFF00) >> 8)                 \
+									  : operand.value;                                             \
 			m_stateStep = stashing_step;                                                           \
 			newState(operand.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);  \
 			break;                                                                                 \
@@ -716,7 +718,7 @@ void Cpu::execInstCALL() {
 		m_regSP -= 2;
 		m_addressBusAddress = m_regSP;
 		m_addressBusOutput = NEXT_IP_VALUE;
-		logInfo() << "wrote " << (int)m_addressBusOutput << " as return address\n";
+		// logInfo() << "wrote " << (int)m_addressBusOutput << " as return address\n";
 		m_stateStep = SET_NEW_IP;
 		newState(CpuState::ABUS_WRITE);
 		break;
@@ -943,15 +945,59 @@ void Cpu::execInstMUL() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstNEG() {}
+void Cpu::execInstNEG() {
+	constexpr u8 MOVE_TO_STASH = 16;
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
+	CALCULATE:
+		m_stash1 = 0 - m_stash1;
+
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_operand1.mode.is_register
+									  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									  : m_operand1.value;
+			m_addressBusOutput = m_stash1;
+			newState(
+				m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
+			break;
+		}
+
+		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
+
+		break;
+	}
+}
 
 void Cpu::execInstNOP() {
 	m_stateStep = EXEC_INST_STEP_INC_IP;
 }
 
-/** @todo: implement */
-void Cpu::execInstNOT() {}
+void Cpu::execInstNOT() {
+	constexpr u8 MOVE_TO_STASH = 16;
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
+	CALCULATE:
+		m_stash1 = ~m_stash1;
+
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_operand1.mode.is_register
+									  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									  : m_operand1.value;
+			m_addressBusOutput = m_stash1;
+			newState(
+				m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
+			break;
+		}
+
+		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
+
+		break;
+	}
+}
 
 /** @todo: implement */
 void Cpu::execInstOR() {}
