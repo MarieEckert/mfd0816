@@ -494,6 +494,7 @@ const std::unordered_map<Instruction::Kind, std::vector<InstructionOperand>>
 		{Instruction::ST,
 		 {
 			 InstructionOperand({
+				 InstructionOperand::IMMEDIATE,
 				 InstructionOperand::REGISTER_IMMEDIATE,
 				 InstructionOperand::DIRECT,
 				 InstructionOperand::REGISTER_DIRECT,

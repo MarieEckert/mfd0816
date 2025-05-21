@@ -7,10 +7,12 @@ section code at 0x1100
 			ld		bcl,	[[0x1330]]
 			ld		ccl,	[[bcl]]
 
-			ld		dcl,	0x1111
-			st		dcl,	[0x5000]
-			neg		[0x5000]
-			not		[0x5000]
+			st		0x1111,	[0x5000]	; first write
+			neg		[0x5000]			; seconds write
+			ld		ar,		[0x5000]
+			not		[0x5000]			; third write
+			or		[0x5000]
+			st		ar,		[0x5000]	; fourth write
 
 			call	test
 			jmp		_entry
