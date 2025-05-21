@@ -15,6 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <bitset>
+
+#include <shared/log.hpp>
+
 #include <mfdemu/impl/aio_device.hpp>
 
 namespace mfdemu::impl {
@@ -53,6 +57,11 @@ void AioDevice::clck() {
 			if(m_address >= m_data.size() || m_address + 1 >= m_data.size()) { /* discard */
 				m_step = 0;
 				break;
+			}
+
+			if(m_address == 0x5000) { /* debug thingy */
+				logInfo() << "write to 0x5000 , value = " << std::bitset<16>(io).to_string()
+						  << "\n";
 			}
 
 			m_data[m_address] = (io >> 8) & 0xFF;
