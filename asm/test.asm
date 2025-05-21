@@ -13,6 +13,10 @@ section code at 0x1100
 			not		[0x5000]			; third write
 			or		[0x5000]
 			st		ar,		[0x5000]	; fourth write
+			and		0x1111
+			st		ar,		[0x5000]	; fifth write
+			rol		[0x5000], 5
+			ror		[0x5000], 5
 
 			call	test
 			jmp		_entry
