@@ -16,7 +16,9 @@
  */
 
 #include <cassert>
+#include <iostream>
 #include <memory>
+#include <ostream>
 #include <vector>
 
 #include <shared/log.hpp>
@@ -39,6 +41,11 @@ void System::run() {
 	struct timespec ts;
 	u64 last_time = 0;
 
+#ifdef SHOW_CYCLES
+	u64 last_speed_time = 0;
+	u64 cycles = 0;
+#endif
+
 	/* trigger reset */
 	m_cpu.reset = true;
 	m_cpu.iclck();
@@ -48,9 +55,21 @@ void System::run() {
 		assert(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
 		const u64 current_time = (ts.tv_sec * (1000 * 1000 * 1000)) + ts.tv_nsec;
 
+#ifdef SHOW_CYCLES
+		if(current_time - last_speed_time > (1000 * 1000 * 1000)) {
+			std::cout << "\r" << cycles << " Hz" << std::flush;
+			last_speed_time = current_time;
+			cycles = 0;
+		}
+#endif
+
 		if(current_time - last_time < m_cycleSpan) {
 			continue;
 		}
+
+#ifdef SHOW_CYCLES
+		cycles++;
+#endif
 
 		last_time = current_time;
 
