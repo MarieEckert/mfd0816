@@ -22,7 +22,7 @@
 #include <shared/log.hpp>
 #include <shared/panic.hpp>
 
-#include <mfdemu/impl/bus_device.hpp>
+#include <mfdemu/impl/bus/bus_device.hpp>
 #include <mfdemu/impl/cpu.hpp>
 #include <mfdemu/impl/instructions.hpp>
 
@@ -30,11 +30,11 @@ namespace mfdemu::impl {
 
 /** class Cpu **/
 
-void Cpu::connectAddressDevice(std::shared_ptr<BaseBusDevice> device) {
+void Cpu::connectAddressDevice(std::shared_ptr<BaseBusDevice<u16>> device) {
 	m_addressDevice = device;
 }
 
-void Cpu::connectIoDevice(std::shared_ptr<BaseBusDevice> device) {
+void Cpu::connectIoDevice(std::shared_ptr<BaseBusDevice<u8>> device) {
 	m_ioDevice = device;
 }
 
@@ -1016,8 +1016,38 @@ void Cpu::execInstOR() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstOUT() {}
+void Cpu::execInstOUT() {
+	constexpr u8 READ_VALUE = 16;
+	constexpr u8 WRITE_VALUE = 32;
+
+	switch(m_stateStep) {
+	case 0:
+		m_stash1 = m_operand1.mode.is_register ? this->getRegister((m_operand1.value & 0xFF00) >> 8)
+											   : m_operand1.value;
+		m_stash2 = m_operand2.mode.is_register ? this->getRegister((m_operand2.value & 0xFF00) >> 8)
+											   : m_operand2.value;
+
+		if(!m_operand2.mode.immediate) {
+			m_addressBusAddress = m_stash2;
+			m_stateStep = READ_VALUE;
+			newState(m_operand2.mode.direct ? CpuState::ABUS_READ : CpuState::ABUS_READ_INDIRECT);
+			break;
+		}
+	case READ_VALUE:
+		if(!m_operand1.mode.immediate) {
+			m_addressBusAddress = m_stash1;
+			m_stateStep = WRITE_VALUE;
+			newState(m_operand1.mode.direct ? CpuState::ABUS_READ : CpuState::ABUS_READ_INDIRECT);
+			break;
+		}
+	case WRITE_VALUE:
+		m_ioBusAddress = m_stash2;
+		m_ioBusOutput = m_stash1;
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+		newState(CpuState::GIO_WRITE);
+		break;
+	}
+}
 
 void Cpu::execInstPOP() {
 	switch(m_stateStep) {
@@ -1084,7 +1114,7 @@ void Cpu::execInstROL() {
 	GET_OPERAND2:
 		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, CALCULATE, GET_O2, MOVE_O2_TO_STASH)
 	CALCULATE:
-		const u32 tmp =  m_stash1 << m_stash2;
+		const u32 tmp = m_stash1 << m_stash2;
 		const u16 result = tmp | ((tmp >> 16) & 0xFF);
 
 		m_stateStep = EXEC_INST_STEP_INC_IP;

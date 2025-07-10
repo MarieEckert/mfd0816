@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024  Marie Eckert
+ * Copyright (C) 2025  Marie Eckert
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,39 +15,41 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <bitset>
-
 #include <shared/log.hpp>
+#include <shared/panic.hpp>
 
-#include <mfdemu/impl/aio_device.hpp>
+#include <mfdemu/impl/bus/gio_device.hpp>
 
 namespace mfdemu::impl {
 
-AioDevice::AioDevice(bool read_only, usize size) : m_readOnly(read_only) {
+GioDevice::GioDevice(bool read_only, usize size) : m_readOnly(read_only) {
 	m_data.reserve(size);
 }
 
-void AioDevice::clck() {
+void GioDevice::clck() {
 	switch(m_step) {
-	case 0:
+	case 0: /* T0 */
 		if(mode) {
 			m_step = 1;
 		}
 		break;
-	case 1:
+	case 1: /* T1 */
 		if(!mode) {
 			m_step = 0;
 			break;
 		}
 
-		m_address = io;
+		m_address = io << 8;
 		m_step = 2;
 		break;
-	case 2:
+	case 2: /* T2 */
+		m_address |= io;
+
+		logDebug() << "write to address now: " << ((u64)m_address) << "\n";
 		m_write = mode;
 		m_step = 3;
 		break;
-	case 3:
+	case 3: /* T3 */
 		if(m_write) {
 			if(m_readOnly) {
 				m_step = 0;
@@ -59,25 +61,32 @@ void AioDevice::clck() {
 				break;
 			}
 
-			if(m_address == 0x5000) { /* debug thingy */
-				logInfo() << "write to 0x5000 , value = " << std::bitset<16>(io).to_string()
-						  << "\n";
-			}
-
-			m_data[m_address] = (io >> 8) & 0xFF;
-			m_data[m_address + 1] = io & 0xFF;
+			logDebug() << "write first halve now: " << ((u64)io) << "\n";
+			m_data[m_address] = io;
 		} else {
-			io = m_address >= m_data.size() || m_address + 1 >= m_data.size()
-					 ? 0
-					 : (m_data[m_address] << 8) | m_data[m_address + 1];
+			io = m_address >= m_data.size() || m_address + 1 <= m_data.size() ? 0
+																			  : m_data[m_address];
 		}
 
+		m_step = 4;
+		break;
+	case 4: /* T4 */
+		if(m_write) {
+			logDebug() << "write second halve now: " << ((u64)io) << "\n";
+			m_data[m_address + 1] = io;
+		} else {
+			io = m_data[m_address + 1];
+			break;
+		}
+
+		logDebug() << "finished!!!\n";
+		shared::panic("test");
 		m_step = 0;
 		break;
 	}
 }
 
-void AioDevice::setData(std::vector<u8> data) {
+void GioDevice::setData(std::vector<u8> data) {
 	m_data = data;
 }
 

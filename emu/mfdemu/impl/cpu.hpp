@@ -23,7 +23,7 @@
 
 #include <shared/typedefs.hpp>
 
-#include <mfdemu/impl/bus_device.hpp>
+#include <mfdemu/impl/bus/bus_device.hpp>
 
 namespace mfdemu::impl {
 
@@ -64,9 +64,9 @@ class Cpu {
 	inline bool clk() const { return m_pinCLK; }
 	inline bool ira() const { return m_pinIRA; }
 
-	void connectAddressDevice(std::shared_ptr<BaseBusDevice> device);
+	void connectAddressDevice(std::shared_ptr<BaseBusDevice<u16>> device);
 
-	void connectIoDevice(std::shared_ptr<BaseBusDevice> device);
+	void connectIoDevice(std::shared_ptr<BaseBusDevice<u8>> device);
 
    private:
 	enum class CpuState : u8 {
@@ -232,8 +232,8 @@ class Cpu {
 	u16 getRegister(u8 source);
 
 	/** connected devices (for impl.) */
-	std::shared_ptr<BaseBusDevice> m_addressDevice;
-	std::shared_ptr<BaseBusDevice> m_ioDevice;
+	std::shared_ptr<BaseBusDevice<u16>> m_addressDevice;
+	std::shared_ptr<BaseBusDevice<u8>> m_ioDevice;
 
 	/** debug utils */
 	void printFetchedInstruction() const;

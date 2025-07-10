@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024  Marie Eckert
+ * Copyright (C) 2025  Marie Eckert
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,32 +15,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MFDEMU_IMPL_SYSTEM_HPP
-#define MFDEMU_IMPL_SYSTEM_HPP
+#ifndef MFDEMU_IMPL_GIO_DEVICE_HPP
+#define MFDEMU_IMPL_GIO_DEVICE_HPP
 
-#include <memory>
 #include <vector>
 
 #include <shared/typedefs.hpp>
 
-#include <mfdemu/impl/bus/aio_device.hpp>
-#include <mfdemu/impl/cpu.hpp>
+#include <mfdemu/impl/bus/bus_device.hpp>
 
 namespace mfdemu::impl {
-class System {
+
+class GioDevice : public BaseBusDevice<u8> {
    public:
-	System(u32 cycle_span, u16 main_memory_size);
+	GioDevice(bool read_only, usize size);
+	void clck() override;
 
-	void setMainMemoryData(std::vector<u8> data);
-
-	void run();
+	void setData(std::vector<u8> data);
 
    private:
-	u32 m_cycleSpan;
-	Cpu m_cpu;
-	std::shared_ptr<AioDevice> m_mainMemory;
-	/* AsciiConsole m_console; */
+	/** internal state */
+	u8 m_step{0};
+	u32 m_address;
+	bool m_write;
+
+	/** data */
+	bool m_readOnly;
+	std::vector<u8> m_data;
 };
+
 }  // namespace mfdemu::impl
 
 #endif

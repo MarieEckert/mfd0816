@@ -16,14 +16,13 @@
  */
 
 #include <cassert>
-#include <iostream>
 #include <memory>
-#include <ostream>
 #include <vector>
 
 #include <shared/log.hpp>
 
-#include <mfdemu/impl/aio_device.hpp>
+#include <mfdemu/impl/bus/aio_device.hpp>
+#include <mfdemu/impl/bus/gio_device.hpp>
 #include <mfdemu/impl/system.hpp>
 
 namespace mfdemu::impl {
@@ -45,6 +44,9 @@ void System::run() {
 	u64 last_speed_time = 0;
 	u64 cycles = 0;
 #endif
+
+	auto testDevice = std::make_shared<GioDevice>(false, 0xffff);
+	m_cpu.connectIoDevice(testDevice);
 
 	/* trigger reset */
 	m_cpu.reset = true;

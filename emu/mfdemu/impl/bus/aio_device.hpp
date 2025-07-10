@@ -15,21 +15,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MFDEMU_IMPL_IO_DEVICE_HPP
-#define MFDEMU_IMPL_IO_DEVICE_HPP
+#ifndef MFDEMU_IMPL_AIO_DEVICE_HPP
+#define MFDEMU_IMPL_AIO_DEVICE_HPP
+
+#include <vector>
 
 #include <shared/typedefs.hpp>
 
+#include <mfdemu/impl/bus/bus_device.hpp>
+
 namespace mfdemu::impl {
 
-class BaseBusDevice {
+class AioDevice : public BaseBusDevice<u16> {
    public:
-	virtual ~BaseBusDevice() = default;
+	AioDevice(bool read_only, usize size);
+	void clck() override;
 
-	virtual void clck() = 0;
+	void setData(std::vector<u8> data);
 
-	bool mode;
-	u16 io;
+   private:
+	/** internal state */
+	u8 m_step{0};
+	u32 m_address;
+	bool m_write;
+
+	/** data */
+	bool m_readOnly;
+	std::vector<u8> m_data;
 };
 
 }  // namespace mfdemu::impl

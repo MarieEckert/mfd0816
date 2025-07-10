@@ -12,7 +12,8 @@ sector config
     ; Source Info
     str src 'mfdemu/'
     list str sources
-          'impl/aio_device',
+          'impl/bus/aio_device',
+          'impl/bus/gio_device',
           'impl/cpu',
           'impl/system',
           'main',
