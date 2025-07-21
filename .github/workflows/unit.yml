@@ -23,11 +23,12 @@ jobs:
        cd mb
        bash ./setup.bash || exit 2
        bash ./build.bash --release || exit 3
+       sudo cp build/release/mb /usr/local/bin/
     - name: build tests
       run: |
        cd tests
-       ../mb/build/release/mb -t build
+       mb -t build
     - name: run tests
       run: |
        cd tests
-       ../mb/build/release/mb -t run
+       mb -t run
