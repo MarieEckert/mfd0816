@@ -13,7 +13,11 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: setup
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y libc++-dev
+    - name: setup mariebuild
       run: |
        git clone https://github.com/MarieEckert/mariebuild mb || exit 1
        cd mb
