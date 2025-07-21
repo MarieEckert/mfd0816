@@ -12,8 +12,8 @@ sector config
     ; Source Info
     str unit_tests_src 'unit/'
     list str unit_tests
-          'test'
-    list str includes '.', '3rdparty/doctest'
+          'asm_encode'
+    list str includes '.', '../asm', '../emu', '3rdparty/doctest'
   end
 
   section tools
@@ -26,13 +26,47 @@ sector config
   section mariebuild
     u8 default_log_level 2
 
-    list str targets 'tests', 'format'
+    list str targets 'tests', 'build', 'run', 'format'
     str default 'tests'
   end
 end
 
 sector targets
+  section mfdasm
+    str exec '#!/bin/bash
+              set -e
+              . helpers.bash
+              echo ''=== BUILDING LIBASM.A & LIBSHARED.A FROM MFDASM ===''
+              echo_run "cd ../asm"
+              echo_run "mb -n -f -t debug"
+              echo ''=== BUILD COMPLETE, CREATING ARCHIVES ===''
+              echo_run ''find build/debug/obj/ -type f -name *.o | grep -v main.o | xargs ar -rc libasm.a''
+              echo_run "ranlib libasm.a"
+              echo_run "mv libasm.a ../tests/"
+              echo_run ''find build/debug/shared/ -type f -name *.o | grep -v main.o | xargs ar -rc libshared.a''
+              echo_run "ranlib libshared.a"
+              echo_run "mv libshared.a ../tests/"
+              echo ''=== DONE ===''
+    '
+  end
+
+  section mfdemu
+    str exec '#!/bin/bash
+              set -e
+              . helpers.bash
+              echo ''=== BUILDING LIBEMU.A FROM MFDEMU ===''
+              echo_run "cd ../asm"
+              echo_run "mb -n -f -t debug"
+              echo ''=== BUILD COMPLETE, CREATING ARCHIVE ===''
+              echo_run ''find build/debug/obj/ -type f -name *.o | grep -v main.o | xargs ar -rc libemu.a''
+              echo_run "ranlib libemu.a"
+              echo_run "mv libemu.a ../tests/"
+              echo ''=== DONE ===''
+    '
+  end
+
   section build
+    list str required_targets 'mfdasm', 'mfdemu'
     list str c_rules 'unit_compile'
 
     str target_objdir 'build/'
@@ -59,10 +93,11 @@ sector c_rules
     str output_format '$(/config/files/obj_dir)unit_$(%element%)'
 
     str exec '#!/bin/bash
-              mkdir -p \$(dirname $(%output%))
-              COMMAND="$(/config/tools/cc) $(/config/tools/cflags) -o $(%output%) $(%input%)"
-              echo "  $COMMAND"
-              $COMMAND
+              . helpers.bash
+              echo_run "mkdir -p \$(dirname $(%output%))"
+              echo_run "$(/config/tools/cc) $(/config/tools/cflags) -o $(%output%).o -c $(%input%)"
+              echo_run "$(/config/tools/cc) $(/config/tools/cflags) $(%output%).o libasm.a libemu.a libshared.a -o $(%output%)"
+              echo_run "rm $(%output%).o"
     '
   end
 
