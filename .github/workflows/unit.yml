@@ -1,10 +1,10 @@
-name: unit tests
+name: mfd0816 tests
 
 on:
   push:
 
 jobs:
-  build:
+  doctest-unittest:
 
     runs-on: ubuntu-latest
 
