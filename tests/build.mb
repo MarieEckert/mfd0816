@@ -38,7 +38,7 @@ sector targets
               . helpers.bash
               echo ''=== BUILDING LIBASM.A & LIBSHARED.A FROM MFDASM ===''
               echo_run "cd ../asm"
-              echo_run "mb -n -f -t debug"
+              echo_run "mb -n -t debug"
               echo ''=== BUILD COMPLETE, CREATING ARCHIVES ===''
               echo_run ''find build/debug/obj/ -type f -name *.o | grep -v main.o | xargs ar -rc libasm.a''
               echo_run "ranlib libasm.a"
@@ -56,7 +56,7 @@ sector targets
               . helpers.bash
               echo ''=== BUILDING LIBEMU.A FROM MFDEMU ===''
               echo_run "cd ../asm"
-              echo_run "mb -n -f -t debug"
+              echo_run "mb -n -t debug"
               echo ''=== BUILD COMPLETE, CREATING ARCHIVE ===''
               echo_run ''find build/debug/obj/ -type f -name *.o | grep -v main.o | xargs ar -rc libemu.a''
               echo_run "ranlib libemu.a"
@@ -109,6 +109,6 @@ sector c_rules
     str input_format '$(/config/files/obj_dir)unit_$(%element%)'
     str output_format ''
 
-    str exec '$(%input%)'
+    str exec '$(%input%) --ni'
   end
 end
