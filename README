@@ -4,6 +4,25 @@ The MFD0816 is a 16-bit fantasy cpu roughly based on the intel 8088.
 This repository contains the specification documents and the
 reference implementation of the MFD0816 and tools surrounding it.
 
+EMULATOR PROGRESS
+────────────────────────────────────────────────────────────────────────────────
+
+  Instruction wise the emulator is nearly completed, only missing a few
+  instructions:
+    ► div
+    ► idiv
+    ► ret
+    ► iret
+    ► int
+    ► in
+    ► bin
+    ► bot
+  Besides these instructions, there is also the need for testing and a basic
+  serial interface for user interaction.
+  This project is currently on my back-burner and I don't know when I will get
+  around to finishing these TODOs, if you want to feel free to do it and submit
+  a PR!
+
 DOCUMENTS
 ────────────────────────────────────────────────────────────────────────────────
 
