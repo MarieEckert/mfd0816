@@ -12,6 +12,7 @@ sector config
     ; Source Info
     str unit_tests_src 'unit/'
     list str unit_tests
+          'asm_parse',
           'asm_encode',
           'mri'
     list str includes '.', '../asm', '../emu', '3rdparty/doctest'
