@@ -112,6 +112,12 @@ sector c_rules
     str input_format '$(/config/files/obj_dir)unit_$(%element%)'
     str output_format ''
 
-    str exec '$(%input%) --ni'
+    str exec '#!/bin/bash
+              if [ "$TESTS_CAPTURE" = "yes" ]; then
+                $(%input%) --ni 2> /dev/null
+              else
+                $(%input%) --ni
+              fi
+    '
   end
 end

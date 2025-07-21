@@ -31,4 +31,6 @@ jobs:
     - name: run tests
       run: |
        cd tests
-       mb -t run
+       mb -t run --keep-going
+      env:
+        TESTS_CAPTURE: yes
