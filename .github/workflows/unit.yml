@@ -1,0 +1,34 @@
+name: mfd0816 tests
+
+on:
+  push:
+
+jobs:
+  doctest-unittest:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y libc++-dev
+    - name: setup mariebuild
+      run: |
+       git clone https://github.com/MarieEckert/mariebuild mb || exit 1
+       cd mb
+       bash ./setup.bash || exit 2
+       bash ./build.bash --release || exit 3
+       sudo cp build/release/mb /usr/local/bin/
+    - name: build tests
+      run: |
+       cd tests
+       mb -t build
+    - name: run tests
+      run: |
+       cd tests
+       mb -t run
