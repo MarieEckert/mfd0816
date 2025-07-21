@@ -13,7 +13,7 @@ jobs:
     - name: setup
       run: |
        git clone https://github.com/MarieEckert/mariebuild mb || exit 1
-       cd mariebuild
+       cd mb
        bash ./setup.bash || exit 2
        bash ./build.bash --release || exit 3
     - name: test
