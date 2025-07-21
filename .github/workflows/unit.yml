@@ -1,0 +1,22 @@
+name: unit tests
+
+on:
+  push:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: setup
+      run: |
+       git clone https://github.com/MarieEckert/mariebuild mb || exit 1
+       cd mariebuild
+       bash ./setup.bash || exit 2
+       bash ./build.bash --release || exit 3
+    - name: test
+      run: |
+       cd tests
+       ../mb/build/release/mb
