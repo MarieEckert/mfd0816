@@ -23,7 +23,11 @@ jobs:
        cd mb
        bash ./setup.bash || exit 2
        bash ./build.bash --release || exit 3
-    - name: test
+    - name: build tests
       run: |
        cd tests
-       ../mb/build/release/mb
+       ../mb/build/release/mb -t build
+    - name: run tests
+      run: |
+       cd tests
+       ../mb/build/release/mb -t run
