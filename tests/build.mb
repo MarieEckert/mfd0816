@@ -55,7 +55,7 @@ sector targets
               set -e
               . helpers.bash
               echo ''=== BUILDING LIBEMU.A FROM MFDEMU ===''
-              echo_run "cd ../asm"
+              echo_run "cd ../emu"
               echo_run "mb -n -t debug"
               echo ''=== BUILD COMPLETE, CREATING ARCHIVE ===''
               echo_run ''find build/debug/obj/ -type f -name *.o | grep -v main.o | xargs ar -rc libemu.a''
@@ -93,6 +93,7 @@ sector c_rules
     str output_format '$(/config/files/obj_dir)unit_$(%element%)'
 
     str exec '#!/bin/bash
+              set -e
               . helpers.bash
               echo_run "mkdir -p \$(dirname $(%output%))"
               echo_run "$(/config/tools/cc) $(/config/tools/cflags) -o $(%output%).o -c $(%input%)"
