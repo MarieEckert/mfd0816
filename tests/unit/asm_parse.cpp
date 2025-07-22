@@ -50,7 +50,7 @@ TEST_CASE("instructions: multiple parameters") {
     )"));
 
 	CHECK(tryParseAsm(R"(section text at 0x1100
-        ld 100, acl
+        ld acl, 100
         call test
         ret
     )"));
