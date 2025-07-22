@@ -23,7 +23,7 @@
 namespace mfdemu::impl {
 
 GioDevice::GioDevice(bool read_only, usize size) : m_readOnly(read_only) {
-	m_data.reserve(size);
+	m_data.resize(size);
 }
 
 void GioDevice::clck() {
