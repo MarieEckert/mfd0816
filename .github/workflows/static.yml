@@ -1,0 +1,45 @@
+name: mfd0816 static checks
+
+on: [workflow_call]
+
+jobs:
+  build-mariebuild:
+    name: mariebuild
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+    - uses: ./.github/actions/depend
+    - name: setup mariebuild
+      run: |
+       git clone https://github.com/MarieEckert/mariebuild mb || exit 1
+       cd mb
+       bash ./setup.bash || exit 2
+       bash ./build.bash --release || exit 3
+       sudo cp build/release/mb /usr/local/bin/
+    - name: build mfdasm
+      run: |
+       cd asm
+       mb || exit 1
+       mb -t release || exit 2
+    - name: build mfdemu
+      run: |
+       cd emu
+       mb || exit 1
+       mb -t release || exit 2
+
+  build-cmake:
+    name: cmake
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - uses: ./.github/actions/depend
+      - name: build
+        uses: threeal/cmake-action@v2.1.0
+        with:
+          build-args: -j

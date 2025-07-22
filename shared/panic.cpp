@@ -25,6 +25,8 @@
 
 namespace shared {
 
+std::string program_name = "unknown";
+
 static std::string demangle(const char *const symbol) {
 	const std::unique_ptr<char, decltype(&std::free)> demangled(
 		abi::__cxa_demangle(symbol, 0, 0, 0), &std::free);
@@ -76,7 +78,7 @@ static void backtrace() {
 }
 
 [[noreturn]] void panic(const std::string &error) {
-	std::cerr << PROGRAM_NAME << " panic'd: " << error << "\n";
+	std::cerr << program_name << " panic'd: " << error << "\n";
 	std::cerr << "backtrace:\n";
 	backtrace();
 	std::exit(100);

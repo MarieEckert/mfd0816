@@ -24,7 +24,7 @@ sector config
           '../shared/panic',
           '../shared/log',
           '../shared/cli/args'
-    list str includes '.', '3rdparty'
+    list str includes '.', '../'
   end
 
   section tools
@@ -100,7 +100,7 @@ sector targets
   end
 
   section release
-    str target_cflags '-O3 -DMFDASM_RELEASE -DRELEASE'
+    str target_cflags '-O3 -DRELEASE'
     str target_ldflags ''
     str target_builddir '$(/config/files/release_dir)'
     str target_objdir '$(/config/files/release_dir)$(/config/files/obj_dir)'

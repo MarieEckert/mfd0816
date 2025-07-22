@@ -18,11 +18,11 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
-#include <ostream>
 #include <string>
 
 #include <shared/cli/args.hpp>
 #include <shared/log.hpp>
+#include <shared/panic.hpp>
 
 #include <mfdemu/impl/system.hpp>
 #include <mfdemu/mri.hpp>
@@ -42,6 +42,8 @@ using namespace mfdemu;
 }
 
 int main(int argc, char **argv) {
+	shared::program_name = "mfdasm";
+
 	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
 	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
 	shared::cli::Argument<std::string> arg_infile("-i");

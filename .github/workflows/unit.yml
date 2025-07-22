@@ -1,36 +1,26 @@
-name: mfd0816 tests
+name: mfd0816 unit tests
 
 on:
   push:
 
 jobs:
+  static-checks:
+    uses: ./.github/workflows/static.yml
   doctest-unittest:
-
-    runs-on: ubuntu-latest
-
+    needs: static-checks
+    runs-on: ubuntu-24.04
     steps:
     - name: checkout repo
       uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: install dependencies
+    - uses: ./.github/actions/depend
+    - name: build
+      uses: threeal/cmake-action@v2.1.0
+      with:
+          build-args: -j
+          build-dir: build
+    - name: run
       run: |
-        sudo apt update
-        sudo apt install -y libc++-dev
-    - name: setup mariebuild
-      run: |
-       git clone https://github.com/MarieEckert/mariebuild mb || exit 1
-       cd mb
-       bash ./setup.bash || exit 2
-       bash ./build.bash --release || exit 3
-       sudo cp build/release/mb /usr/local/bin/
-    - name: build tests
-      run: |
-       cd tests
-       mb -t build
-    - name: run tests
-      run: |
-       cd tests
-       mb -t run --keep-going
-      env:
-        TESTS_CAPTURE: yes
+        cd build
+        ctest --output-on-failure

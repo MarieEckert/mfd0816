@@ -21,7 +21,7 @@ sector config
           '../shared/panic',
           '../shared/log',
           '../shared/cli/args'
-    list str includes '.', '3rdparty'
+    list str includes '.', '../'
   end
 
   section tools
