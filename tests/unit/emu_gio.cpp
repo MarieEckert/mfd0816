@@ -23,13 +23,26 @@ class CpuTest : public Cpu {
 
 class GioDeviceTest : public GioDevice {
    public:
-	GioDeviceTest(bool read_only, usize size) : GioDevice(read_only, size) {}
+	GioDeviceTest() { m_data.resize(0xFFFF); }
 
 	std::vector<u8> &data() { return m_data; }
+
+   protected:
+	void write(u16 address, u8 value, bool low) override {
+		address = low ? address + 1 : address;
+		m_data[address] = value;
+	}
+
+	u8 read(u16 address, bool low) override {
+		address = low ? address + 1 : address;
+		return m_data[address];
+	}
+
+	std::vector<u8> m_data;
 };
 
 TEST_CASE("gio write") {
-	auto test_dev = std::make_shared<GioDeviceTest>(false, 0xffff);
+	auto test_dev = std::make_shared<GioDeviceTest>();
 	REQUIRE(test_dev != nullptr);
 
 	CpuTest cpu;
@@ -49,7 +62,7 @@ TEST_CASE("gio write") {
 }
 
 TEST_CASE("gio read") {
-	auto test_dev = std::make_shared<GioDeviceTest>(false, 0xffff);
+	auto test_dev = std::make_shared<GioDeviceTest>();
 	REQUIRE(test_dev != nullptr);
 
 	test_dev->data()[0x7770] = 0xfe;
