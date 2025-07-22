@@ -5,10 +5,8 @@ on:
 
 jobs:
   build-mariebuild:
-    name: Build using mariebuild
-
+    name: mariebuild
     runs-on: ubuntu-24.04
-
     steps:
     - name: checkout repo
       uses: actions/checkout@v4
@@ -37,14 +35,15 @@ jobs:
        mb -t release || exit 2
 
   build-cmake:
-    name: Build using cmake
-
+    name: cmake
     runs-on: ubuntu-24.04
-
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
         with:
           submodules: 'true'
+      - uses: ./.github/actions/depend
       - name: build
         uses: threeal/cmake-action@v2.1.0
+        with:
+          build-args: -j

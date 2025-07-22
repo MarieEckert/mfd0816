@@ -1,0 +1,9 @@
+name: "mfd0816 ci helpers"
+runs:
+  using: "composite"
+  steps:
+    - name: install dependencies
+      run: |
+          sudo apt update
+          sudo apt install -y libc++-dev
+      shell: bash

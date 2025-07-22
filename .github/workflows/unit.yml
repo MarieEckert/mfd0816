@@ -8,9 +8,7 @@ on:
 
 jobs:
   doctest-unittest:
-
     runs-on: ubuntu-24.04
-
     steps:
     - name: checkout repo
       uses: actions/checkout@v4

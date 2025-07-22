@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0.0.)
+cmake_minimum_required(VERSION 3.31.0.)
 project(mfd0816)
 
 set(CMAKE_CXX_COMPILER "clang++")
