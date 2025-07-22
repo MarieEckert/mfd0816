@@ -103,7 +103,7 @@ TEST_CASE("generate and validate AST") {
 			impl::Statement::Kind::SECTION,
 			std::vector<std::shared_ptr<impl::ExpressionBase>>{
 				std::make_shared<impl::Literal>(std::vector<u8>(8, 0), 1),
-				std::make_shared<impl::Identifier>(impl::Identifier::Kind::SECTION, "data"),
+				std::make_shared<impl::Identifier>(impl::Identifier::Kind::SECTION, "data", 1),
 			},
 			1));
 	expected_ast.push_back(
@@ -125,25 +125,30 @@ TEST_CASE("generate and validate AST") {
 							0x10,
 						},
 						2),
-					std::make_shared<impl::StatementExpression>(impl::Statement(
-						impl::Statement::Kind::DIRECTIVE,
-						std::vector<std::shared_ptr<impl::ExpressionBase>>{}, 2,
-						std::make_shared<impl::Directive>(
-							impl::Directive::Kind::DW,
-							std::vector<std::shared_ptr<impl::ExpressionBase>>{
-								std::make_shared<impl::Literal>(
-									std::vector<u8>{
-										0x0,
-										0x0,
-										0x0,
-										0x0,
-										0x0,
-										0x0,
-										0xfe,
-										0xed,
-									},
-									2)}))),
-				})));
+					std::make_shared<impl::StatementExpression>(
+						impl::Statement(
+							impl::Statement::Kind::DIRECTIVE,
+							std::vector<std::shared_ptr<impl::ExpressionBase>>{}, 2,
+							std::make_shared<impl::Directive>(
+								impl::Directive::Kind::DW,
+								std::vector<std::shared_ptr<impl::ExpressionBase>>{
+									std::make_shared<impl::Literal>(
+										std::vector<u8>{
+											0x0,
+											0x0,
+											0x0,
+											0x0,
+											0x0,
+											0x0,
+											0xfe,
+											0xed,
+										},
+										2),
+								},
+								2)),
+						2),
+				},
+				2)));
 
 	CHECK_EQ(ast.size(), expected_ast.size());
 
@@ -166,8 +171,8 @@ TEST_CASE("generate and validate AST") {
 			CHECK_EQ(expression->kind(), expected_expression->kind());
 			CHECK_EQ(expression->lineno(), expected_expression->lineno());
 			CHECK_EQ(
-				expression->resolveValue(resolval_context),
-				expected_expression->resolveValue(resolval_context));
+				expression->resolveValue(resolval_context).unwrap(),
+				expected_expression->resolveValue(resolval_context).unwrap());
 		}
 	}
 
