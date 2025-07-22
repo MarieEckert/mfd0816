@@ -64,7 +64,7 @@ void GioDevice::clck() {
 			logDebug() << "write first halve now: " << ((u64)io) << "\n";
 			m_data[m_address] = io;
 		} else {
-			io = m_address >= m_data.size() || m_address + 1 <= m_data.size() ? 0
+			io = m_address >= m_data.size() || m_address + 1 >= m_data.size() ? 0
 																			  : m_data[m_address];
 		}
 

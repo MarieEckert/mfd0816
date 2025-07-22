@@ -195,13 +195,13 @@ void Cpu::gioRead() {
 		break;
 	case 3: /* T3: Data High-Byte read pulse */
 		m_ioDevice->clck();
-		m_ioBusInput = m_ioDevice->io & 0xFF00;
+		m_ioBusInput = static_cast<u16>(m_ioDevice->io) << 8;
 
 		m_stateStep = 4;
 		break;
 	case 4: /* T4: Data Low-Byte read pulse */
 		m_ioDevice->clck();
-		m_ioBusInput |= m_ioDevice->io & 0xFF;
+		m_ioBusInput |= m_ioDevice->io;
 
 		finishState();
 		break;
