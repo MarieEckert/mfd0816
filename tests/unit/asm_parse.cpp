@@ -10,6 +10,7 @@
 #include <mfdasm/impl/mri/section_table.hpp>
 
 #include "mfdasm/impl/asmerror.hpp"
+#include "mfdasm/impl/token.hpp"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS
@@ -65,27 +66,16 @@ TEST_CASE("generate and validate AST") {
 	Result<None, impl::AsmError> parse_result = asem.parseLines(R"(section data at 0x0000
 		times	16			dw	0xfeed
 		define	terminator,	0
-		ds		"Hellow, World!",	db	terminator
+		ds		"Hello, World!"	db	terminator
 	section text at 0x1100
-	_entry:	mov	0x1000,	sp			; initialise stack pointer
-			ld		acl,	[sp]	; load the word from the top of the
-									; stack into acl
-			ld		bcl,	[[0x1330]]
-			ld		ccl,	[[bcl]]
-
-			st		0x1111,	[0x5000]	; first write
-			neg		[0x5000]			; seconds write
-			ld		ar,		[0x5000]
-			not		[0x5000]			; third write
-			or		[0x5000]
-			st		ar,		[0x5000]	; fourth write
-			and		0x1111
-			st		ar,		[0x5000]	; fifth write
-			rol		[0x5000], 5
-			ror		[0x5000], 5
-
+	_entry:	mov		0x1000,		sp
+			ld		acl,		[sp]
+			ld		bcl,		[[0x1330]]
+			ld		ccl,		[[bcl]]
+			st		0x1111,		[0x5000]
+			neg		[0x5000]
+			rol		[0x5000],	5
 			call	test
-			jmp		_entry
 	test:	ret
 	)");
 
@@ -101,18 +91,17 @@ TEST_CASE("generate and validate AST") {
 	expected_ast.push_back(
 		impl::Statement(
 			impl::Statement::Kind::SECTION,
-			std::vector<std::shared_ptr<impl::ExpressionBase>>{
+			impl::Expressions{
 				std::make_shared<impl::Identifier>(impl::Identifier::Kind::SECTION, "data", 1),
 				std::make_shared<impl::Literal>(std::vector<u8>(8, 0), 1),
 			},
 			1));
 	expected_ast.push_back(
 		impl::Statement(
-			impl::Statement::Kind::DIRECTIVE, std::vector<std::shared_ptr<impl::ExpressionBase>>{},
-			2,
+			impl::Statement::Kind::DIRECTIVE, impl::Expressions{}, 2,
 			std::make_shared<impl::Directive>(
 				impl::Directive::Kind::TIMES,
-				std::vector<std::shared_ptr<impl::ExpressionBase>>{
+				impl::Expressions{
 					std::make_shared<impl::Literal>(
 						std::vector<u8>{
 							0x0,
@@ -127,11 +116,10 @@ TEST_CASE("generate and validate AST") {
 						2),
 					std::make_shared<impl::StatementExpression>(
 						impl::Statement(
-							impl::Statement::Kind::DIRECTIVE,
-							std::vector<std::shared_ptr<impl::ExpressionBase>>{}, 2,
+							impl::Statement::Kind::DIRECTIVE, impl::Expressions{}, 2,
 							std::make_shared<impl::Directive>(
 								impl::Directive::Kind::DW,
-								std::vector<std::shared_ptr<impl::ExpressionBase>>{
+								impl::Expressions{
 									std::make_shared<impl::Literal>(
 										std::vector<u8>{
 											0x0,
@@ -149,6 +137,63 @@ TEST_CASE("generate and validate AST") {
 						2),
 				},
 				2)));
+	expected_ast.push_back(
+		impl::Statement(
+			impl::Statement::Kind::DIRECTIVE, impl::Expressions{}, 3,
+			std::make_shared<impl::Directive>(
+				impl::Directive::Kind::DEFINE,
+				impl::Expressions{
+					std::make_shared<impl::Identifier>(
+						impl::Identifier::Kind::LABEL, "terminator", 3),
+					std::make_shared<impl::Literal>(std::vector<u8>(8, 0), 3),
+				},
+				3)));
+	expected_ast.push_back(
+		impl::Statement(
+			impl::Statement::Kind::DIRECTIVE, impl::Expressions{}, 4,
+			std::make_shared<impl::Directive>(
+				impl::Directive::Kind::DS,
+				impl::Expressions{
+					std::make_shared<impl::Literal>(
+						impl::Token(impl::Token::Type::STRING, 4, "Hello, World!").toBytes(), 4),
+				},
+				4)));
+	expected_ast.push_back(
+		impl::Statement(
+			impl::Statement::Kind::DIRECTIVE, impl::Expressions{}, 4,
+			std::make_shared<impl::Directive>(
+				impl::Directive::Kind::DB,
+				impl::Expressions{
+					std::make_shared<impl::Identifier>(
+						impl::Identifier::Kind::LABEL, "terminator", 4),
+				},
+				4)));
+	expected_ast.push_back(
+		impl::Statement(
+			impl::Statement::Kind::SECTION,
+			impl::Expressions{
+				std::make_shared<impl::Identifier>(impl::Identifier::Kind::SECTION, "text", 5),
+				std::make_shared<impl::Literal>(
+					std::vector<u8>{
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x11,
+						0x0,
+					},
+					5),
+			},
+			5));
+	expected_ast.push_back(
+		impl::Statement(
+			impl::Statement::Kind::LABEL,
+			impl::Expressions{
+				std::make_shared<impl::Identifier>(impl::Identifier::Kind::LABEL, "_entry", 6),
+			},
+			6));
 
 	CHECK_EQ(ast.size(), expected_ast.size());
 
