@@ -79,8 +79,6 @@ void GioDevice::clck() {
 			break;
 		}
 
-		logDebug() << "finished!!!\n";
-		shared::panic("test");
 		m_step = 0;
 		break;
 	}

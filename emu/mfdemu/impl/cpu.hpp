@@ -68,7 +68,7 @@ class Cpu {
 
 	void connectIoDevice(std::shared_ptr<BaseBusDevice<u8>> device);
 
-   private:
+   protected:
 	enum class CpuState : u8 {
 		ABUS_READ,
 		ABUS_READ_INDIRECT,

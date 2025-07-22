@@ -33,7 +33,7 @@ class GioDevice : public BaseBusDevice<u8> {
 
 	void setData(std::vector<u8> data);
 
-   private:
+   protected:
 	/** internal state */
 	u8 m_step{0};
 	u32 m_address;
