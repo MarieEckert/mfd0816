@@ -26,7 +26,7 @@ namespace mfdasm::impl::mri {
 Result<std::shared_ptr<Section>, AsmError> SectionTable::addFromStatement(
 	const Statement &statement,
 	ResolvalContext &resolval_context) {
-	const std::vector<std::shared_ptr<ExpressionBase>> &expressions = statement.expressions();
+	const Expressions &expressions = statement.expressions();
 	/** @todo I think i may be starting to go overboard with these safety checks */
 	if(statement.kind() != Statement::SECTION || expressions.size() != 2 ||
 	   expressions[0]->kind() != ExpressionBase::IDENTIFIER ||

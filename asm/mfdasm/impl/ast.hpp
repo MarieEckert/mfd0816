@@ -283,7 +283,7 @@ class DirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	DirectAddress(Kind kind, std::shared_ptr<ExpressionBase> value_expression, u32 lineno);
+	DirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -295,7 +295,7 @@ class DirectAddress : public ExpressionBase {
    private:
 	Kind m_kind;
 
-	std::shared_ptr<ExpressionBase> m_valueExpression;
+	ExpressionPtr m_valueExpression;
 };
 
 class IndirectAddress : public ExpressionBase {
@@ -305,7 +305,7 @@ class IndirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	IndirectAddress(Kind kind, std::shared_ptr<ExpressionBase> value_expression, u32 lineno);
+	IndirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -317,7 +317,7 @@ class IndirectAddress : public ExpressionBase {
    private:
 	Kind m_kind;
 
-	std::shared_ptr<ExpressionBase> m_valueExpression;
+	ExpressionPtr m_valueExpression;
 };
 
 class Register : public ExpressionBase {

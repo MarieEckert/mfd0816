@@ -83,8 +83,7 @@ class Parser {
 
 	Result<u32, AsmError> tryParseDirective(u32 ix, Directive::Kind kind);
 
-	Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError> tryParseOperands(
-		u32 ix);
+	Result<std::pair<u32, Expressions>, AsmError> tryParseOperands(u32 ix);
 
 	void addStatement(Statement statement);
 
