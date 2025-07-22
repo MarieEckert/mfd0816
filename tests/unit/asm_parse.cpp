@@ -186,6 +186,175 @@ TEST_CASE("generate and validate AST") {
 			std::make_shared<Identifier>(Identifier::LABEL, "_entry", 6),
 		},
 		6));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 6,
+		std::make_shared<Instruction>(
+			Instruction::MOV,
+			Expressions{
+				std::make_shared<Literal>(
+					std::vector<u8>{
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x10,
+						0x0,
+					},
+					6),
+				std::make_shared<Register>(Register::SP, 6),
+			},
+			6)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 7,
+		std::make_shared<Instruction>(
+			Instruction::LD,
+			Expressions{
+				std::make_shared<Register>(Register::ACL, 7),
+				std::make_shared<DirectAddress>(
+					DirectAddress::REGISTER, std::make_shared<Register>(Register::SP, 7), 7),
+			},
+			7)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 8,
+		std::make_shared<Instruction>(
+			Instruction::LD,
+			Expressions{
+				std::make_shared<Register>(Register::BCL, 8),
+				std::make_shared<IndirectAddress>(
+					IndirectAddress::MEMORY,
+					std::make_shared<Literal>(
+						std::vector<u8>{
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x13,
+							0x30,
+						},
+						8),
+					8),
+			},
+			8)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 9,
+		std::make_shared<Instruction>(
+			Instruction::LD,
+			Expressions{
+				std::make_shared<Register>(Register::CCL, 9),
+				std::make_shared<IndirectAddress>(
+					IndirectAddress::REGISTER, std::make_shared<Register>(Register::BCL, 9), 9),
+			},
+			9)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 10,
+		std::make_shared<Instruction>(
+			Instruction::ST,
+			Expressions{
+				std::make_shared<Literal>(
+					std::vector<u8>{
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x11,
+						0x11,
+					},
+					10),
+				std::make_shared<DirectAddress>(
+					DirectAddress::MEMORY,
+					std::make_shared<Literal>(
+						std::vector<u8>{
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x50,
+							0x0,
+						},
+						10),
+					10),
+			},
+			10)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 11,
+		std::make_shared<Instruction>(
+			Instruction::NEG,
+			Expressions{
+				std::make_shared<DirectAddress>(
+					DirectAddress::MEMORY,
+					std::make_shared<Literal>(
+						std::vector<u8>{
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x50,
+							0x0,
+						},
+						11),
+					11),
+			},
+			11)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 12,
+		std::make_shared<Instruction>(
+			Instruction::ROL,
+			Expressions{
+				std::make_shared<DirectAddress>(
+					DirectAddress::MEMORY,
+					std::make_shared<Literal>(
+						std::vector<u8>{
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x0,
+							0x50,
+							0x0,
+						},
+						12),
+					12),
+				std::make_shared<Literal>(
+					std::vector<u8>{
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x0,
+						0x5,
+					},
+					12)},
+			12)));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 13,
+		std::make_shared<Instruction>(
+			Instruction::CALL,
+			Expressions{
+				std::make_shared<Identifier>(Identifier::LABEL, "test", 13),
+			},
+			13)));
+	expected_ast.push_back(Statement(
+		Statement::LABEL,
+		Expressions{
+			std::make_shared<Identifier>(Identifier::LABEL, "test", 14),
+		},
+		14));
+	expected_ast.push_back(Statement(
+		Statement::INSTRUCTION, Expressions{}, 15,
+		std::make_shared<Instruction>(Instruction::RET, Expressions{}, 15)));
 
 	CHECK_EQ(ast.size(), expected_ast.size());
 
@@ -198,10 +367,4 @@ TEST_CASE("generate and validate AST") {
 
 		CHECK_EQ(statement.toString(1), expected.toString(1));
 	}
-
-	/*std::cout << "[\n";
-	for(const auto &statement: ast) {
-		std::cout << statement.toString(1);
-	}
-	std::cout << "]\n";*/
 }
