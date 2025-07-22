@@ -16,9 +16,9 @@ class CpuTest : public Cpu {
 
 	void newState(CpuState state) { Cpu::newState(state); }
 
-	u16 m_ioBusInput{0};
-	u16 m_ioBusOutput{0};
-	u16 m_ioBusAddress{0};
+	u16 &m_ioBusInput = Cpu::m_ioBusInput;
+	u16 &m_ioBusOutput = Cpu::m_ioBusOutput;
+	u16 &m_ioBusAddress = Cpu::m_ioBusAddress;
 };
 
 class GioDeviceTest : public GioDevice {
@@ -38,11 +38,11 @@ TEST_CASE("gio write") {
 	cpu.m_ioBusAddress = 0x7770;
 	cpu.m_ioBusOutput = 0xfeed;
 
-	cpu.iclck();
-	cpu.iclck();
-	cpu.iclck();
-	cpu.iclck();
-	cpu.iclck();
+	cpu.iclck(); /* T0 */
+	cpu.iclck(); /* T1 */
+	cpu.iclck(); /* T2 */
+	cpu.iclck(); /* T3 */
+	cpu.iclck(); /* T4 */
 
 	CHECK_EQ(test_dev->data().at(0x7770), 0xfe);
 	CHECK_EQ(test_dev->data().at(0x7771), 0xed);
@@ -60,11 +60,11 @@ TEST_CASE("gio read") {
 	cpu.newState(CpuTest::CpuState::GIO_READ);
 	cpu.m_ioBusAddress = 0x7770;
 
-	cpu.iclck();
-	cpu.iclck();
-	cpu.iclck();
-	cpu.iclck();
-	cpu.iclck();
+	cpu.iclck(); /* T0 */
+	cpu.iclck(); /* T1 */
+	cpu.iclck(); /* T2 */
+	cpu.iclck(); /* T3 */
+	cpu.iclck(); /* T4 */
 
 	REQUIRE_EQ(cpu.m_ioBusInput, 0xfeed);
 }
