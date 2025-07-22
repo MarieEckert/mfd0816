@@ -16,7 +16,7 @@ sector config
           'asm_encode',
           'emu_gio',
           'mri'
-    list str includes '.', '../asm', '../emu', '3rdparty/doctest'
+    list str includes '.', '../asm', '../emu', '../', '../3rdparty/doctest'
   end
 
   section tools
