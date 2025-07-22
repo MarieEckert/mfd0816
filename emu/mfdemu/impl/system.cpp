@@ -19,10 +19,7 @@
 #include <memory>
 #include <vector>
 
-#include <shared/log.hpp>
-
 #include <mfdemu/impl/bus/aio_device.hpp>
-#include <mfdemu/impl/bus/gio_device.hpp>
 #include <mfdemu/impl/system.hpp>
 
 namespace mfdemu::impl {

@@ -15,9 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <shared/log.hpp>
-#include <shared/panic.hpp>
-
 #include <mfdemu/impl/bus/gio_device.hpp>
 
 namespace mfdemu::impl {

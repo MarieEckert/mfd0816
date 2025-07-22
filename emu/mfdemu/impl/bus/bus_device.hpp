@@ -18,8 +18,6 @@
 #ifndef MFDEMU_IMPL_IO_DEVICE_HPP
 #define MFDEMU_IMPL_IO_DEVICE_HPP
 
-#include <shared/typedefs.hpp>
-
 namespace mfdemu::impl {
 
 template <typename BusWidthType>
