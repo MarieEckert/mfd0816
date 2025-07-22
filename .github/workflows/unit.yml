@@ -1,13 +1,13 @@
 name: mfd0816 unit tests
 
 on:
-  workflow_run:
-    workflows: ["mfd0816 static checks"]
-    types:
-      - completed
+  push:
 
 jobs:
+  static-checks:
+    uses: ./.github/workflows/static.yml
   doctest-unittest:
+    needs: static-checks
     runs-on: ubuntu-24.04
     steps:
     - name: checkout repo

@@ -1,7 +1,6 @@
 name: mfd0816 static checks
 
-on:
-  push:
+on: [workflow_call]
 
 jobs:
   build-mariebuild:
