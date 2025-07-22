@@ -79,7 +79,7 @@ std::string StatementBase::toString([[maybe_unused]] u32 indentLevel) const {
 	return "StatementBase\n";
 }
 
-const std::vector<std::shared_ptr<ExpressionBase>> &StatementBase::expressions() const {
+const Expressions &StatementBase::expressions() const {
 	return m_expressions;
 }
 
@@ -87,7 +87,7 @@ u32 StatementBase::lineno() const {
 	return m_lineno;
 }
 
-StatementBase::StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno)
+StatementBase::StatementBase(Expressions expressions, u32 lineno)
 	: m_expressions(expressions), m_lineno(lineno) {}
 
 /* class Literal */
@@ -154,10 +154,7 @@ std::string Identifier::name() const {
 
 /* class DirectAddress */
 
-DirectAddress::DirectAddress(
-	Kind kind,
-	std::shared_ptr<ExpressionBase> value_expression,
-	u32 lineno)
+DirectAddress::DirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno)
 	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS, lineno),
 	  m_kind(kind),
 	  m_valueExpression(value_expression) {
@@ -186,10 +183,7 @@ std::string DirectAddress::toString(u32 indentLevel) const {
 
 /* class IndirectAddress */
 
-IndirectAddress::IndirectAddress(
-	Kind kind,
-	std::shared_ptr<ExpressionBase> value_expression,
-	u32 lineno)
+IndirectAddress::IndirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno)
 	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS, lineno),
 	  m_kind(kind),
 	  m_valueExpression(value_expression) {
@@ -223,9 +217,10 @@ Register::Register(Kind kind, u32 lineno)
 
 Result<std::vector<u8>, AsmError> Register::resolveValue(
 	[[maybe_unused]] const ResolvalContext &resolval_context) const {
-	return Ok(std::vector<u8>{
-		static_cast<u8>(m_kind),
-	});
+	return Ok(
+		std::vector<u8>{
+			static_cast<u8>(m_kind),
+		});
 }
 
 std::optional<Register> Register::fromToken(const Token &token) {
@@ -364,10 +359,7 @@ std::optional<Instruction::Kind> Instruction::kindFromString(const std::string &
 	return res->second;
 }
 
-Instruction::Instruction(
-	Kind kind,
-	std::vector<std::shared_ptr<ExpressionBase>> expressions,
-	u32 lineno)
+Instruction::Instruction(Kind kind, Expressions expressions, u32 lineno)
 	: StatementBase(expressions, lineno), m_kind(kind) {
 	if(Instruction::isReserved(kind)) {
 		logWarning() << "Instruction constructed with reserved opcode 0x" << std::hex
@@ -485,10 +477,7 @@ std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {
 	return res->second;
 }
 
-Directive::Directive(
-	Kind kind,
-	std::vector<std::shared_ptr<ExpressionBase>> expressions,
-	u32 lineno)
+Directive::Directive(Kind kind, Expressions expressions, u32 lineno)
 	: StatementBase(expressions, lineno), m_kind(kind) {}
 
 /** @todo implement */
@@ -501,8 +490,8 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 				std::to_string(m_expressions.size()) + ")");
 		}
 
-		const std::shared_ptr<ExpressionBase> identifier_expr = m_expressions[0];
-		const std::shared_ptr<ExpressionBase> value_expr = m_expressions[1];
+		const ExpressionPtr identifier_expr = m_expressions[0];
+		const ExpressionPtr value_expr = m_expressions[1];
 
 		if(identifier_expr->kind() != ExpressionBase::IDENTIFIER) {
 			return Err(AsmError(
@@ -536,8 +525,8 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 				std::to_string(m_expressions.size()) + ")");
 		}
 
-		const std::shared_ptr<ExpressionBase> count_expr = m_expressions[0];
-		const std::shared_ptr<ExpressionBase> statement_expr = m_expressions[1];
+		const ExpressionPtr count_expr = m_expressions[0];
+		const ExpressionPtr statement_expr = m_expressions[1];
 
 		if(statement_expr->kind() != ExpressionBase::STATEMENT_EXPRESSION) {
 			shared::panic("second expression of times directive is not a statement expression");
@@ -588,7 +577,7 @@ std::string Directive::toString(u32 indentLevel) const {
 		   base_indent + "}";
 }
 
-void Directive::addExpression(std::shared_ptr<ExpressionBase> expression) {
+void Directive::addExpression(ExpressionPtr expression) {
 	m_expressions.push_back(expression);
 }
 
@@ -622,9 +611,9 @@ Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
 
 Statement::Statement(
 	Kind kind,
-	std::vector<std::shared_ptr<ExpressionBase>> expressions,
+	Expressions expressions,
 	u32 lineno,
-	std::optional<std::shared_ptr<StatementBase>> statement)
+	std::optional<StatementPtr> statement)
 	: StatementBase(expressions, lineno), m_kind(kind), m_subStatement(std::move(statement)) {
 	/* This is the result of a horrible decision and many instances of
 	 * "eh, i'll fix it later"...
@@ -695,7 +684,7 @@ std::string Statement::toString(u32 indentLevel) const {
 		   "}\n";
 }
 
-std::optional<std::shared_ptr<StatementBase>> Statement::maybeSubStatement() const {
+std::optional<StatementPtr> Statement::maybeSubStatement() const {
 	return m_subStatement;
 }
 

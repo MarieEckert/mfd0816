@@ -506,18 +506,16 @@ Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind) {
 	const Token &token = m_tokens[ix];
 	const std::vector<InstructionOperand> required_operands = InstructionOperand::operandsFor(kind);
-	const Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
-		parse_operands_result = this->tryParseOperands(ix);
+	const Result<std::pair<u32, Expressions>, AsmError> parse_operands_result =
+		this->tryParseOperands(ix);
 
 	if(parse_operands_result.isErr()) {
 		return Err(parse_operands_result.unwrapErr());
 	}
 
-	const std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>> &parse_operands_unwrapped =
-		parse_operands_result.unwrap();
+	const std::pair<u32, Expressions> &parse_operands_unwrapped = parse_operands_result.unwrap();
 
-	const std::vector<std::shared_ptr<ExpressionBase>> &operand_expressions =
-		parse_operands_unwrapped.second;
+	const Expressions &operand_expressions = parse_operands_unwrapped.second;
 
 	if(operand_expressions.size() != required_operands.size()) {
 		return Err(AsmError(
@@ -527,40 +525,36 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	}
 
 	const auto given_operands =
-		map(operand_expressions,
-			[](std::shared_ptr<ExpressionBase> expr) -> InstructionOperand::Kind {
-				switch(expr->kind()) {
-				case ExpressionBase::DIRECT_ADDRESS: {
-					const DirectAddress *tmp_directaddress =
-						dynamic_cast<DirectAddress *>(expr.get());
-					if(tmp_directaddress == nullptr) {
-						shared::panic("could not cast ExpressionBase to DirectAddress in map func");
-					}
-					return tmp_directaddress->kind() == DirectAddress::MEMORY
-							   ? InstructionOperand::DIRECT
-							   : InstructionOperand::REGISTER_DIRECT;
+		map(operand_expressions, [](ExpressionPtr expr) -> InstructionOperand::Kind {
+			switch(expr->kind()) {
+			case ExpressionBase::DIRECT_ADDRESS: {
+				const DirectAddress *tmp_directaddress = dynamic_cast<DirectAddress *>(expr.get());
+				if(tmp_directaddress == nullptr) {
+					shared::panic("could not cast ExpressionBase to DirectAddress in map func");
 				}
-				case ExpressionBase::INDIRECT_ADDRESS: {
-					const IndirectAddress *tmp_indirectaddress =
-						dynamic_cast<IndirectAddress *>(expr.get());
-					if(tmp_indirectaddress == nullptr) {
-						shared::panic(
-							"could not cast ExpressionBase to IndirectAddress in map func");
-					}
-					return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
-							   ? InstructionOperand::DIRECT
-							   : InstructionOperand::REGISTER_DIRECT;
+				return tmp_directaddress->kind() == DirectAddress::MEMORY
+						   ? InstructionOperand::DIRECT
+						   : InstructionOperand::REGISTER_DIRECT;
+			}
+			case ExpressionBase::INDIRECT_ADDRESS: {
+				const IndirectAddress *tmp_indirectaddress =
+					dynamic_cast<IndirectAddress *>(expr.get());
+				if(tmp_indirectaddress == nullptr) {
+					shared::panic("could not cast ExpressionBase to IndirectAddress in map func");
 				}
-				case ExpressionBase::REGISTER:
-					return InstructionOperand::REGISTER_IMMEDIATE;
-				case ExpressionBase::IDENTIFIER:
-				case ExpressionBase::LITERAL:
-					return InstructionOperand::IMMEDIATE;
-				case ExpressionBase::STATEMENT_EXPRESSION:
-					shared::panic("invalid state: tryParseOperands returned a StatementExpression");
-				}
-			})
-			.to<std::vector<InstructionOperand::Kind>>();
+				return tmp_indirectaddress->kind() == IndirectAddress::MEMORY
+						   ? InstructionOperand::DIRECT
+						   : InstructionOperand::REGISTER_DIRECT;
+			}
+			case ExpressionBase::REGISTER:
+				return InstructionOperand::REGISTER_IMMEDIATE;
+			case ExpressionBase::IDENTIFIER:
+			case ExpressionBase::LITERAL:
+				return InstructionOperand::IMMEDIATE;
+			case ExpressionBase::STATEMENT_EXPRESSION:
+				shared::panic("invalid state: tryParseOperands returned a StatementExpression");
+			}
+		}).to<std::vector<InstructionOperand::Kind>>();
 
 	for(u32 operand_ix = 0; operand_ix < required_operands.size(); operand_ix++) {
 		if(required_operands[operand_ix].isAllowed(given_operands[operand_ix])) {
@@ -593,18 +587,16 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	const Token &token = m_tokens[ix];
 	const std::vector<DirectiveOperand> required_operands = DirectiveOperand::operandsFor(kind);
-	const Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
-		parse_operands_result = this->tryParseOperands(ix);
+	const Result<std::pair<u32, Expressions>, AsmError> parse_operands_result =
+		this->tryParseOperands(ix);
 
 	if(parse_operands_result.isErr()) {
 		return Err(parse_operands_result.unwrapErr());
 	}
 
-	const std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>> &parse_operands_unwrapped =
-		parse_operands_result.unwrap();
+	const std::pair<u32, Expressions> &parse_operands_unwrapped = parse_operands_result.unwrap();
 
-	const std::vector<std::shared_ptr<ExpressionBase>> &operand_expressions =
-		parse_operands_unwrapped.second;
+	const Expressions &operand_expressions = parse_operands_unwrapped.second;
 
 	if(operand_expressions.size() != required_operands.size()) {
 		return Err(AsmError(
@@ -614,21 +606,19 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	}
 
 	const auto given_operands =
-		map(operand_expressions,
-			[](std::shared_ptr<ExpressionBase> expr) -> DirectiveOperand::Kind {
-				switch(expr->kind()) {
-				case ExpressionBase::DIRECT_ADDRESS:
-				case ExpressionBase::INDIRECT_ADDRESS:
-				case ExpressionBase::REGISTER:
-					return DirectiveOperand::INVALID;
-				case ExpressionBase::IDENTIFIER:
-				case ExpressionBase::LITERAL:
-					return DirectiveOperand::IMMEDIATE;
-				case ExpressionBase::STATEMENT_EXPRESSION:
-					shared::panic("invalid state: tryParseOperands returned a StatementExpression");
-				}
-			})
-			.to<std::vector<DirectiveOperand::Kind>>();
+		map(operand_expressions, [](ExpressionPtr expr) -> DirectiveOperand::Kind {
+			switch(expr->kind()) {
+			case ExpressionBase::DIRECT_ADDRESS:
+			case ExpressionBase::INDIRECT_ADDRESS:
+			case ExpressionBase::REGISTER:
+				return DirectiveOperand::INVALID;
+			case ExpressionBase::IDENTIFIER:
+			case ExpressionBase::LITERAL:
+				return DirectiveOperand::IMMEDIATE;
+			case ExpressionBase::STATEMENT_EXPRESSION:
+				shared::panic("invalid state: tryParseOperands returned a StatementExpression");
+			}
+		}).to<std::vector<DirectiveOperand::Kind>>();
 
 	for(u32 operand_ix = 0; operand_ix < required_operands.size(); operand_ix++) {
 		if(required_operands[operand_ix].isAllowed(given_operands[operand_ix])) {
@@ -661,18 +651,15 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	return Ok(parse_operands_unwrapped.first);
 }
 
-Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
-Parser::tryParseOperands(u32 ix) {
+Result<std::pair<u32, Expressions>, AsmError> Parser::tryParseOperands(u32 ix) {
 	if(ix >= m_tokens.size()) {
-		return Ok(
-			std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(
-				ix, std::vector<std::shared_ptr<ExpressionBase>>{}));
+		return Ok(std::pair<u32, Expressions>(ix, Expressions{}));
 	}
 
 	const u32 lineno = m_tokens[ix - 1].lineno();
 	logDebug() << "parsing operands for token on line: " << lineno << "\n";
 
-	std::vector<std::shared_ptr<ExpressionBase>> expressions;
+	Expressions expressions;
 
 	/* Parse the following expressions:
 	 * 1. Identifiers
@@ -762,13 +749,13 @@ Parser::tryParseOperands(u32 ix) {
 
 			const Token &middle_token = m_tokens[ix + offset];
 			logDebug() << "recurse try parse operands, ix " << ix << "\n";
-			Result<std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>, AsmError>
-				maybe_expr = this->tryParseOperands(ix + offset);
+			Result<std::pair<u32, Expressions>, AsmError> maybe_expr =
+				this->tryParseOperands(ix + offset);
 			if(maybe_expr.isErr()) {
 				return maybe_expr;
 			}
 
-			const std::shared_ptr<ExpressionBase> expr = maybe_expr.unwrap().second[0];
+			const ExpressionPtr expr = maybe_expr.unwrap().second[0];
 			ix = maybe_expr.unwrap().first;
 
 			if(indirect) {
@@ -808,7 +795,7 @@ Parser::tryParseOperands(u32 ix) {
 	} while(ix < m_tokens.size() && m_tokens[ix].type() == Token::COMMA);
 
 	ix--; /* ix needs to be on the last "consumed" token */
-	return Ok(std::pair<u32, std::vector<std::shared_ptr<ExpressionBase>>>(ix, expressions));
+	return Ok(std::pair<u32, Expressions>(ix, expressions));
 }
 
 void Parser::addStatement(Statement statement) {

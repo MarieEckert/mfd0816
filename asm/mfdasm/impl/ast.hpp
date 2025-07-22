@@ -162,6 +162,15 @@
 
 namespace mfdasm::impl {
 
+class ExpressionBase;
+class StatementBase;
+
+using ExpressionPtr = std::shared_ptr<ExpressionBase>;
+using Expressions = std::vector<ExpressionPtr>;
+
+using StatementPtr = std::shared_ptr<StatementBase>;
+using Statements = std::vector<StatementPtr>;
+
 struct UnresolvedIdentifier {
 	std::string name;
 	usize width;
@@ -217,14 +226,14 @@ class StatementBase {
 
 	virtual std::string toString(u32 indent_level = 0) const;
 
-	const std::vector<std::shared_ptr<ExpressionBase>> &expressions() const;
+	const Expressions &expressions() const;
 
 	u32 lineno() const;
 
    protected:
-	StatementBase(std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno);
+	StatementBase(Expressions expressions, u32 lineno);
 
-	std::vector<std::shared_ptr<ExpressionBase>> m_expressions;
+	Expressions m_expressions;
 
 	u32 m_lineno;
 };
@@ -274,7 +283,7 @@ class DirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	DirectAddress(Kind kind, std::shared_ptr<ExpressionBase> value_expression, u32 lineno);
+	DirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -286,7 +295,7 @@ class DirectAddress : public ExpressionBase {
    private:
 	Kind m_kind;
 
-	std::shared_ptr<ExpressionBase> m_valueExpression;
+	ExpressionPtr m_valueExpression;
 };
 
 class IndirectAddress : public ExpressionBase {
@@ -296,7 +305,7 @@ class IndirectAddress : public ExpressionBase {
 		REGISTER,
 	};
 
-	IndirectAddress(Kind kind, std::shared_ptr<ExpressionBase> value_expression, u32 lineno);
+	IndirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -308,7 +317,7 @@ class IndirectAddress : public ExpressionBase {
    private:
 	Kind m_kind;
 
-	std::shared_ptr<ExpressionBase> m_valueExpression;
+	ExpressionPtr m_valueExpression;
 };
 
 class Register : public ExpressionBase {
@@ -435,7 +444,7 @@ class Instruction : public StatementBase {
 
 	static std::optional<Kind> kindFromString(const std::string &str);
 
-	Instruction(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno);
+	Instruction(Kind kind, Expressions expressions, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> toBytes(ResolvalContext &resolval_context) const override;
 
@@ -458,13 +467,13 @@ class Directive : public StatementBase {
 
 	static std::optional<Kind> kindFromToken(Token::Type type);
 
-	Directive(Kind kind, std::vector<std::shared_ptr<ExpressionBase>> expressions, u32 lineno);
+	Directive(Kind kind, Expressions expressions, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> toBytes(ResolvalContext &resolval_context) const override;
 
 	std::string toString(u32 indent_level = 0) const override;
 
-	void addExpression(std::shared_ptr<ExpressionBase> expression);
+	void addExpression(ExpressionPtr expression);
 
    private:
 	Result<std::vector<u8>, AsmError> handleDefineNumberLiteral(
@@ -497,9 +506,9 @@ class Statement : public StatementBase {
 	 */
 	Statement(
 		Kind kind,
-		std::vector<std::shared_ptr<ExpressionBase>> expressions,
+		Expressions expressions,
 		u32 lineno,
-		std::optional<std::shared_ptr<StatementBase>> statement = std::nullopt);
+		std::optional<StatementPtr> statement = std::nullopt);
 
 	~Statement() = default;
 
@@ -513,12 +522,12 @@ class Statement : public StatementBase {
 
 	std::string toString(u32 indent_level = 0) const override;
 
-	std::optional<std::shared_ptr<StatementBase>> maybeSubStatement() const;
+	std::optional<StatementPtr> maybeSubStatement() const;
 
    private:
 	Kind m_kind;
 
-	std::optional<std::shared_ptr<StatementBase>> m_subStatement;
+	std::optional<StatementPtr> m_subStatement;
 };
 
 class StatementExpression : public ExpressionBase {

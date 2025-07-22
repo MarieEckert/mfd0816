@@ -106,8 +106,9 @@ void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 		.magic = {MRI_MAGIC},
 		.version = MRI_VERSION,
 		.type = 0,
-		.filesize = BIGENDIAN32(static_cast<u32>(
-			section_list.back()->offset + section_list.back()->data.size() + sizeof(Header))),
+		.filesize = BIGENDIAN32(
+			static_cast<u32>(
+				section_list.back()->offset + section_list.back()->data.size() + sizeof(Header))),
 		.data_offset = BIGENDIAN32(sizeof(Header))};
 
 	outfile.write(reinterpret_cast<char *>(&header), sizeof(header));

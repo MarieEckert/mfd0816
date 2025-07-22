@@ -84,7 +84,36 @@ sector targets
 end
 
 sector c_rules
+  section unit_depends
+    str build_type 'full'
+    str exec_mode 'singular'
+    bool parallel true
+    u8 max_procs 8
+
+    str input_src '/config/files/unit_tests'
+
+    str input_format '$(/config/files/unit_tests_src)$(%element%).cpp'
+    str output_format '$(/config/files/obj_dir)unit_$(%element%)'
+
+    str exec '#!/bin/bash
+              if [ "$(%input%)" -nt "$(%output%)" ]; then
+                exit
+              fi
+
+              FILES="\$($(/config/tools/cc) $(/config/tools/cflags) $(%input%) -MM | cut -d'':'' -f2 - | sed ''s/\\\\//'')"
+              for f in $FILES; do
+                if [ "$f" -nt "$(%input%)" ]; then
+                  echo "  $(%input%) needs rebuild, dependency is newer"
+                  touch "$(%input%)"
+                  break
+                fi
+              done
+    '
+  end
+
   section unit_compile
+    list str c_rules 'unit_depends'
+
     str exec_mode 'singular'
     bool parallel true
     u8 max_procs 3
