@@ -22,15 +22,15 @@
 
 namespace mfdemu::impl {
 
-template <typename BusWidth>
+template <typename BusWidthType>
 class BaseBusDevice {
    public:
 	virtual ~BaseBusDevice() = default;
 
 	virtual void clck() = 0;
 
-	bool mode;
-	BusWidth io;
+	bool mode{false};
+	BusWidthType io;
 };
 
 }  // namespace mfdemu::impl

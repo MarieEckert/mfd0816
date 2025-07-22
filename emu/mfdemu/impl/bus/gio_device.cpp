@@ -22,10 +22,6 @@
 
 namespace mfdemu::impl {
 
-GioDevice::GioDevice(bool read_only, usize size) : m_readOnly(read_only) {
-	m_data.resize(size);
-}
-
 void GioDevice::clck() {
 	switch(m_step) {
 	case 0: /* T0 */
@@ -44,48 +40,28 @@ void GioDevice::clck() {
 		break;
 	case 2: /* T2 */
 		m_address |= io;
-
-		logDebug() << "write to address now: " << ((u64)m_address) << "\n";
 		m_write = mode;
 		m_step = 3;
 		break;
 	case 3: /* T3 */
 		if(m_write) {
-			if(m_readOnly) {
-				m_step = 0;
-				break;
-			}
-
-			if(m_address >= m_data.size() || m_address + 1 >= m_data.size()) { /* discard */
-				m_step = 0;
-				break;
-			}
-
-			logDebug() << "write first halve now: " << ((u64)io) << "\n";
-			m_data[m_address] = io;
+			write(m_address, io, false);
 		} else {
-			io = m_address >= m_data.size() || m_address + 1 >= m_data.size() ? 0
-																			  : m_data[m_address];
+			io = read(m_address, false);
 		}
 
 		m_step = 4;
 		break;
 	case 4: /* T4 */
 		if(m_write) {
-			logDebug() << "write second halve now: " << ((u64)io) << "\n";
-			m_data[m_address + 1] = io;
+			write(m_address, io, true);
 		} else {
-			io = m_data[m_address + 1];
-			break;
+			io = read(m_address, true);
 		}
 
 		m_step = 0;
 		break;
 	}
-}
-
-void GioDevice::setData(std::vector<u8> data) {
-	m_data = data;
 }
 
 }  // namespace mfdemu::impl

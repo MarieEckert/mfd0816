@@ -45,9 +45,6 @@ void System::run() {
 	u64 cycles = 0;
 #endif
 
-	auto testDevice = std::make_shared<GioDevice>(false, 0xffff);
-	m_cpu.connectIoDevice(testDevice);
-
 	/* trigger reset */
 	m_cpu.reset = true;
 	m_cpu.iclck();

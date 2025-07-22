@@ -18,8 +18,6 @@
 #ifndef MFDEMU_IMPL_GIO_DEVICE_HPP
 #define MFDEMU_IMPL_GIO_DEVICE_HPP
 
-#include <vector>
-
 #include <shared/typedefs.hpp>
 
 #include <mfdemu/impl/bus/bus_device.hpp>
@@ -28,20 +26,17 @@ namespace mfdemu::impl {
 
 class GioDevice : public BaseBusDevice<u8> {
    public:
-	GioDevice(bool read_only, usize size);
+	GioDevice() = default;
 	void clck() override;
 
-	void setData(std::vector<u8> data);
-
    protected:
+	virtual void write(u16 address, u8 value, bool low) = 0;
+	virtual u8 read(u16 address, bool low) = 0;
+
 	/** internal state */
 	u8 m_step{0};
-	u32 m_address;
-	bool m_write;
-
-	/** data */
-	bool m_readOnly;
-	std::vector<u8> m_data;
+	u16 m_address{0};
+	bool m_write{false};
 };
 
 }  // namespace mfdemu::impl

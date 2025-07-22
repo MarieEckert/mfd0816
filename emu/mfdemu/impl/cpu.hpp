@@ -55,10 +55,8 @@ class Cpu {
    public:
 	void iclck();
 
-	u16 aio;
-	u8 gio;
-	bool irq;
-	bool reset;
+	bool irq{false};
+	bool reset{false};
 	inline bool ams() const { return m_pinAMS; }
 	inline bool gms() const { return m_pinGMS; }
 	inline bool clk() const { return m_pinCLK; }

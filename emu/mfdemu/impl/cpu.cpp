@@ -1380,14 +1380,14 @@ void Cpu::printFetchedInstruction() const {
 			   << "\t\t-> direct: " << std::to_string(m_operand1.mode.direct) << "\n"
 			   << "\t\t-> indirect: " << std::to_string(m_operand1.mode.indirect) << "\n"
 			   << "\t\t-> relative: " << std::to_string(m_operand1.mode.relative) << "\n"
-			   << "\t\t-> immediate: " << std::to_string(m_operand1.mode.immediate) << "\n"
+			   << "\t\t-> immediate: " << std::to_string(m_operand1.mode.immediate) << "\n\t}\n"
 			   << "\t-> Operand 2: value = 0x" << static_cast<u32>(m_operand2.value)
 			   << ", addressing mode {\n"
 			   << "\t\t-> is_register: " << std::to_string(m_operand2.mode.is_register) << "\n"
 			   << "\t\t-> direct: " << std::to_string(m_operand2.mode.direct) << "\n"
 			   << "\t\t-> indirect: " << std::to_string(m_operand2.mode.indirect) << "\n"
 			   << "\t\t-> relative: " << std::to_string(m_operand2.mode.relative) << "\n"
-			   << "\t\t-> immediate: " << std::to_string(m_operand2.mode.immediate) << "\n";
+			   << "\t\t-> immediate: " << std::to_string(m_operand2.mode.immediate) << "\n\t}\n";
 }
 
 }  // namespace mfdemu::impl
