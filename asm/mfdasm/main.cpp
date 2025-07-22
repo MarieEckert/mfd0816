@@ -47,6 +47,8 @@ using namespace mfdasm;
 }
 
 int main(int argc, char **argv) {
+	shared::program_name = "mfdasm";
+
 	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
 	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
 	shared::cli::Argument<bool> arg_print_ast("-a", "--ast", true);

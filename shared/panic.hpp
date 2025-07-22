@@ -22,6 +22,8 @@
 
 namespace shared {
 
+extern std::string program_name;
+
 /**
  * @brief Function used to (nearly) immediatly exit the program in case
  * something goes wrong. Will print the given error message alongside a
@@ -30,6 +32,6 @@ namespace shared {
  */
 [[noreturn]] void panic(const std::string &error);
 
-}  // namespace shared
+} // namespace shared
 
 #endif
