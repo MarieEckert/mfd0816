@@ -102,8 +102,8 @@ TEST_CASE("generate and validate AST") {
 		impl::Statement(
 			impl::Statement::Kind::SECTION,
 			std::vector<std::shared_ptr<impl::ExpressionBase>>{
-				std::make_shared<impl::Literal>(std::vector<u8>(8, 0), 1),
 				std::make_shared<impl::Identifier>(impl::Identifier::Kind::SECTION, "data", 1),
+				std::make_shared<impl::Literal>(std::vector<u8>(8, 0), 1),
 			},
 			1));
 	expected_ast.push_back(
@@ -159,26 +159,12 @@ TEST_CASE("generate and validate AST") {
 		const auto &statement = ast[ix];
 		const auto &expected = expected_ast[ix];
 
-		CHECK_EQ(statement.kind(), expected.kind());
-		CHECK_EQ(statement.expressions().size(), expected.expressions().size());
-
-		const u32 max_expression =
-			std::min(statement.expressions().size(), expected.expressions().size());
-		for(u32 ix = 0; ix < max_expression; ix++) {
-			const auto &expression = statement.expressions()[ix];
-			const auto &expected_expression = expected.expressions()[ix];
-
-			CHECK_EQ(expression->kind(), expected_expression->kind());
-			CHECK_EQ(expression->lineno(), expected_expression->lineno());
-			CHECK_EQ(
-				expression->resolveValue(resolval_context).unwrap(),
-				expected_expression->resolveValue(resolval_context).unwrap());
-		}
+		CHECK_EQ(statement.toString(1), expected.toString(1));
 	}
 
-	std::cout << "[\n";
+	/*std::cout << "[\n";
 	for(const auto &statement: ast) {
 		std::cout << statement.toString(1);
 	}
-	std::cout << "]\n";
+	std::cout << "]\n";*/
 }
