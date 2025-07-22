@@ -1,13 +1,11 @@
-name: mfd0816 unit tests
+name: mfd0816 static checks
 
 on:
-  workflow_run:
-    workflows: ["mfd0816 static checks"]
-    types:
-      - completed
+  push:
 
 jobs:
-  doctest-unittest:
+  build-mariebuild:
+    name: Build using mariebuild
 
     runs-on: ubuntu-24.04
 
@@ -27,13 +25,26 @@ jobs:
        bash ./setup.bash || exit 2
        bash ./build.bash --release || exit 3
        sudo cp build/release/mb /usr/local/bin/
-    - name: build tests
+    - name: build mfdasm
       run: |
-       cd tests
-       mb -t build
-    - name: run tests
+       cd asm
+       mb || exit 1
+       mb -t release || exit 2
+    - name: build mfdemu
       run: |
-       cd tests
-       mb -t run --keep-going
-      env:
-        TESTS_CAPTURE: yes
+       cd emu
+       mb || exit 1
+       mb -t release || exit 2
+
+  build-cmake:
+    name: Build using cmake
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: build
+        uses: threeal/cmake-action@v2.1.0
