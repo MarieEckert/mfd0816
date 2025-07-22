@@ -58,7 +58,7 @@ void AioDevice::clck() {
 			}
 
 			if(m_address == 0x5000) { /* debug thingy */
-				logInfo() << "write to 0x5000 , value = " << std::bitset<16>(io).to_string()
+				logInfo() << "write to 0x5000 , value = 0b" << std::bitset<16>(io).to_string()
 						  << "\n";
 			}
 
