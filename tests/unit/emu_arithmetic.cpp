@@ -104,23 +104,8 @@ std::shared_ptr<AioTestDevice> prepareTestDevice(const std::vector<u8> &code) {
 	return dev;
 }
 
-template <typename IntType>
-IntType random() {
-	std::random_device rd;
-	auto seed_data = std::array<int, std::mt19937::state_size>{};
-	std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
-	std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
-	std::mt19937 generator(seq);
-	std::uniform_int_distribution<IntType> dis(
-		std::numeric_limits<IntType>::min(), std::numeric_limits<IntType>::max());
-	return dis(generator);
-}
-
-TEST_CASE("div") {
+void divTest(u32 dividend, u16 divisor) {
 	CpuTest cpu;
-
-	const u32 dividend = random<u32>();
-	const u16 divisor = random<u16>();
 
 	const u16 ar_expected = dividend / divisor;
 	const u16 acl_expected = dividend % divisor;
@@ -150,11 +135,14 @@ TEST_CASE("div") {
 	REQUIRE_EQ(cpu.m_regACL, acl_expected);
 }
 
-TEST_CASE("idiv") {
-	CpuTest cpu;
+TEST_CASE("div") {
+	divTest(100, 10);
+	divTest(UINT16_MAX, 2);
+	divTest(UINT32_MAX, 2);
+}
 
-	const i32 dividend = random<i32>();
-	const i16 divisor = random<i16>();
+void idivTest(i32 dividend, i16 divisor) {
+	CpuTest cpu;
 
 	const i16 ar_expected = dividend / divisor;
 	const i16 acl_expected = dividend % divisor;
@@ -182,6 +170,21 @@ TEST_CASE("idiv") {
 
 	CHECK_EQ(static_cast<i16>(cpu.m_regAR), ar_expected);
 	CHECK_EQ(static_cast<i16>(cpu.m_regACL), acl_expected);
+}
+
+TEST_CASE("idiv") {
+	idivTest(100, 10);
+	idivTest(-100, 10);
+	idivTest(-100, -10);
+	idivTest(100, -10);
+	idivTest(INT16_MAX, 2);
+	idivTest(INT16_MIN, 2);
+	idivTest(INT16_MIN, -2);
+	idivTest(INT16_MAX, -2);
+	idivTest(INT32_MAX, 2);
+	idivTest(INT32_MIN, 2);
+	idivTest(INT32_MIN, -2);
+	idivTest(INT32_MAX, -2);
 }
 
 void mulTest(u16 factor1, u16 factor2) {
