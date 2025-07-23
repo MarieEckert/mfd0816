@@ -765,10 +765,9 @@ void Cpu::execInstDIV() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
 	CALCULATE:
 		const u32 dividend = (static_cast<u32>(m_regACL) << 16) | m_regAR;
-		const u32 tmp = dividend / static_cast<u32>(m_stash1);
-		const u16 tmp_lo = static_cast<u16>(tmp & 0xFFFF);
+		const u16 tmp = dividend / m_stash1;
 
-		m_regAR = tmp_lo;
+		m_regAR = tmp;
 		m_regACL = dividend % m_stash1;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
@@ -782,10 +781,9 @@ void Cpu::execInstIDIV() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
 	CALCULATE:
 		const i32 dividend = (static_cast<i32>(m_regACL) << 16) | m_regAR;
-		const i32 tmp = dividend / static_cast<i32>(m_stash1);
-		const u16 tmp_lo = static_cast<u16>(tmp & 0xFFFF);
+		const i16 tmp = dividend / static_cast<i16>(m_stash1);
 
-		m_regAR = tmp_lo;
+		m_regAR = tmp;
 		m_regACL = dividend % static_cast<i16>(m_stash1);
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
