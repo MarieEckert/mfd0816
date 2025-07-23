@@ -796,17 +796,17 @@ void Cpu::execInstIMUL() {
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
 	CALCULATE:
-		const i32 tmp = static_cast<i32>(m_regAR) * static_cast<i32>(m_stash1);
-		const u16 tmp_lo = static_cast<u16>(tmp & 0xFFFF);
-		const u16 tmp_hi = static_cast<u16>((tmp >> 16) & 0xFFFF);
-		const i32 sign_extended = static_cast<i32>(static_cast<i16>(tmp_lo));
+		const i32 tmp = static_cast<i16>(m_regAR) * static_cast<i16>(m_stash1);
+		const i16 tmp_lo = static_cast<u16>(tmp & 0xFFFF);
+		const i16 tmp_hi = static_cast<u16>((tmp >> 16) & 0xFFFF);
+		const i32 sign_extended = static_cast<i32>(tmp_lo);
 
 		const bool overflowed = sign_extended != tmp;
 
 		m_regFL.of = overflowed;
 		m_regFL.cf = overflowed;
-		m_regAR = tmp_lo;
-		m_regACL = tmp_hi;
+		m_regAR = static_cast<u16>(tmp_lo);
+		m_regACL = static_cast<u16>(tmp_hi);
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
 	}
