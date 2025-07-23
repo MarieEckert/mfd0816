@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdlib>
 #include <memory>
 #include <random>
@@ -31,6 +32,7 @@ class CpuTest : public Cpu {
 	u16 &m_regSP = Cpu::m_regSP;
 	u16 &m_regIP = Cpu::m_regIP;
 	u16 &m_regAR = Cpu::m_regAR;
+	CpuFlags &m_regFL = Cpu::m_regFL;
 
 	u16 &m_ioBusInput = Cpu::m_ioBusInput;
 	u16 &m_ioBusOutput = Cpu::m_ioBusOutput;
@@ -178,6 +180,93 @@ TEST_CASE("idiv") {
 		cpu.iclck();
 	}
 
-	REQUIRE_EQ(static_cast<i16>(cpu.m_regAR), ar_expected);
-	REQUIRE_EQ(static_cast<i16>(cpu.m_regACL), acl_expected);
+	CHECK_EQ(static_cast<i16>(cpu.m_regAR), ar_expected);
+	CHECK_EQ(static_cast<i16>(cpu.m_regACL), acl_expected);
+}
+
+void mulTest(u16 factor1, u16 factor2) {
+	CpuTest cpu;
+
+	const u32 product = factor1 * factor2;
+	const u16 ar_expected = product & 0xFFFF;
+	const u16 acl_expected = product >> 16;
+	const bool of_expected = acl_expected != 0;
+	const bool cf_expected = of_expected;
+
+	cpu.m_regAR = factor1;
+
+	cpu.connectAddressDevice(prepareTestDevice({
+		OPCODE_MUL,
+		0x00,
+		static_cast<u8>((factor2 >> 8) & 0xFF),
+		static_cast<u8>(factor2 & 0xFF),
+	}));
+
+	cpu.newState(CpuTest::CpuState::INST_FETCH);
+	while(cpu.state() == CpuTest::CpuState::INST_FETCH ||
+		  cpu.state() == CpuTest::CpuState::ABUS_READ) {
+		cpu.iclck();
+	}
+
+	while(cpu.state() == CpuTest::CpuState::INST_EXEC ||
+		  cpu.state() == CpuTest::CpuState::ABUS_READ) {
+		cpu.iclck();
+	}
+
+	CHECK_EQ(static_cast<u16>(cpu.m_regAR), ar_expected);
+	CHECK_EQ(static_cast<u16>(cpu.m_regACL), acl_expected);
+	CHECK_EQ(cpu.m_regFL.of, of_expected);
+	CHECK_EQ(cpu.m_regFL.cf, cf_expected);
+}
+
+TEST_CASE("mul") {
+	mulTest(100, 10);
+	mulTest(UINT16_MAX, 10);
+}
+
+void imulTest(i16 factor1, i16 factor2) {
+	CpuTest cpu;
+
+	const i32 product = factor1 * factor2;
+
+	const i16 ar_expected = product & 0xFFFF;
+	const i16 acl_expected = (product >> 16) & 0xFFFF;
+	const bool of_expected = static_cast<i32>(ar_expected) != product;
+	const bool cf_expected = of_expected;
+
+	cpu.m_regAR = factor1;
+
+	cpu.connectAddressDevice(prepareTestDevice({
+		OPCODE_IMUL,
+		0x00,
+		static_cast<u8>((factor2 >> 8) & 0xFF),
+		static_cast<u8>(factor2 & 0xFF),
+	}));
+
+	cpu.newState(CpuTest::CpuState::INST_FETCH);
+	while(cpu.state() == CpuTest::CpuState::INST_FETCH ||
+		  cpu.state() == CpuTest::CpuState::ABUS_READ) {
+		cpu.iclck();
+	}
+
+	while(cpu.state() == CpuTest::CpuState::INST_EXEC ||
+		  cpu.state() == CpuTest::CpuState::ABUS_READ) {
+		cpu.iclck();
+	}
+
+	CHECK_EQ(static_cast<i16>(cpu.m_regAR), ar_expected);
+	CHECK_EQ(static_cast<i16>(cpu.m_regACL), acl_expected);
+	CHECK_EQ(cpu.m_regFL.of, of_expected);
+	CHECK_EQ(cpu.m_regFL.cf, cf_expected);
+}
+
+TEST_CASE("imul") {
+	imulTest(100, 10);
+	imulTest(-100, 10);
+	imulTest(-100, -10);
+	imulTest(100, -10);
+	imulTest(INT16_MAX, 2);
+	imulTest(INT16_MIN, 2);
+	imulTest(INT16_MIN, -2);
+	imulTest(INT16_MAX, -2);
 }
