@@ -72,6 +72,25 @@ TEST_CASE("instructions: multiple parameters") {
     )"));
 }
 
+TEST_CASE("instructions: jumps") {
+	CHECK(tryParseAsm(R"(section text at 0x110
+label:
+	jmp label
+	jz label
+	je label
+	jg label
+	jge label
+	jl label
+	jle label
+	jc label
+	js label
+	jnz label
+	jne label
+	jnc label
+	jns label
+)"));
+}
+
 TEST_CASE("generate and validate AST") {
 	Assembler asem;
 	Result<None, AsmError> parse_result = asem.parseLines(R"(section data at 0x0000
