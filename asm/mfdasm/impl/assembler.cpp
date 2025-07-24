@@ -169,7 +169,7 @@ Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {
 	for(u32 ix = 0; ix < source.size(); ix++) {
 		switch(source[ix]) {
 		case ';': /* Comment */
-			ix = source.find('\n', ix) + 1;
+			ix = source.find('\n', ix);
 			lineno++;
 			break;
 		case '\'':
