@@ -30,6 +30,17 @@ bool tryParseAsm(const std::string &text) {
 	return true;
 }
 
+TEST_CASE("comments") {
+	CHECK(tryParseAsm(R"(section text at 0x1100
+; Extemplo libyae magnas it fama per urbes,
+; Fama, malum qua non aliud velocius ullum.
+; Mobilitate viget virisque adquirit eundo;
+; Parva metu primo, mox sese attollit in auras.
+; Ingrediturque solo et caput inter nubila condit.
+section data at 0xd000
+	)"));
+}
+
 TEST_CASE("instructions: no parameters") {
 	CHECK(tryParseAsm(R"(section text at 0x1100
         ret
