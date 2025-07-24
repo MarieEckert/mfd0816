@@ -812,8 +812,36 @@ void Cpu::execInstIMUL() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstIN() {}
+void Cpu::execInstIN() {
+	constexpr u8 STASH_STEP = 16;
+	constexpr u8 STORE = 32;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, READ_GIO, 0, STASH_STEP)
+	READ_GIO:
+		m_ioBusAddress = m_stash1;
+		m_stateStep = STORE;
+		newState(CpuState::GIO_READ);
+		break;
+	case STORE:
+		m_stateStep = EXEC_INST_STEP_INC_IP;
+
+		if(m_operand2.mode.immediate) {
+			if(!m_operand2.mode.is_register) {
+				shared::panic("invalid instruction");
+			}
+
+			const u8 target = (m_operand1.value & 0xFF00) >> 8;
+			setRegister(target, getRegister(target) + 1);
+			break;
+		}
+
+		m_addressBusAddress = m_operand2.value;
+		m_addressBusOutput = m_stash1;
+		newState(m_operand2.mode.direct ? CpuState::ABUS_WRITE : CpuState::ABUS_WRITE_INDIRECT);
+		break;
+	}
+}
 
 void Cpu::execInstINC() {
 	const u8 target = (m_operand1.value & 0xFF00) >> 8;
