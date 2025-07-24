@@ -1,0 +1,61 @@
+{
+	"devices": {
+		"mfd0816": {
+			"address_device": "mfd_abc16.so",
+			"gio_device": "internal:zero"
+		},
+		"internal:loaded_mri": {
+			"available_sections": [
+				{
+					"start": "0x0000",
+					"end": "0x4fff"
+				},
+				{
+					"start": "0xfffd",
+					"end": "0xffff"
+				}
+			]
+		},
+		"mfd_abc16": {
+			"devices": [
+				{
+					"name": "program",
+					"access": "r",
+					"device": "internal:loaded_mri",
+					"start": "0x0000",
+					"end": "0x4fff",
+					"normalize": false
+				},
+				{
+					"name": "ram0",
+					"access": "rw",
+					"device": "internal:zero",
+					"start": "0x5000",
+					"end": "0x7fff"
+				},
+				{
+					"name": "mfd_bmg",
+					"access": "rw",
+					"device": "mfd_bmg.so",
+					"start": "0x8000",
+					"end": "0x8fff"
+				},
+				{
+					"name": "ram1",
+					"access": "rw",
+					"device": "internal:zero",
+					"start": "0x9000",
+					"end": "0xfffc"
+				},
+				{
+					"name": "vectors",
+					"access": "r",
+					"device": "internal:zero",
+					"start": "0xfffd",
+					"end": "0xffff",
+					"normalize": false
+				}
+			]
+		}
+	}
+}
