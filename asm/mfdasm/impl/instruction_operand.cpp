@@ -176,6 +176,13 @@ const std::unordered_map<Instruction::Kind, std::vector<InstructionOperand>>
 				 InstructionOperand::INDIRECT,
 				 InstructionOperand::REGISTER_INDIRECT,
 			 }),
+			 InstructionOperand({
+				 InstructionOperand::REGISTER_IMMEDIATE,
+				 InstructionOperand::DIRECT,
+				 InstructionOperand::REGISTER_DIRECT,
+				 InstructionOperand::INDIRECT,
+				 InstructionOperand::REGISTER_INDIRECT,
+			 }),
 		 }},
 		{Instruction::INC,
 		 {
