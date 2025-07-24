@@ -16,13 +16,49 @@
  */
 
 #include <cassert>
+#include <iostream>
 #include <memory>
+#include <termios.h>
 #include <vector>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <mfdemu/impl/bus/aio_device.hpp>
+#include <mfdemu/impl/bus/gio_device.hpp>
 #include <mfdemu/impl/system.hpp>
 
 namespace mfdemu::impl {
+
+class Terminal : public GioDevice {
+   public:
+	Terminal() : GioDevice() {
+		struct termios attr;
+		tcgetattr(STDIN_FILENO, &attr);
+		attr.c_lflag &= ~(ICANON | ECHO);
+		tcsetattr(STDIN_FILENO, TCSANOW, &attr);
+	}
+
+   protected:
+	void write(u16 address, u8 value, bool low) override {
+		if(address != 0x1000 || low) {
+			return;
+		}
+
+		std::cout << value;
+	}
+
+	u8 read(u16 address, bool low) override {
+		if(address != 0x1000 || low) {
+			return 0;
+		}
+
+		u8 in[1];
+		usize n = ::read(STDIN_FILENO, in, 1);
+
+		return n > 0 ? in[0] : 0;
+	}
+};
 
 System::System(u32 cycle_span, u16 main_memory_size)
 	: m_cycleSpan(cycle_span), m_mainMemory(std::make_shared<AioDevice>(false, main_memory_size)) {
@@ -41,6 +77,8 @@ void System::run() {
 	u64 last_speed_time = 0;
 	u64 cycles = 0;
 #endif
+
+	m_cpu.connectIoDevice(std::make_shared<Terminal>());
 
 	/* trigger reset */
 	m_cpu.reset = true;
