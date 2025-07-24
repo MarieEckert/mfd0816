@@ -138,7 +138,7 @@ CONTENTS
   0x00 ADC <r/imm/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     Adds the value of AR with the first operand and the carry flag and stores
-    the result in AR. Sets CF on carry for unsigned math, OF on overflow for 
+    the result in AR. Sets CF on carry for unsigned math, OF on overflow for
     signed math and NF flag to indicate the sign of the signed result.
     Sets ZF if the result is 0 (AR = 0 && CF = 0 && OF = 0).
 
@@ -298,13 +298,15 @@ CONTENTS
         OF := 1;
       end
 
-  0x0c IN <r/imm/m> <r/imm/m>
+  0x0c IN <r/imm/m> <r/m>
   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     Reads in one unit of data from the I/O bus at the address indicated by
     Operand 1 and writes the result to the address indicated by Operand 2.
 
-    Both operands can be immediate, register immediate, direct, register direct,
+    Operand 1 can be immediate, register immediate, direct, register direct,
     indirect or register indirect.
+    Operand 2 can be register immediate, direct, register direct, indirect or
+    register indirect.
 
     Operation:
 
