@@ -9,19 +9,13 @@ EMULATOR PROGRESS
 
   Instruction wise the emulator is nearly completed, only missing a few
   instructions:
-    ► div
-    ► idiv
-    ► ret
     ► iret
     ► int
-    ► in
     ► bin
     ► bot
-  Besides these instructions, there is also the need for testing and a basic
-  serial interface for user interaction.
-  This project is currently on my back-burner and I don't know when I will get
-  around to finishing these TODOs, if you want to feel free to do it and submit
-  a PR!
+  Besides these instructions, the unit tests need to be expanded. After the
+  CPU is implemented and tested "enough", I plan on expanding the emulator
+  with a "device-plugin" system (more on that when I actually get to it).
 
 DOCUMENTS
 ────────────────────────────────────────────────────────────────────────────────
