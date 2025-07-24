@@ -5,12 +5,11 @@
 
 #include <shared/log.hpp>
 
+#include <mfdasm/impl/asmerror.hpp>
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/mri/section_table.hpp>
-
-#include "mfdasm/impl/asmerror.hpp"
-#include "mfdasm/impl/token.hpp"
+#include <mfdasm/impl/token.hpp>
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS
