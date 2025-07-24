@@ -831,13 +831,13 @@ void Cpu::execInstIN() {
 				shared::panic("invalid instruction");
 			}
 
-			const u8 target = (m_operand1.value & 0xFF00) >> 8;
-			setRegister(target, getRegister(target) + 1);
+			const u8 target = (m_operand2.value & 0xFF00) >> 8;
+			setRegister(target, m_ioBusInput);
 			break;
 		}
 
 		m_addressBusAddress = m_operand2.value;
-		m_addressBusOutput = m_stash1;
+		m_addressBusOutput = m_ioBusInput;
 		newState(m_operand2.mode.direct ? CpuState::ABUS_WRITE : CpuState::ABUS_WRITE_INDIRECT);
 		break;
 	}
@@ -1096,7 +1096,7 @@ void Cpu::execInstOUT() {
 		}
 	case WRITE_VALUE:
 		m_ioBusAddress = m_stash2;
-		m_ioBusOutput = m_stash1;
+		m_ioBusOutput = m_operand1.mode.immediate ? m_stash1 : m_addressBusInput;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		newState(CpuState::GIO_WRITE);
 		break;
