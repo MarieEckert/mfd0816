@@ -62,9 +62,17 @@ void Logger::stringSetLogLevel(const std::string &level) {
 	setLogLevel(iter->second);
 }
 
+class VoidBuffer : public std::streambuf {
+   public:
+	int overflow(int c) override { return c; }
+};
+
+static VoidBuffer void_buffer;
+static std::ostream void_stream(&void_buffer);
+
 std::ostream &Logger::getStream(Level level) {
-	static std::ofstream void_stream("/dev/null");
 	if(level < _log_level) {
+		std::cout << std::flush;
 		return void_stream;
 	}
 
