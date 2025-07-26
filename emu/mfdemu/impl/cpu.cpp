@@ -713,13 +713,13 @@ void Cpu::execInstBIN() {
 	GET_OPERAND2:
 		if(m_operand2.mode.indirect) {
 			m_addressBusAddress = m_operand2.mode.is_register
-									  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									  ? getRegister((m_operand2.value & 0xFF00) >> 8)
 									  : m_operand2.value;
 			m_stateStep = STASH_OPERAND2;
 			newState(CpuState::ABUS_READ);
 			break;
 		}
-		m_stash2 = m_operand2.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
+		m_stash2 = m_operand2.mode.is_register ? getRegister((m_operand2.value & 0xFF00) >> 8)
 											   : m_operand2.value;
 		goto READ_LOOP;
 	case STASH_OPERAND2:
