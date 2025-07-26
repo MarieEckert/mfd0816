@@ -11,8 +11,6 @@ EMULATOR PROGRESS
   instructions:
     ► iret
     ► int
-    ► bin
-    ► bot
   Besides these instructions, the unit tests need to be expanded. After the
   CPU is implemented and tested "enough", I plan on expanding the emulator
   with a "device-plugin" system (more on that when I actually get to it).
