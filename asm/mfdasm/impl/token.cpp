@@ -39,7 +39,6 @@ static const std::unordered_map<Token::Type, u8> register_value_map = {
 static const std::unordered_map<std::string, Token::Type> name_value_map = {
 	{"end_of_file", Token::Type::END_OF_FILE},
 	{"unknown", Token::Type::UNKNOWN},
-	{"label", Token::Type::LABEL},
 	{"comma", Token::Type::COMMA},
 	{"single_quote", Token::Type::SINGLE_QUOTE},
 	{"double_quote", Token::Type::DOUBLE_QUOTE},
