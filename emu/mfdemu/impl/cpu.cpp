@@ -754,8 +754,57 @@ void Cpu::execInstBIN() {
 	}
 }
 
-/** @todo: implement */
-void Cpu::execInstBOT() {}
+void Cpu::execInstBOT() {
+	constexpr u8 STASH_OPERAND1 = 16;
+	constexpr u8 STASH_OPERAND2 = 20;
+	constexpr u8 READ_LOOP = 24;
+	constexpr u8 STORE = 32;
+
+	switch(m_stateStep) {
+		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, GET_OPERAND2, 0, STASH_OPERAND1)
+	GET_OPERAND2:
+		if(m_operand1.mode.indirect) {
+			m_addressBusAddress = m_operand1.mode.is_register
+									  ? getRegister((m_operand1.value & 0xFF00) >> 8)
+									  : m_operand1.value;
+			m_stateStep = STASH_OPERAND2;
+			newState(CpuState::ABUS_READ);
+			break;
+		}
+		m_stash2 = m_operand1.mode.is_register ? getRegister((m_operand1.value & 0xFF00) >> 8)
+											   : m_operand1.value;
+		goto READ_LOOP;
+	case STASH_OPERAND2:
+		m_stash2 = m_addressBusInput;
+	case READ_LOOP:
+	READ_LOOP:
+		m_addressBusAddress = m_stash1;
+		m_stateStep = STORE;
+		newState(CpuState::ABUS_READ);
+		break;
+	case STORE:
+		m_stash1 += 2;
+		setRegister(REGISTER_AL, GET_LOW(m_regACL) - 1);
+		m_stateStep = (GET_LOW(m_regACL) == 0) ? EXEC_INST_STEP_INC_IP : READ_LOOP;
+
+		if(m_operand1.mode.immediate) {
+			if(!m_operand1.mode.is_register) {
+				shared::panic("invalid instruction");
+			}
+
+			logDebug() << "store value to register\n";
+			const u8 target = (m_operand1.value & 0xFF00) >> 8;
+			setRegister(target, m_addressBusInput);
+			break;
+		}
+
+		m_ioBusAddress = m_stash2;
+		m_stash2 += 2;
+		m_ioBusOutput = m_addressBusInput;
+		newState(CpuState::ABUS_WRITE);
+		break;
+	}
+}
 
 void Cpu::execInstCALL() {
 	constexpr u8 MOVE_TO_STASH = 16;
