@@ -77,6 +77,16 @@ void Cpu::iclck() {
 	case CpuState::RESET:
 		this->execReset();
 		break;
+	case CpuState::HARD_INTERRUPT:
+		this->execHardInterrupt();
+		break;
+	case CpuState::INTERRUPT:
+		this->execInterrupt();
+		break;
+	}
+
+	if(irq && m_regFL.ie) {
+		newState(CpuState::HARD_INTERRUPT);
 	}
 }
 
@@ -409,11 +419,14 @@ void Cpu::fetchInst() {
 
 constexpr u8 EXEC_INST_STEP_INC_IP = 255;
 
-#define NEXT_IP_VALUE                                  \
-	m_regIP + 2 +                                      \
-		(INSTRUCTION_OPERAND_COUNT[m_instruction] == 1 \
-			 ? (m_operand1.mode.is_register ? 1 : 2)   \
-			 : (m_operand1.mode.is_register ? 1 : 2) + (m_operand2.mode.is_register ? 1 : 2))
+#define NEXT_IP_VALUE                                            \
+	m_regIP + 2 +                                                \
+		(INSTRUCTION_OPERAND_COUNT[m_instruction] != 0           \
+			 ? (INSTRUCTION_OPERAND_COUNT[m_instruction] == 1    \
+					? (m_operand1.mode.is_register ? 1 : 2)      \
+					: (m_operand1.mode.is_register ? 1 : 2) +    \
+						  (m_operand2.mode.is_register ? 1 : 2)) \
+			 : 0)
 
 void Cpu::execInst() {
 	if(m_stateStep == EXEC_INST_STEP_INC_IP) {
@@ -510,6 +523,53 @@ void Cpu::execReset() {
 		logDebug() << "\nreset, IP = " << std::hex << m_regIP << std::dec << "\n";
 
 		finishState();
+		break;
+	}
+}
+
+void Cpu::execHardInterrupt() {
+	switch(m_stateStep) {
+	case 0:
+		logDebug() << "starting interrupt acknowledge\n";
+		m_pinIRA = true;
+		m_stateStep = 1;
+		break;
+	case 1:
+		logDebug() << "setting IID\n";
+		m_regIID = m_ioBusInput & 0xFF;
+		m_stateStep = 2;
+		break;
+	case 2:
+		logDebug() << "terminated interrupt acknowledge\n";
+		m_pinIRA = false;
+		finishState();
+		newState(CpuState::INTERRUPT);
+		break;
+	}
+}
+
+void Cpu::execInterrupt() {
+	switch(m_stateStep) {
+	case 0:
+		logDebug() << "saving IP\n";
+		m_regSP -= 2;
+		m_addressBusAddress = m_regSP;
+		m_addressBusOutput = m_regIP;
+		m_stateStep = 1;
+		newState(CpuState::ABUS_WRITE);
+		break;
+	case 1:
+		logDebug() << "reading interrupt vector\n";
+		m_addressBusAddress = INTERRUPT_VECTOR;
+		m_stateStep = 2;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 2:
+		logDebug() << "entering interrupt vector\n";
+		m_regIP = m_addressBusInput;
+		m_regFL.ie = false;
+		finishState();
+		newState(CpuState::INST_FETCH);
 		break;
 	}
 }

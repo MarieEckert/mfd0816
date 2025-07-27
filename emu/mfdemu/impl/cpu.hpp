@@ -28,6 +28,7 @@
 namespace mfdemu::impl {
 
 constexpr u16 RESET_VECTOR = 0xfffe;
+constexpr u16 INTERRUPT_VECTOR = RESET_VECTOR - 2;
 
 struct CpuFlags {
 	bool of;
@@ -77,6 +78,8 @@ class Cpu {
 		INST_EXEC,
 		INST_FETCH,
 		RESET,
+		HARD_INTERRUPT,
+		INTERRUPT,
 	};
 
 	/** general operations */
@@ -89,6 +92,8 @@ class Cpu {
 	void fetchInst();
 	void execInst();
 	void execReset();
+	void execHardInterrupt();
+	void execInterrupt();
 
 	/** instructions */
 
