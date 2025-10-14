@@ -10,16 +10,11 @@ jobs:
     needs: static-checks
     runs-on: ubuntu-24.04
     steps:
-    - name: checkout repo
-      uses: actions/checkout@v4
+    - name: get built tests
+      uses: actions/download-artifact@v5
       with:
-        submodules: 'true'
-    - uses: ./.github/actions/depend
-    - name: build
-      uses: threeal/cmake-action@v2.1.0
-      with:
-          build-args: -j
-          build-dir: build
+        name: built-tests
+        path: build/test/
     - name: run
       run: |
         cd build
