@@ -512,7 +512,7 @@ class Statement : public StatementBase {
 
 	~Statement() = default;
 
-	Statement(Statement &x);
+	Statement(const Statement &x);
 
 	Statement(Statement &&x);
 

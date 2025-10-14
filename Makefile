@@ -10,3 +10,9 @@ run-tests:
 .PHONY: tidy
 tidy:
 	find emu asm shared -type f | grep "\.\(hpp\|cpp\)$" | xargs -n 1 -I {} -P "$(shell nproc)" clang-tidy -p build "{}"
+.PHONY: setup-clang
+setup-clang:
+	cmake -B build/ -DCMAKE_CXX_COMPILER="clang++"
+.PHONY: setup-gcc
+setup-gcc:
+	cmake -B build/ -DCMAKE_CXX_COMPILER="g++"

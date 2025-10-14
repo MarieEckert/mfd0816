@@ -21,6 +21,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -152,12 +153,12 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 	return Ok(section_table);
 }
 
-std::optional<std::vector<Statement>> Assembler::ast() const {
+std::optional<std::vector<Statement>> Assembler::ast() {
 	if(m_ast.empty()) {
 		return std::nullopt;
 	}
 
-	return m_ast;
+	return std::optional<std::vector<Statement>>{m_ast};
 }
 
 /* class Lexer */
@@ -553,6 +554,8 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 				return InstructionOperand::IMMEDIATE;
 			case ExpressionBase::STATEMENT_EXPRESSION:
 				shared::panic("invalid state: tryParseOperands returned a StatementExpression");
+			default:
+				shared::panic("invalid state: tryParseOperands returned an unknown expression");
 			}
 		}).to<std::vector<InstructionOperand::Kind>>();
 
@@ -617,6 +620,8 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 				return DirectiveOperand::IMMEDIATE;
 			case ExpressionBase::STATEMENT_EXPRESSION:
 				shared::panic("invalid state: tryParseOperands returned a StatementExpression");
+			default:
+				shared::panic("invalid state: tryParseOperands returned an invalid expression");
 			}
 		}).to<std::vector<DirectiveOperand::Kind>>();
 

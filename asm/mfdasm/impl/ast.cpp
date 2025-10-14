@@ -626,7 +626,7 @@ Statement::Statement(
 	}
 }
 
-Statement::Statement(Statement &x)
+Statement::Statement(const Statement &x)
 	: StatementBase(x.m_expressions, x.m_lineno),
 	  m_kind(x.m_kind),
 	  m_subStatement(x.m_subStatement) {}
@@ -640,13 +640,13 @@ Statement::Kind Statement::kind() const {
 	return m_kind;
 }
 
-/** @todo implement */
 Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_context) const {
 	switch(m_kind) {
 	case Statement::LABEL:
 		resolval_context.identifiers.emplace(
 			static_pointer_cast<Identifier>(m_expressions[0])->name(),
 			shared::intops::u64ToBytes(resolval_context.currentAddress));
+		[[fallthrough]];
 	case Statement::ADDRESSING_ABSOLUTE:
 	case Statement::ADDRESSING_RELATIVE:
 	case Statement::SECTION:
@@ -662,6 +662,8 @@ Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_c
 			shared::panic("toBytes() called on Statement of kind DIRECTIVE without sub-statement");
 		}
 		return static_pointer_cast<Directive>(m_subStatement.value())->toBytes(resolval_context);
+	default:
+		shared::panic("invalid statement kind");
 	}
 }
 

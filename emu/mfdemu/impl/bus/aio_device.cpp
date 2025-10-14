@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <bitset>
+
 #include <shared/log.hpp>
 
 #include <mfdemu/impl/bus/aio_device.hpp>

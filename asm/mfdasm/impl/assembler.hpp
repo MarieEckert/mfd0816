@@ -41,7 +41,7 @@ class Assembler {
 
 	Result<mri::SectionTable, AsmError> astToBytes() const;
 
-	std::optional<std::vector<Statement>> ast() const;
+	std::optional<std::vector<Statement>> ast();
 
    private:
 	std::vector<Statement> m_ast;
