@@ -32,6 +32,6 @@ extern std::string program_name;
  */
 [[noreturn]] void panic(const std::string &error);
 
-} // namespace shared
+}  // namespace shared
 
 #endif

@@ -37,28 +37,28 @@ constexpr usize TABLE_ENTRY_COUNT_OFFSET = 16;
 constexpr usize TABLE_ENTRY_START_OFFSET = 20;
 
 enum class TypeFlag : u16 {
-  COMPACT = 1 << 0,
-  DATA_COMPRESSED = 1 << 1,
+	COMPACT = 1 << 0,
+	DATA_COMPRESSED = 1 << 1,
 };
 
 struct Header {
-  char magic[4];
-  u16 version;
-  u16 type;
-  u32 filesize;
-  u32 data_offset;
+	char magic[4];
+	u16 version;
+	u16 type;
+	u32 filesize;
+	u32 data_offset;
 };
 
 struct TableEntry {
-  u32 file_offset;
-  u16 load_address;
-  u16 length;
+	u32 file_offset;
+	u16 load_address;
+	u16 length;
 };
 
 #pragma pack(pop)
 
 constexpr usize MRI_MIN_SIZE = sizeof(shared::mri_types::Header) + 1;
 
-} // namespace shared::mri_types
+}  // namespace shared::mri_types
 
 #endif

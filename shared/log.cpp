@@ -24,6 +24,7 @@
 #include <3rdparty/ansi.h>
 
 #include "log.hpp"
+
 #include "panic.hpp"
 
 namespace shared {
