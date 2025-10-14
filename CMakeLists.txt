@@ -12,4 +12,4 @@ add_subdirectory(asm)
 add_subdirectory(emu)
 
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(test)

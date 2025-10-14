@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
-#include <random>
 #include <vector>
 
 #include <shared/log.hpp>
@@ -10,13 +9,13 @@
 #include <mfdemu/impl/cpu.hpp>
 #include <mfdemu/impl/instructions.hpp>
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS
-#include "doctest/doctest.h"
+#include <doctest/doctest.h>
 
 using namespace mfdemu;
 using namespace mfdemu::impl;
 
+namespace {
 class CpuTest : public Cpu {
    public:
 	using CpuState = Cpu::CpuState;
@@ -135,12 +134,6 @@ void divTest(u32 dividend, u16 divisor) {
 	REQUIRE_EQ(cpu.m_regACL, acl_expected);
 }
 
-TEST_CASE("div") {
-	divTest(100, 10);
-	divTest(UINT16_MAX, 2);
-	divTest(UINT32_MAX, 2);
-}
-
 void idivTest(i32 dividend, i16 divisor) {
 	CpuTest cpu;
 
@@ -170,21 +163,6 @@ void idivTest(i32 dividend, i16 divisor) {
 
 	CHECK_EQ(static_cast<i16>(cpu.m_regAR), ar_expected);
 	CHECK_EQ(static_cast<i16>(cpu.m_regACL), acl_expected);
-}
-
-TEST_CASE("idiv") {
-	idivTest(100, 10);
-	idivTest(-100, 10);
-	idivTest(-100, -10);
-	idivTest(100, -10);
-	idivTest(INT16_MAX, 2);
-	idivTest(INT16_MIN, 2);
-	idivTest(INT16_MIN, -2);
-	idivTest(INT16_MAX, -2);
-	idivTest(INT32_MAX, 2);
-	idivTest(INT32_MIN, 2);
-	idivTest(INT32_MIN, -2);
-	idivTest(INT32_MAX, -2);
 }
 
 void mulTest(u16 factor1, u16 factor2) {
@@ -222,11 +200,6 @@ void mulTest(u16 factor1, u16 factor2) {
 	CHECK_EQ(cpu.m_regFL.cf, cf_expected);
 }
 
-TEST_CASE("mul") {
-	mulTest(100, 10);
-	mulTest(UINT16_MAX, 10);
-}
-
 void imulTest(i16 factor1, i16 factor2) {
 	CpuTest cpu;
 
@@ -262,14 +235,40 @@ void imulTest(i16 factor1, i16 factor2) {
 	CHECK_EQ(cpu.m_regFL.of, of_expected);
 	CHECK_EQ(cpu.m_regFL.cf, cf_expected);
 }
+}  // namespace
 
-TEST_CASE("imul") {
-	imulTest(100, 10);
-	imulTest(-100, 10);
-	imulTest(-100, -10);
-	imulTest(100, -10);
-	imulTest(INT16_MAX, 2);
-	imulTest(INT16_MIN, 2);
-	imulTest(INT16_MIN, -2);
-	imulTest(INT16_MAX, -2);
+TEST_SUITE("Arithmetic") {
+	TEST_CASE("div") {
+		divTest(100, 10);
+		divTest(UINT16_MAX, 2);
+		divTest(UINT32_MAX, 2);
+	}
+	TEST_CASE("idiv") {
+		idivTest(100, 10);
+		idivTest(-100, 10);
+		idivTest(-100, -10);
+		idivTest(100, -10);
+		idivTest(INT16_MAX, 2);
+		idivTest(INT16_MIN, 2);
+		idivTest(INT16_MIN, -2);
+		idivTest(INT16_MAX, -2);
+		idivTest(INT32_MAX, 2);
+		idivTest(INT32_MIN, 2);
+		idivTest(INT32_MIN, -2);
+		idivTest(INT32_MAX, -2);
+	}
+	TEST_CASE("mul") {
+		mulTest(100, 10);
+		mulTest(UINT16_MAX, 10);
+	}
+	TEST_CASE("imul") {
+		imulTest(100, 10);
+		imulTest(-100, 10);
+		imulTest(-100, -10);
+		imulTest(100, -10);
+		imulTest(INT16_MAX, 2);
+		imulTest(INT16_MIN, 2);
+		imulTest(INT16_MIN, -2);
+		imulTest(INT16_MAX, -2);
+	}
 }
