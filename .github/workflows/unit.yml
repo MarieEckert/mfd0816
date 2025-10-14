@@ -48,6 +48,7 @@ jobs:
     steps:
     - name: checkout repo
       uses: actions/checkout@v4
+    - uses: ./.github/actions/depend
     - name: get compilation artifacts
       uses: actions/download-artifact@v5
       with:
@@ -55,4 +56,6 @@ jobs:
         path: build/
     - name: run
       run: |
+        ln --symbolic "$(which clang-format-20)" /usr/local/bin/clang-format
+        ln --symbolic "$(which clang-tidy-20)" /usr/local/bin/clang-tidy
         ./scripts/static-checks.sh asm emu shared

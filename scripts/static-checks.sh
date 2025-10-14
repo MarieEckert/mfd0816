@@ -32,6 +32,9 @@ print_status() {
 	fi
 }
 
+echo "clang-format version: $(clang-format --version)"
+echo "clang-tidy version: $(clang-tidy --version)"
+
 # ============================================================================ #
 # clang-format check
 # ============================================================================ #

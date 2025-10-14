@@ -5,5 +5,5 @@ runs:
     - name: install dependencies
       run: |
           sudo apt update
-          sudo apt install -y libc++-dev clang-format clang-tidy
+          sudo apt install -y libc++-dev clang-format-20 clang-tidy-20
       shell: bash
