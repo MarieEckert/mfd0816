@@ -1,0 +1,49 @@
+---
+Checks: 'bugprone-*,clang-analyzer-*,cppcoreguidelines-*,google-build-explicit-make-pair,google-build-namespaces,google-explicit-constructor,google-global-names-in-headers,google-readability-braces-around-statements,google-readability-casting,google-readability-namespace-comments,google-runtime-int,google-runtime-operator,misc-*,modernize-*,performance-*,readability-*,hicpp-*,-modernize-use-nodiscard,-readability-convert-member-functions-to-static,-modernize-use-trailing-return-type,-*-magic-numbers,-*-non-private-member-variables-in-classes,-*-named-parameter,-modernize-raw-string-literal,-cppcoreguidelines-pro-type-union-access,-hicpp-signed-bitwise,-hicpp-no-assembler,-cppcoreguidelines-avoid-non-const-global-variables,-*-vararg,-*-narrowing-conversions,-readability-function-cognitive-complexity,-bugprone-easily-swappable-parameters,-cppcoreguidelines-owning-memory,-hicpp-no-malloc,-cppcoreguidelines-no-malloc,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-bounds-constant-array-index,-hicpp-special-member-functions,-cppcoreguidelines-special-member-functions,-readability-identifier-length,-cppcoreguidelines-avoid-do-while,-misc-use-anonymous-namespace,-misc-include-cleaner,-readability-redundant-member-init,-misc-header-include-cycle,-cppcoreguidelines-avoid-goto,-hicpp-avoid-goto,-cppcoreguidelines-macro-usage'
+CheckOptions:
+  - key: readability-identifier-naming.ClassCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.EnumCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.NamespaceCase
+    value: 'lower_case'
+  - key: readability-identifier-naming.StructCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.TypeAliasCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.TypedefCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.UnionCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.FunctionCase
+    value: 'camelBack'
+  - key: readability-identifier-naming.MethodCase
+    value: 'camelBack'
+  - key: readability-identifier-naming.VariableCase
+    value: 'lower_case'
+  - key: readability-identifier-naming.ParameterCase
+    value: 'lower_case'
+  - key: readability-identifier-naming.ClassMemberCase
+    value: 'camelBack'
+  - key: readability-identifier-naming.ClassMemberPrefix
+    value: 'm_'
+  - key: readability-identifier-naming.ClassConstantPrefix
+    value: 'm_'
+  - key: readability-identifier-naming.ConstantCase
+    value: 'lower_case'
+  - key: readability-identifier-naming.StaticConstantCase
+    value: "aNy_CasE"
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: 'UPPER_CASE'
+  - key: readability-identifier-naming.EnumConstantCase
+    value: 'Camel_Snake_Case'
+  - key: misc-include-cleaner.Diagnostics.UnusedIncludes
+    value: 'Strict'
+  - key: misc-include-cleaner.Diagnostics.MissingIncludes
+    value: 'None'
+  - key: misc-include-cleaner.MissingIncludes
+    value: 'None'
+  - key: bugprone-reserved-identifier.AllowedIdentifiers
+    value: 'OPCODE_.*;_RESERVED_.*'
+...
+
