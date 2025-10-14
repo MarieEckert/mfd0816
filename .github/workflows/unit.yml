@@ -4,18 +4,40 @@ on:
   push:
 
 jobs:
-  static-checks:
-    uses: ./.github/workflows/static.yml
-  doctest-unittest:
-    needs: static-checks
+  build-clang:
+   uses: ./.github/workflows/build.yml
+   with:
+     compiler: clang++
+  build-gcc:
+    uses: ./.github/workflows/build.yml
+    with:
+      compiler: g++
+
+  doctest-clang:
+    needs: build-clang
     runs-on: ubuntu-24.04
     steps:
     - name: get built tests
       uses: actions/download-artifact@v5
       with:
-        name: built-tests
-        path: build/test/
+        name: clang++-build
+        path: build/
     - name: run
       run: |
+        chmod +x -R build
+        cd build
+        ctest --output-on-failure
+  doctest-gcc:
+    needs: build-gcc
+    runs-on: ubuntu-24.04
+    steps:
+    - name: get built tests
+      uses: actions/download-artifact@v5
+      with:
+        name: g++-build
+        path: build/
+    - name: run
+      run: |
+        chmod +x -R build
         cd build
         ctest --output-on-failure

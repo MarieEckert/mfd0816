@@ -1,10 +1,13 @@
-name: mfd0816 static checks
-
-on: [workflow_call]
+name: mfd0816 build
+on:
+  workflow_call:
+    inputs:
+      compiler:
+        required: true
+        type: string
 
 jobs:
-  build-cmake:
-    name: cmake
+  build:
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repo
@@ -16,8 +19,9 @@ jobs:
         uses: threeal/cmake-action@v2.1.0
         with:
           build-args: -j
+          cxx-compiler: ${{ inputs.compiler }}
       - name: upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: built-tests
-          path: build/test/
+          name: ${{ inputs.compiler }}-build
+          path: build/
