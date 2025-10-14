@@ -41,3 +41,18 @@ jobs:
         chmod +x -R build
         cd build
         ctest --output-on-failure
+
+  static-checks:
+    needs: [doctest-clang, doctest-gcc]
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: get compilation artifacts
+      uses: actions/download-artifact@v5
+      with:
+        name: clang++-build
+        path: build/
+    - name: run
+      run: |
+        ./scripts/static-checks.sh asm emu shared
