@@ -37,8 +37,8 @@ namespace mfdasm::impl {
 
 /** @todo :duck: */
 static std::string makeIndent(u32 level) {
-	std::string single = "  ";
-	std::string result = "";
+	const std::string single = "  ";
+	std::string result;
 
 	for(u32 n = 0; n < level; n++) {
 		result += single;
@@ -60,7 +60,7 @@ Result<std::vector<u8>, AsmError> ExpressionBase::resolveValue(
 
 ExpressionBase::ExpressionBase(Kind kind, u32 lineno) : m_lineno(lineno), m_kind(kind) {}
 
-std::string ExpressionBase::toString([[maybe_unused]] u32 indentLevel) const {
+std::string ExpressionBase::toString([[maybe_unused]] u32 indent_level) const {
 	return "ExpressionBase\n";
 }
 
@@ -75,7 +75,7 @@ Result<std::vector<u8>, AsmError> StatementBase::toBytes(
 	return Ok(std::vector<u8>{});
 }
 
-std::string StatementBase::toString([[maybe_unused]] u32 indentLevel) const {
+std::string StatementBase::toString([[maybe_unused]] u32 indent_level) const {
 	return "StatementBase\n";
 }
 
@@ -88,25 +88,25 @@ u32 StatementBase::lineno() const {
 }
 
 StatementBase::StatementBase(Expressions expressions, u32 lineno)
-	: m_expressions(expressions), m_lineno(lineno) {}
+	: m_expressions(std::move(expressions)), m_lineno(lineno) {}
 
 /* class Literal */
 
 Literal::Literal(std::vector<u8> value, u32 lineno)
-	: ExpressionBase(ExpressionBase::LITERAL, lineno), m_value(value) {}
+	: ExpressionBase(ExpressionBase::LITERAL, lineno), m_value(std::move(value)) {}
 
 Result<std::vector<u8>, AsmError> Literal::resolveValue(
 	[[maybe_unused]] const ResolvalContext &resolval_context) const {
 	return Ok(m_value);
 }
 
-std::string Literal::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string Literal::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 
 	std::string value_string;
 	for(const u8 byte: m_value) {
 		std::stringstream ss;
-		ss << std::hex << (int)byte;
+		ss << std::hex << static_cast<int>(byte);
 		value_string += "\n" + base_indent + "    0x" + ss.str() + ",";
 	}
 
@@ -117,16 +117,14 @@ std::string Literal::toString(u32 indentLevel) const {
 /* class Identifier */
 
 Identifier::Identifier(Kind kind, std::string name, u32 lineno)
-	: ExpressionBase(ExpressionBase::IDENTIFIER, lineno), m_kind(kind), m_name(name) {}
+	: ExpressionBase(ExpressionBase::IDENTIFIER, lineno), m_kind(kind), m_name(std::move(name)) {}
 
 Result<std::vector<u8>, AsmError> Identifier::resolveValue(
 	const ResolvalContext &resolval_context) const {
-	std::vector<u8> value;
-
-	const auto iterator = std::find_if(
-		resolval_context.identifiers.cbegin(), resolval_context.identifiers.cend(),
+	const auto iterator = std::ranges::find_if(
+		resolval_context.identifiers,
 		[identifier_name = m_name](
-			std::pair<const std::basic_string<char>, std::vector<unsigned char>> map_value) {
+			const std::pair<const std::basic_string<char>, std::vector<unsigned char>> &map_value) {
 			return map_value.first == identifier_name;
 		});
 
@@ -137,8 +135,8 @@ Result<std::vector<u8>, AsmError> Identifier::resolveValue(
 	return Ok(iterator->second);
 }
 
-std::string Identifier::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string Identifier::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 
 	return base_indent + "Identifier {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
 		   "\n" + base_indent + "  name: " + m_name + "\n" + base_indent + "}\n";
@@ -154,7 +152,7 @@ std::string Identifier::name() const {
 
 /* class DirectAddress */
 
-DirectAddress::DirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno)
+DirectAddress::DirectAddress(Kind kind, const ExpressionPtr &value_expression, u32 lineno)
 	: ExpressionBase(ExpressionBase::DIRECT_ADDRESS, lineno),
 	  m_kind(kind),
 	  m_valueExpression(value_expression) {
@@ -172,10 +170,10 @@ DirectAddress::Kind DirectAddress::kind() const {
 	return m_kind;
 }
 
-std::string DirectAddress::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string DirectAddress::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 
-	std::string expression_string = m_valueExpression->toString(indentLevel + 2);
+	const std::string expression_string = m_valueExpression->toString(indent_level + 2);
 
 	return base_indent + "DirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
 		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}\n";
@@ -183,7 +181,7 @@ std::string DirectAddress::toString(u32 indentLevel) const {
 
 /* class IndirectAddress */
 
-IndirectAddress::IndirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno)
+IndirectAddress::IndirectAddress(Kind kind, const ExpressionPtr &value_expression, u32 lineno)
 	: ExpressionBase(ExpressionBase::INDIRECT_ADDRESS, lineno),
 	  m_kind(kind),
 	  m_valueExpression(value_expression) {
@@ -201,10 +199,10 @@ IndirectAddress::Kind IndirectAddress::kind() const {
 	return m_kind;
 }
 
-std::string IndirectAddress::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string IndirectAddress::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 
-	std::string expression_string = m_valueExpression->toString(indentLevel + 2);
+	const std::string expression_string = m_valueExpression->toString(indent_level + 2);
 
 	return base_indent + "IndirectAddress {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
 		   "\n" + base_indent + "  expressions: \n" + expression_string + base_indent + "}\n";
@@ -224,7 +222,7 @@ Result<std::vector<u8>, AsmError> Register::resolveValue(
 }
 
 std::optional<Register> Register::fromToken(const Token &token) {
-	Register::Kind kind;
+	Register::Kind kind{};
 	switch(token.type()) {
 	case Token::SP:
 		kind = Register::SP;
@@ -288,8 +286,8 @@ Register::Kind Register::kind() const {
 	return m_kind;
 }
 
-std::string Register::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string Register::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 	return base_indent + "Register {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
 		   base_indent + "}\n";
 }
@@ -360,7 +358,7 @@ std::optional<Instruction::Kind> Instruction::kindFromString(const std::string &
 }
 
 Instruction::Instruction(Kind kind, Expressions expressions, u32 lineno)
-	: StatementBase(expressions, lineno), m_kind(kind) {
+	: StatementBase(std::move(expressions), lineno), m_kind(kind) {
 	if(Instruction::isReserved(kind)) {
 		logWarning() << "Instruction constructed with reserved opcode 0x" << std::hex
 					 << static_cast<i32>(kind) << std::dec << "\n";
@@ -446,12 +444,12 @@ Result<std::vector<u8>, AsmError> Instruction::toBytes(ResolvalContext &resolval
 	return Ok(result);
 }
 
-std::string Instruction::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string Instruction::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 
-	std::string expression_string = "";
+	std::string expression_string;
 	for(const auto &expression: m_expressions) {
-		expression_string += expression->toString(indentLevel + 2);
+		expression_string += expression->toString(indent_level + 2);
 	}
 
 	return "Instruction {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
@@ -478,9 +476,9 @@ std::optional<Directive::Kind> Directive::kindFromToken(Token::Type type) {
 }
 
 Directive::Directive(Kind kind, Expressions expressions, u32 lineno)
-	: StatementBase(expressions, lineno), m_kind(kind) {}
+	: StatementBase(std::move(expressions), lineno), m_kind(kind) {}
 
-/** @todo implement */
+// NOLINTNEXTLINE
 Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_context) const {
 	switch(m_kind) {
 	case Kind::DEFINE: {
@@ -501,7 +499,8 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 
 		const Identifier *identifier = dynamic_cast<Identifier *>(identifier_expr.get());
 
-		Result<std::vector<u8>, AsmError> maybe_value = value_expr->resolveValue(resolval_context);
+		const Result<std::vector<u8>, AsmError> maybe_value =
+			value_expr->resolveValue(resolval_context);
 		if(maybe_value.isErr()) {
 			return Err(AsmError(
 				AsmError::VALUE_RESOLVAL_ERROR, m_lineno, "could not resolve value of expression"));
@@ -541,7 +540,7 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 		const std::vector<u8> raw_count = maybe_count.unwrap();
 
 		const u64 count =
-			std::accumulate(raw_count.begin(), raw_count.end(), 0ll, shared::intops::accumulateU64);
+			std::accumulate(raw_count.begin(), raw_count.end(), 0LL, shared::intops::accumulateU64);
 
 		std::vector<u8> result;
 		for(u64 ix = 0; ix < count; ix++) {
@@ -564,12 +563,12 @@ Result<std::vector<u8>, AsmError> Directive::toBytes(ResolvalContext &resolval_c
 	return Ok(std::vector<u8>{});
 }
 
-std::string Directive::toString(u32 indentLevel) const {
-	const std::string base_indent = makeIndent(indentLevel);
+std::string Directive::toString(u32 indent_level) const {
+	const std::string base_indent = makeIndent(indent_level);
 
-	std::string expression_string = "";
+	std::string expression_string;
 	for(const auto &expression: m_expressions) {
-		expression_string += expression->toString(indentLevel + 2);
+		expression_string += expression->toString(indent_level + 2);
 	}
 
 	return "Directive {\n" + base_indent + "  kind: " + std::to_string(m_kind) + "\n" +
@@ -577,7 +576,7 @@ std::string Directive::toString(u32 indentLevel) const {
 		   base_indent + "}";
 }
 
-void Directive::addExpression(ExpressionPtr expression) {
+void Directive::addExpression(const ExpressionPtr &expression) {
 	m_expressions.push_back(expression);
 }
 
@@ -591,7 +590,7 @@ Result<std::vector<u8>, AsmError> Directive::handleDefineNumberLiteral(
 			std::to_string(m_expressions.size()) + ")");
 	}
 
-	Result<std::vector<u8>, AsmError> maybe_value =
+	const Result<std::vector<u8>, AsmError> maybe_value =
 		m_expressions[0]->resolveValue(resolval_context);
 	if(maybe_value.isErr()) {
 		return Err(maybe_value.unwrapErr());
@@ -614,13 +613,15 @@ Statement::Statement(
 	Expressions expressions,
 	u32 lineno,
 	std::optional<StatementPtr> statement)
-	: StatementBase(expressions, lineno), m_kind(kind), m_subStatement(std::move(statement)) {
+	: StatementBase(std::move(expressions), lineno),
+	  m_kind(kind),
+	  m_subStatement(std::move(statement)) {
 	/* This is the result of a horrible decision and many instances of
 	 * "eh, i'll fix it later"...
 	 *
 	 * many such cases
 	 */
-	if(!statement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
+	if(!m_subStatement.has_value() && (kind == Kind::INSTRUCTION || kind == Kind::DIRECTIVE)) {
 		shared::panic(
 			"bad software design (kind = " + std::to_string(kind) + "; statement = nullptr)");
 	}
@@ -640,6 +641,7 @@ Statement::Kind Statement::kind() const {
 	return m_kind;
 }
 
+// NOLINTNEXTLINE
 Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_context) const {
 	switch(m_kind) {
 	case Statement::LABEL:
@@ -667,18 +669,19 @@ Result<std::vector<u8>, AsmError> Statement::toBytes(ResolvalContext &resolval_c
 	}
 }
 
-std::string Statement::toString(u32 indentLevel) const {
-	std::string expression_string = "";
+std::string Statement::toString(u32 indent_level) const {
+	std::string expression_string;
 
 	for(const auto &expression: m_expressions) {
-		expression_string += expression->toString(indentLevel + 2);
+		expression_string += expression->toString(indent_level + 2);
 	}
 
-	std::string statement_string = m_subStatement.has_value() && m_subStatement.value() != nullptr
-									   ? m_subStatement->get()->toString(indentLevel + 1)
-									   : "std::nullopt / nullptr";
+	const std::string statement_string =
+		m_subStatement.has_value() && m_subStatement.value() != nullptr
+			? m_subStatement->get()->toString(indent_level + 1)
+			: "std::nullopt / nullptr";
 
-	const std::string base_indent = makeIndent(indentLevel);
+	const std::string base_indent = makeIndent(indent_level);
 
 	return base_indent + "Statement {\n" + base_indent + "  kind: " + std::to_string(m_kind) +
 		   "\n" + base_indent + "  expressions: [\n" + expression_string + base_indent + "  ]\n" +
@@ -693,7 +696,8 @@ std::optional<StatementPtr> Statement::maybeSubStatement() const {
 /* class StatementExpression */
 
 StatementExpression::StatementExpression(Statement statement, u32 lineno)
-	: ExpressionBase(ExpressionBase::STATEMENT_EXPRESSION, lineno), m_statement(statement) {}
+	: ExpressionBase(ExpressionBase::STATEMENT_EXPRESSION, lineno),
+	  m_statement(std::move(statement)) {}
 
 Statement StatementExpression::statement() {
 	return m_statement;

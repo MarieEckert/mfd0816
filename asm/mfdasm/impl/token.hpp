@@ -27,7 +27,7 @@
 namespace mfdasm::impl {
 class Token {
    public:
-	enum Type {
+	enum Type : u8 {
 		/* misc */
 		END_OF_FILE,
 		UNKNOWN,
@@ -51,7 +51,7 @@ class Token {
 		DW,
 		DD,
 		TIMES,
-		_HERE,
+		_HERE,	// NOLINT
 		SECTION,
 		SP,
 		IP,

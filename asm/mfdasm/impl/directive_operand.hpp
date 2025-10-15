@@ -26,7 +26,7 @@ namespace mfdasm::impl {
 
 class DirectiveOperand {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		IMMEDIATE = 0,
 		UNKNOWN = 1,
 		INVALID = 255,
@@ -37,7 +37,7 @@ class DirectiveOperand {
 	bool isAllowed(Kind kind) const;
 
    private:
-	DirectiveOperand(std::vector<Kind> allowed_kinds);
+	explicit DirectiveOperand(std::vector<Kind> allowed_kinds);
 
 	static const std::unordered_map<Directive::Kind, std::vector<DirectiveOperand>>
 		m_directiveOperandsMap;

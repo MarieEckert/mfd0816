@@ -189,7 +189,7 @@ struct ResolvalContext {
 
 class ExpressionBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		LITERAL,
 		IDENTIFIER,
 		REGISTER,
@@ -253,7 +253,7 @@ class Literal : public ExpressionBase {
 
 class Identifier : public ExpressionBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		LABEL,
 		SECTION,
 		HERE,
@@ -278,12 +278,12 @@ class Identifier : public ExpressionBase {
 
 class DirectAddress : public ExpressionBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		MEMORY,
 		REGISTER,
 	};
 
-	DirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno);
+	DirectAddress(Kind kind, const ExpressionPtr &value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -300,12 +300,12 @@ class DirectAddress : public ExpressionBase {
 
 class IndirectAddress : public ExpressionBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		MEMORY,
 		REGISTER,
 	};
 
-	IndirectAddress(Kind kind, ExpressionPtr value_expression, u32 lineno);
+	IndirectAddress(Kind kind, const ExpressionPtr &value_expression, u32 lineno);
 
 	Result<std::vector<u8>, AsmError> resolveValue(
 		const ResolvalContext &resolval_context) const override;
@@ -322,7 +322,7 @@ class IndirectAddress : public ExpressionBase {
 
 class Register : public ExpressionBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		AL = 0x00,
 		AH = 0x01,
 		ACL = 0x02,
@@ -366,7 +366,7 @@ class Instruction : public StatementBase {
 		BIN = 0x03,
 		BOT = 0x04,
 		CALL = 0x05,
-		_RESERVED_00 = 0x06,
+		_RESERVED_00 = 0x06,  // NOLINT
 		CMP = 0x07,
 		DEC = 0x08,
 		DIV = 0x09,
@@ -408,33 +408,33 @@ class Instruction : public StatementBase {
 		CLZ = 0x2d,
 		CLN = 0x2e,
 		CLI = 0x2f,
-		_RESERVED_01 = 0x30,
-		_RESERVED_02 = 0x31,
-		_RESERVED_03 = 0x32,
-		_RESERVED_04 = 0x33,
-		_RESERVED_05 = 0x34,
-		_RESERVED_06 = 0x35,
-		_RESERVED_07 = 0x36,
-		_RESERVED_08 = 0x37,
-		_RESERVED_09 = 0x38,
-		_RESERVED_10 = 0x39,
-		_RESERVED_11 = 0x3a,
+		_RESERVED_01 = 0x30,  // NOLINT
+		_RESERVED_02 = 0x31,  // NOLINT
+		_RESERVED_03 = 0x32,  // NOLINT
+		_RESERVED_04 = 0x33,  // NOLINT
+		_RESERVED_05 = 0x34,  // NOLINT
+		_RESERVED_06 = 0x35,  // NOLINT
+		_RESERVED_07 = 0x36,  // NOLINT
+		_RESERVED_08 = 0x37,  // NOLINT
+		_RESERVED_09 = 0x38,  // NOLINT
+		_RESERVED_10 = 0x39,  // NOLINT
+		_RESERVED_11 = 0x3a,  // NOLINT
 		STO = 0x3b,
 		STC = 0x3c,
 		STZ = 0x3d,
 		STN = 0x3e,
 		STI = 0x3f,
-		_RESERVED_12 = 0x40,
-		_RESERVED_13 = 0x41,
-		_RESERVED_14 = 0x42,
-		_RESERVED_15 = 0x43,
-		_RESERVED_16 = 0x44,
-		_RESERVED_17 = 0x45,
-		_RESERVED_18 = 0x46,
-		_RESERVED_19 = 0x47,
-		_RESERVED_20 = 0x48,
-		_RESERVED_21 = 0x49,
-		_RESERVED_22 = 0x4a,
+		_RESERVED_12 = 0x40,  // NOLINT
+		_RESERVED_13 = 0x41,  // NOLINT
+		_RESERVED_14 = 0x42,  // NOLINT
+		_RESERVED_15 = 0x43,  // NOLINT
+		_RESERVED_16 = 0x44,  // NOLINT
+		_RESERVED_17 = 0x45,  // NOLINT
+		_RESERVED_18 = 0x46,  // NOLINT
+		_RESERVED_19 = 0x47,  // NOLINT
+		_RESERVED_20 = 0x48,  // NOLINT
+		_RESERVED_21 = 0x49,  // NOLINT
+		_RESERVED_22 = 0x4a,  // NOLINT
 		SUB = 0x4b,
 		TEST = 0x4c,
 		XOR = 0x4d,
@@ -456,7 +456,7 @@ class Instruction : public StatementBase {
 
 class Directive : public StatementBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		DB,
 		DW,
 		DD,
@@ -473,7 +473,7 @@ class Directive : public StatementBase {
 
 	std::string toString(u32 indent_level = 0) const override;
 
-	void addExpression(ExpressionPtr expression);
+	void addExpression(const ExpressionPtr &expression);
 
    private:
 	Result<std::vector<u8>, AsmError> handleDefineNumberLiteral(
@@ -485,7 +485,7 @@ class Directive : public StatementBase {
 
 class Statement : public StatementBase {
    public:
-	enum Kind {
+	enum Kind : u8 {
 		SECTION,
 		ADDRESSING_ABSOLUTE,
 		ADDRESSING_RELATIVE,
@@ -510,7 +510,7 @@ class Statement : public StatementBase {
 		u32 lineno,
 		std::optional<StatementPtr> statement = std::nullopt);
 
-	~Statement() = default;
+	~Statement() override = default;
 
 	Statement(const Statement &x);
 

@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <mfdasm/impl/instruction_operand.hpp>
@@ -561,10 +562,10 @@ const std::unordered_map<Instruction::Kind, std::vector<InstructionOperand>>
 };
 
 InstructionOperand::InstructionOperand(std::vector<InstructionOperand::Kind> allowed_kinds)
-	: m_allowedKinds(allowed_kinds) {}
+	: m_allowedKinds(std::move(allowed_kinds)) {}
 
 bool InstructionOperand::isAllowed(Kind kind) const {
-	return std::find(m_allowedKinds.cbegin(), m_allowedKinds.cend(), kind) != m_allowedKinds.cend();
+	return std::ranges::find(m_allowedKinds, kind) != m_allowedKinds.cend();
 }
 
 std::vector<InstructionOperand> InstructionOperand::operandsFor(Instruction::Kind instruction) {

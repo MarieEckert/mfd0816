@@ -63,7 +63,7 @@ class Parser {
 	std::vector<Statement> ast() const;
 
    private:
-	Parser(const std::vector<Token> &tokens);
+	explicit Parser(const std::vector<Token> &tokens);
 
 	Result<None, AsmError> parseTokens();
 

@@ -25,9 +25,9 @@
 
 namespace mfdasm::impl::mri {
 
-void writeCompactMRI(std::string path, SectionTable sections, bool compressed);
+void writeCompactMRI(const std::string &path, const SectionTable &sections, bool compressed);
 
-void writePaddedMRI(std::string path, SectionTable sections, bool compressed);
+void writePaddedMRI(const std::string &path, const SectionTable &sections, bool compressed);
 
 }  // namespace mfdasm::impl::mri
 

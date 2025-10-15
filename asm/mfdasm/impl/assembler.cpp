@@ -61,12 +61,12 @@ Result<None, AsmError> Assembler::parseLines(const std::string &source) {
 		return Ok(None());
 	}
 
-	Result<std::vector<Token>, AsmError> lex_result = Lexer::process(source);
+	const Result<std::vector<Token>, AsmError> lex_result = Lexer::process(source);
 	if(lex_result.isErr()) {
 		return Err(lex_result.unwrapErr());
 	}
 
-	Result<Parser, AsmError> parse_result = Parser::process(lex_result.unwrap());
+	const Result<Parser, AsmError> parse_result = Parser::process(lex_result.unwrap());
 	if(parse_result.isErr()) {
 		return Err(parse_result.unwrapErr());
 	}
@@ -87,7 +87,7 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 				logDebug() << "old section contains "
 						   << std::to_string(current_section->data.size()) << " bytes\n";
 			}
-			Result<std::shared_ptr<mri::Section>, AsmError> new_section =
+			const Result<std::shared_ptr<mri::Section>, AsmError> new_section =
 				section_table.addFromStatement(statement, resolval_context);
 			if(new_section.isErr()) {
 				return Err(new_section.unwrapErr());
@@ -112,7 +112,8 @@ Result<mri::SectionTable, AsmError> Assembler::astToBytes() const {
 			continue;
 		}
 
-		Result<std::vector<u8>, AsmError> to_bytes_result = statement.toBytes(resolval_context);
+		const Result<std::vector<u8>, AsmError> to_bytes_result =
+			statement.toBytes(resolval_context);
 		if(to_bytes_result.isErr()) {
 			return Err(to_bytes_result.unwrapErr());
 		}
@@ -205,7 +206,7 @@ Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {
 			ix += parseStringLiteral(source.substr(ix + 1), lineno, tokens);
 			break;
 		default: /* Character has no special handling */
-			if(std::isspace(source[ix])) {
+			if(std::isspace(source[ix]) != 0) {
 				continue;
 			}
 
@@ -215,7 +216,7 @@ Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {
 				})); /* yucky */
 			const u32 word_len =
 				space_pos != source.length() ? space_pos - ix : source.length() - ix;
-			std::string word = std::string(source.data() + ix, word_len);
+			std::string word = std::string(source.data() + ix, word_len);  // NOLINT
 
 			const Token::Type token_type = Token::typeFromString(word);
 
@@ -241,7 +242,7 @@ Result<std::vector<Token>, AsmError> Lexer::process(const std::string &source) {
 }
 
 u32 Lexer::parseStringLiteral(const std::string &source, u32 &lineno, std::vector<Token> &tokens) {
-	if(source.length() == 0) {
+	if(source.empty()) {
 		return 0;
 	}
 
@@ -321,7 +322,7 @@ Result<None, AsmError> Parser::parseTokens() {
 
 		switch(token.type()) {
 		case Token::SECTION: {
-			Result<u32, AsmError> parse_result = this->tryParseSectionAt(ix);
+			const Result<u32, AsmError> parse_result = this->tryParseSectionAt(ix);
 			if(parse_result.isErr()) {
 				return Err(parse_result.unwrapErr());
 			}
@@ -330,7 +331,7 @@ Result<None, AsmError> Parser::parseTokens() {
 			break;
 		}
 		case Token::LABEL: {
-			Result<u32, AsmError> parse_result = this->tryParseLabelAt(ix);
+			const Result<u32, AsmError> parse_result = this->tryParseLabelAt(ix);
 			if(parse_result.isErr()) {
 				return Err(parse_result.unwrapErr());
 			}
@@ -339,7 +340,7 @@ Result<None, AsmError> Parser::parseTokens() {
 			break;
 		}
 		case Token::ADDRESSING: {
-			Result<u32, AsmError> parse_result = this->tryParseAddressingStatementAt(ix);
+			const Result<u32, AsmError> parse_result = this->tryParseAddressingStatementAt(ix);
 			if(parse_result.isErr()) {
 				return Err(parse_result.unwrapErr());
 			}
@@ -348,7 +349,7 @@ Result<None, AsmError> Parser::parseTokens() {
 			break;
 		}
 		case Token::UNKNOWN: {
-			Result<u32, AsmError> parse_result = this->tryParseUnknownAt(ix);
+			const Result<u32, AsmError> parse_result = this->tryParseUnknownAt(ix);
 			if(parse_result.isErr()) {
 				return Err(parse_result.unwrapErr());
 			}
@@ -526,7 +527,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	}
 
 	const auto given_operands =
-		map(operand_expressions, [](ExpressionPtr expr) -> InstructionOperand::Kind {
+		map(operand_expressions, [](const ExpressionPtr &expr) -> InstructionOperand::Kind {
 			switch(expr->kind()) {
 			case ExpressionBase::DIRECT_ADDRESS: {
 				const DirectAddress *tmp_directaddress = dynamic_cast<DirectAddress *>(expr.get());
@@ -609,7 +610,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	}
 
 	const auto given_operands =
-		map(operand_expressions, [](ExpressionPtr expr) -> DirectiveOperand::Kind {
+		map(operand_expressions, [](const ExpressionPtr &expr) -> DirectiveOperand::Kind {
 			switch(expr->kind()) {
 			case ExpressionBase::DIRECT_ADDRESS:
 			case ExpressionBase::INDIRECT_ADDRESS:
@@ -656,6 +657,7 @@ Result<u32, AsmError> Parser::tryParseDirective(u32 ix, Directive::Kind kind) {
 	return Ok(parse_operands_unwrapped.first);
 }
 
+// NOLINTNEXTLINE
 Result<std::pair<u32, Expressions>, AsmError> Parser::tryParseOperands(u32 ix) {
 	if(ix >= m_tokens.size()) {
 		return Ok(std::pair<u32, Expressions>(ix, Expressions{}));

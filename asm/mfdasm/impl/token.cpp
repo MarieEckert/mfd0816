@@ -19,6 +19,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <shared/int_ops.hpp>
@@ -85,7 +86,7 @@ static const std::unordered_map<std::string, Token::Type> name_value_map = {
 };
 
 Token::Type Token::typeFromString(const std::string &str) {
-	if(std::isdigit(str[0])) {
+	if(std::isdigit(str[0]) != 0) {
 		if(str.length() == 1) {
 			return Type::DECIMAL_NUMBER;
 		}
@@ -105,18 +106,18 @@ Token::Type Token::typeFromString(const std::string &str) {
 		return Type::LABEL;
 	}
 
-	const auto it = std::find_if(
-		name_value_map.cbegin(), name_value_map.cend(),
-		[str](std::pair<std::string, Type> val) { return val.first == str; });
+	const auto it = std::ranges::find_if(
+		name_value_map,
+		[str](const std::pair<std::string, Type> &val) { return val.first == str; });
 
 	return it != name_value_map.cend() ? it->second : Type::UNKNOWN;
 }
 
 bool Token::isNumberType(Type type) {
 	switch(type) {
-	case BINARY_NUMBER:
-	case DECIMAL_NUMBER:
-	case HEXADECIMAL_NUMBER:
+	case Type::BINARY_NUMBER:
+	case Type::DECIMAL_NUMBER:
+	case Type::HEXADECIMAL_NUMBER:
 		return true;
 	default:
 		return false;
@@ -125,23 +126,23 @@ bool Token::isNumberType(Type type) {
 
 bool Token::isRegister(Type type) {
 	switch(type) {
-	case SP:
-	case IP:
-	case FL:
-	case AL:
-	case AH:
-	case ACL:
-	case BL:
-	case BH:
-	case BCL:
-	case CL:
-	case CH:
-	case CCL:
-	case DL:
-	case DH:
-	case DCL:
-	case AR:
-	case IID:
+	case Type::SP:
+	case Type::IP:
+	case Type::FL:
+	case Type::AL:
+	case Type::AH:
+	case Type::ACL:
+	case Type::BL:
+	case Type::BH:
+	case Type::BCL:
+	case Type::CL:
+	case Type::CH:
+	case Type::CCL:
+	case Type::DL:
+	case Type::DH:
+	case Type::DCL:
+	case Type::AR:
+	case Type::IID:
 		return true;
 	default:
 		return false;
@@ -150,11 +151,11 @@ bool Token::isRegister(Type type) {
 
 int Token::numberTypeBase(Type type) {
 	switch(type) {
-	case BINARY_NUMBER:
+	case Type::BINARY_NUMBER:
 		return 2;
-	case DECIMAL_NUMBER:
+	case Type::DECIMAL_NUMBER:
 		return 10;
-	case HEXADECIMAL_NUMBER:
+	case Type::HEXADECIMAL_NUMBER:
 		return 16;
 	default:
 		return 0;
@@ -170,7 +171,7 @@ Token::Token(Type type, u32 lineno, std::optional<std::string> value)
 	case Type::STRING:
 	case Type::LABEL:
 	case Type::UNKNOWN:
-		m_maybeValue = value;
+		m_maybeValue = std::move(value);
 		break;
 	default:
 		break;
@@ -190,9 +191,9 @@ std::optional<std::string> Token::maybeValue() const {
 }
 
 std::string Token::toString() const {
-	const auto it = std::find_if(
-		name_value_map.cbegin(), name_value_map.cend(),
-		[type = m_type](std::pair<std::string, Type> val) { return val.second == type; });
+	const auto it = std::ranges::find_if(
+		name_value_map,
+		[type = m_type](const std::pair<std::string, Type> &val) { return val.second == type; });
 	const std::string type_name = it != name_value_map.cend() ? it->first : "unknown";
 
 	const std::string value_string =
@@ -219,13 +220,13 @@ std::vector<u8> Token::toBytes() const {
 	}
 
 	if(Token::isNumberType(m_type)) {
-		const u64 value = std::stoull(m_maybeValue.value(), 0, Token::numberTypeBase(m_type));
+		const u64 value = std::stoull(m_maybeValue.value(), nullptr, Token::numberTypeBase(m_type));
 
 		return shared::intops::u64ToBytes(value);
 	}
 
 	if(m_type == Token::STRING) {
-		return std::vector<u8>(m_maybeValue.value().begin(), m_maybeValue.value().end());
+		return {m_maybeValue.value().begin(), m_maybeValue.value().end()};
 	}
 
 	return {};

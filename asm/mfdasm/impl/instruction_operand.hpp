@@ -26,13 +26,13 @@ namespace mfdasm::impl {
 
 class InstructionOperand {
    public:
-	enum Kind { /* Relative variants are deliberately left out here */
-				IMMEDIATE = 0b0000,
-				DIRECT = 0b0001,
-				INDIRECT = 0b0010,
-				REGISTER_IMMEDIATE = 0b1000,
-				REGISTER_DIRECT = 0b1001,
-				REGISTER_INDIRECT = 0b1010,
+	enum Kind : u8 { /* Relative variants are deliberately left out here */
+					 IMMEDIATE = 0b0000,
+					 DIRECT = 0b0001,
+					 INDIRECT = 0b0010,
+					 REGISTER_IMMEDIATE = 0b1000,
+					 REGISTER_DIRECT = 0b1001,
+					 REGISTER_INDIRECT = 0b1010,
 	};
 
 	static std::vector<InstructionOperand> operandsFor(Instruction::Kind instruction);
@@ -40,7 +40,7 @@ class InstructionOperand {
 	bool isAllowed(Kind kind) const;
 
    private:
-	InstructionOperand(std::vector<Kind> allowed_kinds);
+	explicit InstructionOperand(std::vector<Kind> allowed_kinds);
 
 	static const std::unordered_map<Instruction::Kind, std::vector<InstructionOperand>>
 		m_instructionOperandsMap;

@@ -40,17 +40,19 @@ static std::vector<std::shared_ptr<Section>> makeSortedSectionList(const Section
 		list.push_back(value);
 	}
 
-	std::sort(
-		list.begin(), list.end(),
-		[](const std::shared_ptr<Section> &a, const std::shared_ptr<Section> &b) {
+	std::ranges::sort(
+		list, [](const std::shared_ptr<Section> &a, const std::shared_ptr<Section> &b) {
 			return a->offset < b->offset;
 		});
 
 	return list;
 }
 
-void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {
-	std::vector<std::shared_ptr<Section>> section_list = makeSortedSectionList(sections);
+void writeCompactMRI(
+	const std::string &path,
+	const SectionTable &sections,
+	[[maybe_unused]] bool compressed) {
+	const std::vector<std::shared_ptr<Section>> section_list = makeSortedSectionList(sections);
 
 	std::ofstream outfile;
 	outfile.open(path);
@@ -69,7 +71,7 @@ void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {
 	u32 offset = base_filesize;
 	for(const std::shared_ptr<Section> &section: section_list) {
 		const u16 section_size = section->data.size();
-		TableEntry entry = {
+		const TableEntry entry = {
 			.file_offset = BIGENDIAN32(offset),
 			.load_address = BIGENDIAN16(section->offset),
 			.length = BIGENDIAN16(section_size),
@@ -98,7 +100,10 @@ void writeCompactMRI(std::string path, SectionTable sections, bool compressed) {
 	outfile.close();
 }
 
-void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
+void writePaddedMRI(
+	const std::string &path,
+	const SectionTable &sections,
+	[[maybe_unused]] bool compressed) {
 	std::vector<std::shared_ptr<Section>> section_list = makeSortedSectionList(sections);
 
 	std::ofstream outfile;
@@ -117,7 +122,7 @@ void writePaddedMRI(std::string path, SectionTable sections, bool compressed) {
 
 	logDebug() << "filesize: " << BIGENDIAN32(header.filesize) << "\n";
 	for(usize ix = 0; ix < section_list.size(); ix++) {
-		std::shared_ptr<Section> section = section_list[ix];
+		const std::shared_ptr<Section> &section = section_list[ix];
 
 		if(ix == 0) {
 			std::fill_n(std::ostream_iterator<char>(outfile), section->offset, 0);

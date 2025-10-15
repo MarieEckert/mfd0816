@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 	parser.addArgument(&arg_outfile);
 	parser.addArgument(&arg_infile);
 	parser.addArgument(&arg_padded);
-	parser.parse(argc - 1, argv + 1);
+	parser.parse(argc - 1, argv + 1);  // NOLINT
 
 	if(arg_licenses.get().value_or(false)) {
 		licenses();
@@ -76,18 +76,19 @@ int main(int argc, char **argv) {
 	std::cerr << "MFDASM, assembler for the mfd0816 fantasy architecture\n"
 			  << "Copyright (C) 2024  Marie Eckert\n\n";
 
-	if(!arg_infile.get().has_value()) {
+	const std::optional<std::string> infile = arg_infile.get();
+	if(!infile.has_value()) {
 		logError() << "no input file specified! specify using \"-i <file>\"\n";
 		return 1;
 	}
 
 	std::stringstream buffer;
-	std::ifstream instream(arg_infile.get().value());
+	const std::ifstream instream(infile.value());
 
 	buffer << instream.rdbuf();
 
 	impl::Assembler asem;
-	Result<None, impl::AsmError> asm_res = asem.parseLines(buffer.str());
+	const Result<None, impl::AsmError> asm_res = asem.parseLines(buffer.str());
 
 	if(asm_res.isErr()) {
 		logError() << "Assembler: " << asm_res.unwrapErr().toString() << "\n";
@@ -95,7 +96,11 @@ int main(int argc, char **argv) {
 	}
 
 	if(arg_print_ast.get().value_or(false)) {
-		std::vector<impl::Statement> ast = asem.ast().value();
+		const std::optional<std::vector<impl::Statement>> maybe_ast = asem.ast();
+		if(!maybe_ast.has_value()) {
+			shared::panic("failed to retrieve asem's ast even though no error occured!");
+		}
+		const std::vector<impl::Statement> &ast = maybe_ast.value();
 		std::cout << "[\n";
 		for(const auto &statement: ast) {
 			std::cout << statement.toString(1);
@@ -103,13 +108,13 @@ int main(int argc, char **argv) {
 		std::cout << "]\n";
 	}
 
-	Result<impl::mri::SectionTable, impl::AsmError> bytes = asem.astToBytes();
+	const Result<impl::mri::SectionTable, impl::AsmError> bytes = asem.astToBytes();
 	if(bytes.isErr()) {
 		logError() << "Assembler (translation time): " << bytes.unwrapErr().toString() << "\n";
 		std::exit(1);
 	}
 
-	const std::string outfile = arg_outfile.get().value_or(arg_infile.get().value() + ".mri");
+	const std::string outfile = arg_outfile.get().value_or(infile.value() + ".mri");
 
 	if(arg_padded.get().value_or(false)) {
 		impl::mri::writePaddedMRI(outfile, bytes.unwrap(), false);

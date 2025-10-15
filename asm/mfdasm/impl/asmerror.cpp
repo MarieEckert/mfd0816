@@ -19,6 +19,7 @@
 #include <ios>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 
 #include <mfdasm/impl/asmerror.hpp>
 
@@ -39,7 +40,7 @@ std::string AsmError::errorName(Type type) {
 }
 
 AsmError::AsmError(Type type, u32 lineno, std::optional<std::string> message)
-	: m_type(type), m_lineno(lineno), m_message(message) {}
+	: m_type(type), m_lineno(lineno), m_message(std::move(message)) {}
 
 std::string AsmError::toString() const {
 	std::stringstream ss;

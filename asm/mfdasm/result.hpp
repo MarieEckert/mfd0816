@@ -23,6 +23,7 @@
 #include <shared/panic.hpp>
 
 namespace mfdasm {
+// NOLINTBEGIN
 struct None {};
 
 namespace types {
@@ -878,7 +879,7 @@ bool operator==(const Result<T, E> &lhs, types::Err<E> err) {
 		typedef details::ResultOkType<decltype(res)>::type T;      \
 		res.storage().get<T>();                                    \
 	})
-
+// NOLINTEND
 }  // namespace mfdasm
 
 #endif

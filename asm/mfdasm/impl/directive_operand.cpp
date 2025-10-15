@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <mfdasm/impl/directive_operand.hpp>
@@ -66,10 +67,10 @@ const std::unordered_map<Directive::Kind, std::vector<DirectiveOperand>>
 };
 
 DirectiveOperand::DirectiveOperand(std::vector<DirectiveOperand::Kind> allowed_kinds)
-	: m_allowedKinds(allowed_kinds) {}
+	: m_allowedKinds(std::move(allowed_kinds)) {}
 
 bool DirectiveOperand::isAllowed(Kind kind) const {
-	return std::find(m_allowedKinds.cbegin(), m_allowedKinds.cend(), kind) != m_allowedKinds.cend();
+	return std::ranges::find(m_allowedKinds, kind) != m_allowedKinds.cend();
 }
 
 std::vector<DirectiveOperand> DirectiveOperand::operandsFor(Directive::Kind directive) {
