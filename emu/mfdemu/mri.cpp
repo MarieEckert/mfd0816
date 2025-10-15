@@ -21,13 +21,13 @@
 
 #include <mfdemu/mri.hpp>
 
-#define CHECK_BIT(value, bit) ((value & static_cast<u64>(bit)) != 0)
+#define CHECK_BIT(value, bit) (((value) & static_cast<u64>(bit)) != 0)
 
 using namespace shared::mri_types;
 
 namespace mfdemu {
 
-std::vector<u8> parseCompact(const std::vector<u8> &data) {
+static std::vector<u8> parseCompact(const std::vector<u8> &data) {
 	const usize base_required_size = MRI_MIN_SIZE + sizeof(u32);
 	if(data.size() < base_required_size) {
 		logError() << "invalid MRI: input smaller than minimal needed size (2)\n";
@@ -37,7 +37,7 @@ std::vector<u8> parseCompact(const std::vector<u8> &data) {
 	const u32 entry_count = BIGENDIAN32(
 		data[TABLE_ENTRY_COUNT_OFFSET] | (data[TABLE_ENTRY_COUNT_OFFSET + 1] << 8) |
 		(data[TABLE_ENTRY_COUNT_OFFSET + 2] << 16) | (data[TABLE_ENTRY_COUNT_OFFSET + 3] << 24));
-	const usize required_size = base_required_size + entry_count * sizeof(TableEntry);
+	const usize required_size = base_required_size + (entry_count * sizeof(TableEntry));
 
 	if(data.size() < required_size) {
 		logError() << "invalid MRI: input smaller than minimal needed size (3)\n";
@@ -48,9 +48,9 @@ std::vector<u8> parseCompact(const std::vector<u8> &data) {
 	entries.reserve(entry_count);
 
 	for(u32 ix = 0; ix < entry_count; ix++) {
-		TableEntry entry;
-		std::memcpy(
-			&entry, data.data() + TABLE_ENTRY_START_OFFSET + ix * sizeof(entry), sizeof(entry));
+		TableEntry entry{};
+		std::memcpy( // NOLINTNEXTLINE
+			&entry, data.data() + TABLE_ENTRY_START_OFFSET + (sizeof(entry) * ix), sizeof(entry));
 
 		entry.file_offset = BIGENDIAN32(entry.file_offset);
 		entry.load_address = BIGENDIAN16(entry.load_address);
@@ -75,7 +75,7 @@ std::vector<u8> parseCompact(const std::vector<u8> &data) {
 		}
 
 		for(u32 ix = 0; ix < entry.length; ix++) {
-			result[static_cast<usize>(entry.load_address + ix)] = data[entry.file_offset + ix];
+			result[static_cast<u32>(entry.load_address + ix)] = data[entry.file_offset + ix];
 		}
 	}
 
@@ -88,11 +88,10 @@ std::vector<u8> parseMRIFromBytes(const std::vector<u8> &data) {
 		std::exit(1);
 	}
 
-	std::vector<u8> result;
-
-	Header header;
+	Header header{};
 	std::memcpy(&header, data.data(), sizeof(header));
 
+	// NOLINTNEXTLINE
 	if(std::strcmp(header.magic, MRI_MAGIC) != 0) {
 		logError() << "invalid MRI: invalid magic\n";
 		std::exit(1);
@@ -110,7 +109,7 @@ std::vector<u8> parseMRIFromBytes(const std::vector<u8> &data) {
 		return parseCompact(data);
 	}
 
-	return std::vector<u8>(data.begin() + header.data_offset, data.end());
+	return {data.begin() + header.data_offset, data.end()};
 }
 
 }  // namespace mfdemu

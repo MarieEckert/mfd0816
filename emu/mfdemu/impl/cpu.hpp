@@ -59,10 +59,10 @@ class Cpu {
 
 	bool irq{false};
 	bool reset{false};
-	inline bool ams() const { return m_pinAMS; }
-	inline bool gms() const { return m_pinGMS; }
-	inline bool clk() const { return m_pinCLK; }
-	inline bool ira() const { return m_pinIRA; }
+	bool ams() const { return m_pinAMS; }
+	bool gms() const { return m_pinGMS; }
+	bool clk() const { return m_pinCLK; }
+	bool ira() const { return m_pinIRA; }
 
 	void connectAddressDevice(std::shared_ptr<BaseBusDevice<u16>> device);
 
@@ -233,11 +233,11 @@ class Cpu {
 	u16 m_regSP{0};
 	u16 m_regIP{0};
 	u16 m_regAR{0};
-	CpuFlags m_regFL{0, 0, 0, 0, 0, 0};
+	CpuFlags m_regFL{.of = false, .cf = false, .zf = false, .nf = false, .ie = false, .rt = false};
 	u16 m_regIID{0};
 
 	void setRegister(u8 target, u16 value);
-	u16 getRegister(u8 source);
+	u16 getRegister(u8 source) const;
 
 	/** connected devices (for impl.) */
 	std::shared_ptr<BaseBusDevice<u16>> m_addressDevice;

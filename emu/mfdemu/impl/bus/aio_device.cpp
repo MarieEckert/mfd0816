@@ -16,14 +16,17 @@
  */
 
 #include <bitset>
+#include <utility>
 
 #include <shared/log.hpp>
+#include <shared/panic.hpp>
 
 #include <mfdemu/impl/bus/aio_device.hpp>
 
 namespace mfdemu::impl {
 
-AioDevice::AioDevice(bool read_only, usize size) : m_readOnly(read_only) {
+AioDevice::AioDevice(bool read_only, usize size)
+	: m_address(0), m_write(false), m_readOnly(read_only) {
 	m_data.reserve(size);
 }
 
@@ -74,11 +77,13 @@ void AioDevice::clck() {
 
 		m_step = 0;
 		break;
+	default:
+		shared::panic("invalid state: invalid m_step value in AioDevice::clck()");
 	}
 }
 
 void AioDevice::setData(std::vector<u8> data) {
-	m_data = data;
+	m_data = std::move(data);
 }
 
 }  // namespace mfdemu::impl

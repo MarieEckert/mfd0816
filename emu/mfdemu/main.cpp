@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 	parser.addArgument(&arg_licenses);
 	parser.addArgument(&arg_infile);
 	parser.addArgument(&arg_cycle_span);
-	parser.parse(argc - 1, argv + 1);
+	parser.parse(argc - 1, argv + 1);  // NOLINT
 
 	if(arg_licenses.get().value_or(false)) {
 		licenses();
@@ -62,19 +62,20 @@ int main(int argc, char **argv) {
 
 	shared::Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
 
-	constexpr u64 default_cycle_span = 1000; /* ~10MHz */
-	const u64 cycle_span = arg_cycle_span.get().value_or(default_cycle_span);
+	constexpr u64 DEFAULT_CYCLE_SPAN = 1000; /* ~10MHz */
+	const u64 cycle_span = arg_cycle_span.get().value_or(DEFAULT_CYCLE_SPAN);
 
 	std::cerr << "MFDEMU, emulator for the mfd0816 fantasy architecture\n"
 			  << "Copyright (C) 2024  Marie Eckert\n\n";
 
-	if(!arg_infile.get().has_value()) {
+	const std::optional<std::string> infile = arg_infile.get();
+	if(!infile.has_value()) {
 		logError() << "no input file specified! specify using \"-i <file>\"\n";
 		return 1;
 	}
 
-	std::ifstream stream(arg_infile.get().value(), std::ios::in | std::ios::binary);
-	std::vector<u8> contents(
+	std::ifstream stream(infile.value(), std::ios::in | std::ios::binary);
+	const std::vector<u8> contents(
 		(std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
 	impl::System the_system(cycle_span, UINT16_MAX);

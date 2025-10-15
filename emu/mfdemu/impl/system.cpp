@@ -16,9 +16,11 @@
  */
 
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <termios.h>
+#include <utility>
 #include <vector>
 
 #include <fcntl.h>
@@ -30,10 +32,14 @@
 
 namespace mfdemu::impl {
 
+/**
+ * @note this terminal device is temporary and will disappear as soon as the "device plugin" system
+ * is implemented
+ */
 class Terminal : public GioDevice {
    public:
 	Terminal() : GioDevice() {
-		struct termios attr;
+		struct termios attr{};
 		tcgetattr(STDIN_FILENO, &attr);
 		attr.c_lflag &= ~(ICANON | ECHO);
 		tcsetattr(STDIN_FILENO, TCSANOW, &attr);
@@ -47,14 +53,15 @@ class Terminal : public GioDevice {
 
 		std::cout << value;
 	}
-
 	u8 read(u16 address, bool low) override {
 		if(address != 0x1000 || low) {
 			return 0;
 		}
 
+		// NOLINTBEGIN
 		u8 in[1];
 		usize n = ::read(STDIN_FILENO, in, 1);
+		// NOLINTEND
 
 		return n > 0 ? in[0] : 0;
 	}
@@ -66,11 +73,11 @@ System::System(u32 cycle_span, u16 main_memory_size)
 }
 
 void System::setMainMemoryData(std::vector<u8> data) {
-	m_mainMemory->setData(data);
+	m_mainMemory->setData(std::move(data));
 }
 
 void System::run() {
-	struct timespec ts;
+	struct timespec ts{};
 	u64 last_time = 0;
 
 #ifdef SHOW_CYCLES
@@ -87,7 +94,8 @@ void System::run() {
 
 	while(true) {
 		assert(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
-		const u64 current_time = (ts.tv_sec * (1000 * 1000 * 1000)) + ts.tv_nsec;
+		const u64 current_time =
+			(ts.tv_sec * (static_cast<__time_t>(1000 * 1000 * 1000))) + ts.tv_nsec;
 
 #ifdef SHOW_CYCLES
 		if(current_time - last_speed_time > (1000 * 1000 * 1000)) {

@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <shared/panic.hpp>
+
 #include <mfdemu/impl/bus/gio_device.hpp>
 
 namespace mfdemu::impl {
@@ -58,6 +60,8 @@ void GioDevice::clck() {
 
 		m_step = 0;
 		break;
+	default:
+		shared::panic("invalid state: invalid m_step value in GioDevice::clck()");
 	}
 }
 

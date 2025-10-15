@@ -18,6 +18,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <utility>
 
 #include <shared/log.hpp>
 #include <shared/panic.hpp>
@@ -31,11 +32,11 @@ namespace mfdemu::impl {
 /** class Cpu **/
 
 void Cpu::connectAddressDevice(std::shared_ptr<BaseBusDevice<u16>> device) {
-	m_addressDevice = device;
+	m_addressDevice = std::move(device);
 }
 
 void Cpu::connectIoDevice(std::shared_ptr<BaseBusDevice<u8>> device) {
-	m_ioDevice = device;
+	m_ioDevice = std::move(device);
 }
 
 void Cpu::iclck() {
@@ -112,7 +113,7 @@ void Cpu::abusRead() {
 		m_addressDevice->clck();
 		m_stateStep = 3;
 		break;
-	case 3: /* T3: read pulse, AMS Low */
+	case 3: { /* T3: read pulse, AMS Low */
 		m_addressDevice->mode = false;
 		m_addressDevice->clck();
 		m_addressBusInput = m_addressDevice->io;
@@ -124,6 +125,9 @@ void Cpu::abusRead() {
 			newState(CpuState::ABUS_READ);
 		}
 		break;
+	}
+	default:
+		shared::panic("invalid state: abusRead reached an invalid state step");
 	}
 }
 
@@ -156,6 +160,8 @@ void Cpu::abusWrite() {
 
 		finishState();
 		break;
+	default:
+		shared::panic("invalid state: abusWrite reached an invalid state step");
 	}
 }
 
@@ -174,6 +180,8 @@ void Cpu::abusWriteIndirect() {
 		finishState();
 		newState(CpuState::ABUS_WRITE);
 		break;
+	default:
+		shared::panic("invalid state: abusWriteIndirect reached an invalid state step");
 	}
 }
 
@@ -215,6 +223,8 @@ void Cpu::gioRead() {
 
 		finishState();
 		break;
+	default:
+		shared::panic("invalid state: gioRead reached an invalid state step");
 	}
 }
 
@@ -256,6 +266,8 @@ void Cpu::gioWrite() {
 
 		finishState();
 		break;
+	default:
+		shared::panic("invalid state: gioWrite reached an invalid state step");
 	}
 }
 
@@ -409,6 +421,8 @@ void Cpu::fetchInst() {
 		m_stateStep = 0;
 		newState(CpuState::INST_EXEC);
 		break;
+	default:
+		shared::panic("invalid state: fetchInst reached an invalid state step");
 	}
 }
 
@@ -419,14 +433,13 @@ void Cpu::fetchInst() {
 
 constexpr u8 EXEC_INST_STEP_INC_IP = 255;
 
-#define NEXT_IP_VALUE                                            \
-	m_regIP + 2 +                                                \
-		(INSTRUCTION_OPERAND_COUNT[m_instruction] != 0           \
-			 ? (INSTRUCTION_OPERAND_COUNT[m_instruction] == 1    \
-					? (m_operand1.mode.is_register ? 1 : 2)      \
-					: (m_operand1.mode.is_register ? 1 : 2) +    \
-						  (m_operand2.mode.is_register ? 1 : 2)) \
-			 : 0)
+#define NEXT_IP_VALUE                                                                             \
+	(m_regIP + 2 +                                                                                \
+	 (INSTRUCTION_OPERAND_COUNT[m_instruction] != 0                                               \
+		  ? (INSTRUCTION_OPERAND_COUNT[m_instruction] == 1                                        \
+				 ? (m_operand1.mode.is_register ? 1 : 2)                                          \
+				 : (m_operand1.mode.is_register ? 1 : 2) + (m_operand2.mode.is_register ? 1 : 2)) \
+		  : 0))
 
 void Cpu::execInst() {
 	if(m_stateStep == EXEC_INST_STEP_INC_IP) {
@@ -524,6 +537,8 @@ void Cpu::execReset() {
 
 		finishState();
 		break;
+	default:
+		shared::panic("invalid state: execReset reached an invalid state step");
 	}
 }
 
@@ -545,6 +560,8 @@ void Cpu::execHardInterrupt() {
 		finishState();
 		newState(CpuState::INTERRUPT);
 		break;
+	default:
+		shared::panic("invalid state: execHardInterrupt reached an invalid state step");
 	}
 }
 
@@ -571,13 +588,15 @@ void Cpu::execInterrupt() {
 		finishState();
 		newState(CpuState::INST_FETCH);
 		break;
+	default:
+		shared::panic("invalid state: execInterrupt reached an invalid state step");
 	}
 }
 
-#define CHECK_BIT(value, bit) ((value & static_cast<u64>(bit)) != 0)
+#define CHECK_BIT(value, bit) (((value) & static_cast<u64>(bit)) != 0)
 
-#define SET_LOW(dest, _value) dest = (dest & 0xFF00) | (value & 0x00FF)
-#define SET_HIGH(dest, value) dest = (dest & 0x00FF) | (value & 0xFF00)
+#define SET_LOW(dest, value) dest = ((dest) & 0xFF00) | ((value) & 0x00FF)
+#define SET_HIGH(dest, value) dest = ((dest) & 0x00FF) | ((value) & 0xFF00)
 
 void Cpu::setRegister(u8 target, u16 value) {
 	switch(target) {
@@ -627,8 +646,13 @@ void Cpu::setRegister(u8 target, u16 value) {
 		m_regAR = value;
 		break;
 	case REGISTER_FL:
-		m_regFL = {CHECK_BIT(value, 1 << 15), CHECK_BIT(value, 1 << 14), CHECK_BIT(value, 1 << 13),
-				   CHECK_BIT(value, 1 << 12), CHECK_BIT(value, 1 << 11), CHECK_BIT(value, 1 << 10)};
+		m_regFL = {
+			.of = (((value) & static_cast<u64>(1 << 15)) != 0),
+			.cf = (((value) & static_cast<u64>(1 << 14)) != 0),
+			.zf = (((value) & static_cast<u64>(1 << 13)) != 0),
+			.nf = (((value) & static_cast<u64>(1 << 12)) != 0),
+			.ie = (((value) & static_cast<u64>(1 << 11)) != 0),
+			.rt = (((value) & static_cast<u64>(1 << 10)) != 0)};
 		break;
 	case REGISTER_IID:
 		m_regIID = value;
@@ -638,10 +662,10 @@ void Cpu::setRegister(u8 target, u16 value) {
 	}
 }
 
-#define GET_LOW(value) (value & 0x00FF)
-#define GET_HIGH(value) (value & 0xFF00)
+#define GET_LOW(value) ((value) & 0x00FF)
+#define GET_HIGH(value) ((value) & 0xFF00)
 
-u16 Cpu::getRegister(u8 source) {
+u16 Cpu::getRegister(u8 source) const {
 	switch(source) {
 	case REGISTER_AL:
 		return GET_LOW(m_regACL);
@@ -674,8 +698,10 @@ u16 Cpu::getRegister(u8 source) {
 	case REGISTER_AR:
 		return m_regAR;
 	case REGISTER_FL:
-		return UINT16_MAX & (m_regFL.of << 15 | m_regFL.cf << 14 | m_regFL.zf << 13 |
-							 m_regFL.nf << 12 | m_regFL.ie << 11 | m_regFL.rt << 10);
+		return UINT16_MAX &
+			   (static_cast<u32>(m_regFL.ie) << 11 | static_cast<u32>(m_regFL.of) << 15 |
+				static_cast<u32>(m_regFL.cf) << 14 | static_cast<u32>(m_regFL.zf) << 13 |
+				static_cast<u32>(m_regFL.nf) << 12 | static_cast<u32>(m_regFL.rt) << 10);
 	case REGISTER_IID:
 		return m_regIID;
 	default:
@@ -687,28 +713,29 @@ u16 Cpu::getRegister(u8 source) {
  * @brief Helper macro for accessing operands which can be immediate, register immediate, direct,
  * register direct, indirect and register indirect.
  */
-#define GET_OPERAND_MOVE_TO_STASH(operand, stash, exec_label, start_step, stashing_step)           \
-	case start_step:                                                                               \
-		if(!operand.mode.immediate) {                                                              \
-			m_addressBusAddress = operand.mode.is_register                                         \
-									  ? getRegister((operand.value & 0xFF00) >> 8)                 \
-									  : operand.value;                                             \
-			m_stateStep = stashing_step;                                                           \
-			newState(operand.mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ);  \
-			break;                                                                                 \
-		}                                                                                          \
-		stash =                                                                                    \
-			operand.mode.is_register ? getRegister((operand.value & 0xFF00) >> 8) : operand.value; \
-		goto exec_label;                                                                           \
-	case stashing_step:                                                                            \
-		stash = m_addressBusInput;
+#define GET_OPERAND_MOVE_TO_STASH(operand, stash, exec_label, start_step, stashing_step)       \
+	case start_step:                                                                           \
+		if(!(operand).mode.immediate) {                                                        \
+			m_addressBusAddress = (operand).mode.is_register                                   \
+									  ? getRegister(((operand).value & 0xFF00) >> 8)           \
+									  : (operand).value;                                       \
+			m_stateStep = stashing_step;                                                       \
+			newState(                                                                          \
+				(operand).mode.indirect ? CpuState::ABUS_READ_INDIRECT : CpuState::ABUS_READ); \
+			break;                                                                             \
+		}                                                                                      \
+		(stash) = (operand).mode.is_register ? getRegister(((operand).value & 0xFF00) >> 8)    \
+											 : (operand).value;                                \
+		goto exec_label;                                                                       \
+	case stashing_step:                                                                        \
+		(stash) = m_addressBusInput;
 
 void Cpu::execInstADC() {
 	constexpr u8 MOVE_TO_STASH = 16;
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_stash1 + m_regAR + static_cast<u32>(m_regFL.cf);
 		const u8 ar_signbit = m_regAR & (1 << 15);
 		const u8 tmp_signbit = tmp & (1 << 15);
@@ -717,10 +744,13 @@ void Cpu::execInstADC() {
 		m_regFL.of = tmp_signbit != ar_signbit && ar_signbit == tmp_signbit;
 		m_regFL.cf = tmp > UINT16_MAX;
 		m_regFL.nf = tmp_signbit != 0;
-		m_regFL.zf = tmp == 0 && m_regFL.cf == 0 && m_regFL.of == 0;
+		m_regFL.zf = tmp == 0 && !m_regFL.cf && !m_regFL.of;
 		m_regAR = tmp;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstADC reached an invalid state step");
 	}
 }
 
@@ -729,7 +759,7 @@ void Cpu::execInstADD() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_stash1 + m_regAR;
 		const u8 ar_signbit = m_regAR & (1 << 15);
 		const u8 tmp_signbit = tmp & (1 << 15);
@@ -738,10 +768,13 @@ void Cpu::execInstADD() {
 		m_regFL.of = tmp_signbit != ar_signbit && ar_signbit == tmp_signbit;
 		m_regFL.cf = tmp > UINT16_MAX;
 		m_regFL.nf = tmp_signbit != 0;
-		m_regFL.zf = tmp == 0 && m_regFL.cf == 0 && m_regFL.of == 0;
+		m_regFL.zf = tmp == 0 && !m_regFL.cf && !m_regFL.of;
 		m_regAR = tmp;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstADD reached an invalid state step");
 	}
 }
 
@@ -750,15 +783,18 @@ void Cpu::execInstAND() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_regAR & m_stash1;
 
-		m_regFL.of = 0;
-		m_regFL.cf = 0;
+		m_regFL.of = false;
+		m_regFL.cf = false;
 		m_regFL.zf = tmp == 0;
 		m_regAR = tmp;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstAND reached an invalid state step");
 	}
 }
 
@@ -811,6 +847,8 @@ void Cpu::execInstBIN() {
 		m_addressBusOutput = m_ioBusInput;
 		newState(CpuState::ABUS_WRITE);
 		break;
+	default:
+		shared::panic("invalid state: execInstBIN reached an invalid state step");
 	}
 }
 
@@ -863,6 +901,8 @@ void Cpu::execInstBOT() {
 		m_ioBusOutput = m_addressBusInput;
 		newState(CpuState::ABUS_WRITE);
 		break;
+	default:
+		shared::panic("invalid state: execInstBOT reached an invalid state step");
 	}
 }
 
@@ -883,6 +923,8 @@ void Cpu::execInstCALL() {
 	case SET_NEW_IP:
 		m_regIP = m_stash1;
 		finishState();
+	default:
+		shared::panic("invalid state: execInstCALL reached an invalid state step");
 		break;
 	}
 }
@@ -896,7 +938,7 @@ void Cpu::execInstCMP() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
 	GET_OPERAND2:
 		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, DO_COMPARE, GET_O2, MOVE_O2_TO_STASH)
-	DO_COMPARE:
+	DO_COMPARE: {
 		const u32 tmp = m_stash1 - m_stash2;
 		const u8 ar_signbit = m_regAR & (1 << 15);
 		const u8 tmp_signbit = tmp & (1 << 15);
@@ -904,9 +946,12 @@ void Cpu::execInstCMP() {
 		m_regFL.of = tmp_signbit != ar_signbit && ar_signbit == tmp_signbit;
 		m_regFL.cf = tmp > UINT16_MAX;
 		m_regFL.nf = tmp_signbit != 0;
-		m_regFL.zf = tmp == 0 && m_regFL.cf == 0 && m_regFL.of == 0;
+		m_regFL.zf = tmp == 0 && !m_regFL.cf && !m_regFL.of;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstCMP reached an invalid state step");
 	}
 }
 
@@ -921,7 +966,7 @@ void Cpu::execInstDIV() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 dividend = (static_cast<u32>(m_regACL) << 16) | m_regAR;
 		const u16 tmp = dividend / m_stash1;
 
@@ -930,6 +975,9 @@ void Cpu::execInstDIV() {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
 	}
+	default:
+		shared::panic("invalid state: execInstDIV reached an invalid state step");
+	}
 }
 
 void Cpu::execInstIDIV() {
@@ -937,7 +985,7 @@ void Cpu::execInstIDIV() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const i32 dividend = (static_cast<i32>(m_regACL) << 16) | m_regAR;
 		const i16 tmp = dividend / static_cast<i16>(m_stash1);
 
@@ -946,6 +994,9 @@ void Cpu::execInstIDIV() {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
 	}
+	default:
+		shared::panic("invalid state: execInstIDIV reached an invalid state step");
+	}
 }
 
 void Cpu::execInstIMUL() {
@@ -953,7 +1004,7 @@ void Cpu::execInstIMUL() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const i32 tmp = static_cast<i16>(m_regAR) * static_cast<i16>(m_stash1);
 		const i16 tmp_lo = static_cast<u16>(tmp & 0xFFFF);
 		const i16 tmp_hi = static_cast<u16>((tmp >> 16) & 0xFFFF);
@@ -967,6 +1018,9 @@ void Cpu::execInstIMUL() {
 		m_regACL = static_cast<u16>(tmp_hi);
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstIMUL reached an invalid state step");
 	}
 }
 
@@ -998,6 +1052,8 @@ void Cpu::execInstIN() {
 		m_addressBusOutput = m_ioBusInput;
 		newState(m_operand2.mode.direct ? CpuState::ABUS_WRITE : CpuState::ABUS_WRITE_INDIRECT);
 		break;
+	default:
+		shared::panic("invalid state: execInstIN reached an invalid state step");
 	}
 }
 
@@ -1023,6 +1079,8 @@ void Cpu::execInstJMP() {
 		logDebug() << "JMP instruction finished.\n";
 		finishState();
 		break;
+	default:
+		shared::panic("invalid state: execInstJMP reached an invalid state step");
 	}
 }
 
@@ -1036,7 +1094,7 @@ void Cpu::execInstJZ() {
 }
 
 void Cpu::execInstJG() {
-	if(!(!m_regFL.zf && (m_regFL.nf == m_regFL.of))) {
+	if(m_regFL.zf || (m_regFL.nf != m_regFL.of)) {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		return;
 	}
@@ -1125,6 +1183,8 @@ void Cpu::execInstLD() {
 		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	default:
+		shared::panic("invalid state: execInstLD reached an invalid state step");
 	}
 }
 
@@ -1141,7 +1201,7 @@ void Cpu::execInstMUL() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_regAR * m_stash1;
 		const u16 tmp_lo = tmp & 0xFFFF;
 		const u16 tmp_hi = (tmp >> 16) & 0xFFFF;
@@ -1154,6 +1214,9 @@ void Cpu::execInstMUL() {
 		m_regACL = tmp_hi;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstMUL reached an invalid state step");
 	}
 }
 
@@ -1179,6 +1242,8 @@ void Cpu::execInstNEG() {
 		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
 
 		break;
+	default:
+		shared::panic("invalid state: execInstNEG reached an invalid state step");
 	}
 }
 
@@ -1208,6 +1273,8 @@ void Cpu::execInstNOT() {
 		setRegister((m_operand1.value & 0xFF00) >> 8, m_stash1);
 
 		break;
+	default:
+		shared::panic("invalid state: execInstNOT reached an invalid state step");
 	}
 }
 
@@ -1216,15 +1283,18 @@ void Cpu::execInstOR() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_regAR | m_stash1;
 
-		m_regFL.of = 0;
-		m_regFL.cf = 0;
+		m_regFL.of = false;
+		m_regFL.cf = false;
 		m_regFL.zf = tmp == 0;
 		m_regAR = tmp;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstOR reached an invalid state step");
 	}
 }
 
@@ -1258,6 +1328,8 @@ void Cpu::execInstOUT() {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		newState(CpuState::GIO_WRITE);
 		break;
+	default:
+		shared::panic("invalid state: execInstOUT reached an invalid state step");
 	}
 }
 
@@ -1283,6 +1355,8 @@ void Cpu::execInstPOP() {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		newState(m_operand1.mode.direct ? CpuState::ABUS_WRITE : CpuState::ABUS_WRITE_INDIRECT);
 		break;
+	default:
+		shared::panic("invalid state: execInstPOP reached an invalid state step");
 	}
 }
 
@@ -1298,6 +1372,8 @@ void Cpu::execInstPUSH() {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		newState(CpuState::ABUS_WRITE);
 		break;
+	default:
+		shared::panic("invalid state: execInstPUSH reached an invalid state step");
 	}
 }
 
@@ -1313,6 +1389,8 @@ void Cpu::execInstRET() {
 		m_regIP = m_addressBusInput;
 		finishState();
 		break;
+	default:
+		shared::panic("invalid state: execInstRET reached an invalid state step");
 	}
 }
 
@@ -1325,7 +1403,7 @@ void Cpu::execInstROL() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
 	GET_OPERAND2:
 		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, CALCULATE, GET_O2, MOVE_O2_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_stash1 << m_stash2;
 		const u16 result = tmp | ((tmp >> 16) & 0xFF);
 
@@ -1344,6 +1422,9 @@ void Cpu::execInstROL() {
 		setRegister((m_operand1.value & 0xFF00) >> 8, result);
 		break;
 	}
+	default:
+		shared::panic("invalid state: execInstROL reached an invalid state step");
+	}
 }
 
 void Cpu::execInstROR() {
@@ -1355,7 +1436,7 @@ void Cpu::execInstROR() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
 	GET_OPERAND2:
 		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, CALCULATE, GET_O2, MOVE_O2_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = (m_stash1 << 8) >> m_stash2;
 		const u16 result = (m_stash1 >> m_stash2) | ((tmp & 0xFF) << 8);
 
@@ -1374,6 +1455,9 @@ void Cpu::execInstROR() {
 		setRegister((m_operand1.value & 0xFF00) >> 8, result);
 		break;
 	}
+	default:
+		shared::panic("invalid state: execInstROR reached an invalid state step");
+	}
 }
 
 void Cpu::execInstSL() {
@@ -1385,7 +1469,7 @@ void Cpu::execInstSL() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
 	GET_OPERAND2:
 		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, DO_SHIFT, GET_O2, MOVE_O2_TO_STASH)
-	DO_SHIFT:
+	DO_SHIFT: {
 		const u32 tmp = m_stash1 << m_stash2;
 
 		m_stateStep = EXEC_INST_STEP_INC_IP;
@@ -1400,6 +1484,9 @@ void Cpu::execInstSL() {
 		newState(m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
 		break;
 	}
+	default:
+		shared::panic("invalid state: execInstSL reached an invalid state step");
+	}
 }
 
 void Cpu::execInstSR() {
@@ -1411,7 +1498,7 @@ void Cpu::execInstSR() {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, GET_OPERAND2, 0, MOVE_O1_TO_STASH)
 	GET_OPERAND2:
 		GET_OPERAND_MOVE_TO_STASH(m_operand2, m_stash2, DO_SHIFT, GET_O2, MOVE_O2_TO_STASH)
-	DO_SHIFT:
+	DO_SHIFT: {
 		const u32 tmp = m_stash1 >> m_stash2;
 
 		m_stateStep = EXEC_INST_STEP_INC_IP;
@@ -1425,6 +1512,9 @@ void Cpu::execInstSR() {
 		m_addressBusOutput = tmp & 0xFFFF;
 		newState(m_operand1.mode.indirect ? CpuState::ABUS_WRITE_INDIRECT : CpuState::ABUS_WRITE);
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstSR reached an invalid state step");
 	}
 }
 
@@ -1458,6 +1548,8 @@ void Cpu::execInstST() {
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		newState(CpuState::ABUS_WRITE);
 		break;
+	default:
+		shared::panic("invalid state: execInstST reached an invalid state step");
 	}
 }
 
@@ -1516,7 +1608,7 @@ void Cpu::execInstSUB() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, DO_COMPARE, 0, MOVE_TO_STASH)
-	DO_COMPARE:
+	DO_COMPARE: {
 		const u32 tmp = m_stash1 - m_stash2;
 		const u8 ar_signbit = m_regAR & (1 << 15);
 		const u8 tmp_signbit = tmp & (1 << 15);
@@ -1524,9 +1616,12 @@ void Cpu::execInstSUB() {
 		m_regFL.of = tmp_signbit != ar_signbit && ar_signbit == tmp_signbit;
 		m_regFL.cf = tmp > UINT16_MAX;
 		m_regFL.nf = tmp_signbit != 0;
-		m_regFL.zf = tmp == 0 && m_regFL.cf == 0 && m_regFL.of == 0;
+		m_regFL.zf = tmp == 0 && !m_regFL.cf && !m_regFL.of;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstSUB reached an invalid state step");
 	}
 }
 
@@ -1535,14 +1630,17 @@ void Cpu::execInstTEST() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_regAR & m_stash1;
 
-		m_regFL.of = 0;
-		m_regFL.cf = 0;
+		m_regFL.of = false;
+		m_regFL.cf = false;
 		m_regFL.zf = tmp == 0;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstTEST reached an invalid state step");
 	}
 }
 
@@ -1551,13 +1649,16 @@ void Cpu::execInstXOR() {
 
 	switch(m_stateStep) {
 		GET_OPERAND_MOVE_TO_STASH(m_operand1, m_stash1, CALCULATE, 0, MOVE_TO_STASH)
-	CALCULATE:
+	CALCULATE: {
 		const u32 tmp = m_regAR ^ m_stash1;
 
 		m_regFL.zf = tmp == 0;
 		m_regAR = tmp;
 		m_stateStep = EXEC_INST_STEP_INC_IP;
 		break;
+	}
+	default:
+		shared::panic("invalid state: execInstXOR reached an invalid state step");
 	}
 }
 
@@ -1585,21 +1686,26 @@ void Cpu::finishState() {
 }
 
 void Cpu::printFetchedInstruction() const {
-	logDebug() << "fetched instruction 0x" << std::hex << static_cast<u32>(m_instruction) << "\n"
-			   << "\t-> Operand 1: value = 0x" << static_cast<u32>(m_operand1.value)
-			   << ", addressing mode {\n"
-			   << "\t\t-> is_register: " << std::to_string(m_operand1.mode.is_register) << "\n"
-			   << "\t\t-> direct: " << std::to_string(m_operand1.mode.direct) << "\n"
-			   << "\t\t-> indirect: " << std::to_string(m_operand1.mode.indirect) << "\n"
-			   << "\t\t-> relative: " << std::to_string(m_operand1.mode.relative) << "\n"
-			   << "\t\t-> immediate: " << std::to_string(m_operand1.mode.immediate) << "\n\t}\n"
-			   << "\t-> Operand 2: value = 0x" << static_cast<u32>(m_operand2.value)
-			   << ", addressing mode {\n"
-			   << "\t\t-> is_register: " << std::to_string(m_operand2.mode.is_register) << "\n"
-			   << "\t\t-> direct: " << std::to_string(m_operand2.mode.direct) << "\n"
-			   << "\t\t-> indirect: " << std::to_string(m_operand2.mode.indirect) << "\n"
-			   << "\t\t-> relative: " << std::to_string(m_operand2.mode.relative) << "\n"
-			   << "\t\t-> immediate: " << std::to_string(m_operand2.mode.immediate) << "\n\t}\n";
+	logDebug()
+		<< "fetched instruction 0x" << std::hex << static_cast<u32>(m_instruction) << "\n"
+		<< "\t-> Operand 1: value = 0x" << static_cast<u32>(m_operand1.value)
+		<< ", addressing mode {\n"
+		<< "\t\t-> is_register: " << std::to_string(static_cast<int>(m_operand1.mode.is_register))
+		<< "\n"
+		<< "\t\t-> direct: " << std::to_string(static_cast<int>(m_operand1.mode.direct)) << "\n"
+		<< "\t\t-> indirect: " << std::to_string(static_cast<int>(m_operand1.mode.indirect)) << "\n"
+		<< "\t\t-> relative: " << std::to_string(static_cast<int>(m_operand1.mode.relative)) << "\n"
+		<< "\t\t-> immediate: " << std::to_string(static_cast<int>(m_operand1.mode.immediate))
+		<< "\n\t}\n"
+		<< "\t-> Operand 2: value = 0x" << static_cast<u32>(m_operand2.value)
+		<< ", addressing mode {\n"
+		<< "\t\t-> is_register: " << std::to_string(static_cast<int>(m_operand2.mode.is_register))
+		<< "\n"
+		<< "\t\t-> direct: " << std::to_string(static_cast<int>(m_operand2.mode.direct)) << "\n"
+		<< "\t\t-> indirect: " << std::to_string(static_cast<int>(m_operand2.mode.indirect)) << "\n"
+		<< "\t\t-> relative: " << std::to_string(static_cast<int>(m_operand2.mode.relative)) << "\n"
+		<< "\t\t-> immediate: " << std::to_string(static_cast<int>(m_operand2.mode.immediate))
+		<< "\n\t}\n";
 }
 
 }  // namespace mfdemu::impl
