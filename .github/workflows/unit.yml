@@ -58,4 +58,13 @@ jobs:
       run: |
         ln --symbolic "$(which clang-format-20)" /usr/local/bin/clang-format
         ln --symbolic "$(which clang-tidy-20)" /usr/local/bin/clang-tidy
-        ./scripts/static-checks.sh asm emu shared
+        echo "===== Running static checks for mfdasm ====="
+        ./scripts/static-checks.sh asm
+        echo
+        echo
+        echo "===== Running static checks for mfdemu ====="
+        ./scripts/static-checks.sh emu
+        echo
+        echo
+        echo "===== Running static checks for shared ====="
+        ./scripts/static-checks.sh shared
