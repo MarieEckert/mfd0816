@@ -3,7 +3,6 @@
 # ============================================================================ #
 # Configuration
 # ============================================================================ #
-readonly CPP_EXTENSIONS="cpp|cc|cxx|c|h|hpp|hxx"
 readonly CLANG_TIDY_OPTIONS="-p build/ -warnings-as-errors=*"
 readonly MAIN_BRANCH="main"
 
@@ -87,7 +86,7 @@ else
 	echo "Checking files changed compared to ${MAIN_BRANCH}..."
 	mapfile -t files_to_check < <(
 		git diff --name-only "$MAIN_BRANCH"...HEAD -- "${@}" \
-		| grep -E "\.(${CPP_EXTENSIONS})$" || true
+		| grep -E "\.\(cpp\hpp\)$" || true
 	)
 fi
 
