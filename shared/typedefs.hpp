@@ -28,6 +28,7 @@
 
 #include <sys/types.h>
 
+/* NOLINTBEGIN */
 using usize = std::size_t;
 using isize = ssize_t;
 using i16 = std::int16_t;
@@ -54,5 +55,6 @@ using uLeast16 = std::uint_least16_t;
 using uLeast32 = std::uint_least32_t;
 using uLeast64 = std::uint_least64_t;
 using uLeast8 = std::uint_least8_t;
+/* NOLINTEND */
 
 #endif

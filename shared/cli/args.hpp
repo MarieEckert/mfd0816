@@ -30,7 +30,7 @@ namespace shared::cli {
  * @brief Helper tempalte for converting a string to the generic type T
  */
 template <typename T>
-T _getAs(std::string str) {
+T getAs(const std::string &str) {
 	std::stringstream convert;
 	convert << std::boolalpha << str;
 
@@ -50,7 +50,7 @@ class ArgumentBase {
 	 * @param long_name (Optional) The long name for the argument.
 	 * @param action (Optional, default false) Is it an action argument (takes no parameters).
 	 */
-	ArgumentBase(std::string short_name, std::string long_name = "", bool action = false);
+	explicit ArgumentBase(std::string short_name, std::string long_name = "", bool action = false);
 
 	/**
 	 * @brief Checks if the given argument and option combination works for this argument.
@@ -78,7 +78,7 @@ template <typename T>
 class Argument : public ArgumentBase {
    public:
 	/** @see ArgumentBase::ArgumentBase */
-	Argument(std::string short_name, std::string long_name = "", bool action = false)
+	explicit Argument(std::string short_name, std::string long_name = "", bool action = false)
 		: ArgumentBase(short_name, long_name, action) {}
 
 	/**
@@ -96,7 +96,7 @@ class Argument : public ArgumentBase {
 			return std::nullopt;
 		}
 
-		m_value = _getAs<T>(m_stringValue.value());
+		m_value = getAs<T>(m_stringValue.value());
 
 		return m_value;
 	};

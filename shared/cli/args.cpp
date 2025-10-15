@@ -16,6 +16,7 @@
  */
 
 #include <iostream>
+#include <utility>
 
 #include "args.hpp"
 
@@ -24,14 +25,14 @@ namespace shared::cli {
 /* class ArgumentBase */
 
 ArgumentBase::ArgumentBase(std::string short_name, std::string long_name, bool action)
-	: m_isAction(action), m_shortName(short_name), m_longName(long_name) {}
+	: m_isAction(action), m_shortName(std::move(short_name)), m_longName(std::move(long_name)) {}
 
 ssize_t ArgumentBase::check(const std::string &name, std::string value) {
 	if(name != m_shortName && name != m_longName) {
 		return -1;
 	}
 
-	m_stringValue = !m_isAction ? value : "true";
+	m_stringValue = !m_isAction ? std::move(value) : "true";
 	return m_isAction ? 0 : 1;
 }
 
@@ -42,13 +43,13 @@ void ArgumentParser::parse(int argc, char **argv) {
 	str_args.reserve(argc);
 
 	for(int ix = 0; ix < argc; ix++) {
-		str_args.emplace_back(argv[ix]);
+		str_args.emplace_back(argv[ix]);  // NOLINT
 	}
 
 	for(size_t ix = 0; ix < str_args.size(); ix++) {
 		bool found = false;
 		for(const auto &arg: this->args) {
-			ssize_t inc =
+			const ssize_t inc =
 				arg->check(str_args[ix], ix + 1 < str_args.size() ? str_args[ix + 1] : "");
 			;
 			if(inc == -1) {

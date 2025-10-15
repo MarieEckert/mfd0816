@@ -29,19 +29,18 @@ std::string program_name = "unknown";
 
 static std::string demangle(const char *const symbol) {
 	const std::unique_ptr<char, decltype(&std::free)> demangled(
-		abi::__cxa_demangle(symbol, 0, 0, 0), &std::free);
+		abi::__cxa_demangle(symbol, nullptr, nullptr, nullptr), &std::free);
 	if(demangled) {
 		return demangled.get();
-	} else {
-		return symbol;
 	}
+	return symbol;
 }
 
 static void backtrace() {
-	void *addresses[256];
-	const int n = ::backtrace(addresses, std::extent<decltype(addresses)>::value);
+	void *addresses[256];  // NOLINT NOLINTNEXTLINE
+	const int n = ::backtrace(addresses, std::extent_v<decltype(addresses)>);
 	const std::unique_ptr<char *, decltype(&std::free)> symbols(
-		::backtrace_symbols(addresses, n), &std::free);
+		::backtrace_symbols(addresses, n), &std::free);	 // NOLINT
 
 	for(int i = 0; i < n; ++i) {
 		/* we parse the symbols retrieved from backtrace_symbols() to
@@ -49,31 +48,31 @@ static void backtrace() {
 		 */
 		char *const symbol = symbols.get()[i];
 		char *end = symbol;
-		while(*end) {
-			++end;
+		while(*end != 0) {
+			++end;	// NOLINT
 		}
 
 		/* scanning is done backwards, since the module name
 		 * might contain both '+' or '(' characters.
 		 */
 		while(end != symbol && *end != '+') {
-			--end;
+			--end;	// NOLINT
 		}
 
 		char *begin = end;
 		while(begin != symbol && *begin != '(') {
-			--begin;
+			--begin;  // NOLINT
 		}
 
 		if(begin != symbol) {
 			std::cerr << (i == 2 ? "  -> " : "     ") << i << ": "
-					  << std::string(symbol, ++begin - symbol);
-			*end++ = '\0';
+					  << std::string(symbol, ++begin - symbol);	 // NOLINT
+			*end++ = '\0';										 // NOLINT
 			std::cerr << demangle(begin) << '+' << end;
 		} else {
 			std::cerr << symbol;
 		}
-		std::cerr << std::endl;
+		std::cerr << '\n';
 	}
 }
 

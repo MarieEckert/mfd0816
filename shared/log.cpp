@@ -29,7 +29,7 @@
 
 namespace shared {
 
-static Logger::Level _log_level =
+static Logger::Level log_level =
 #ifndef RELEASE
 	Logger::Level::DEBUG
 #else
@@ -41,7 +41,7 @@ void Logger::setLogLevel(Level level) {
 	if(level > Level::PANIC) {
 		panic("invalid log level: " + std::to_string(static_cast<u8>(level)));
 	}
-	_log_level = level;
+	log_level = level;
 }
 
 void Logger::stringSetLogLevel(const std::string &level) {
@@ -72,7 +72,7 @@ static VoidBuffer void_buffer;
 static std::ostream void_stream(&void_buffer);
 
 std::ostream &Logger::getStream(Level level) {
-	if(level < _log_level) {
+	if(level < log_level) {
 		std::cout << std::flush;
 		return void_stream;
 	}

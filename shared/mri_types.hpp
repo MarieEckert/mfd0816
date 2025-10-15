@@ -36,13 +36,13 @@ constexpr usize HEADER_DATA_OFFSET_OFFSET = 12;
 constexpr usize TABLE_ENTRY_COUNT_OFFSET = 16;
 constexpr usize TABLE_ENTRY_START_OFFSET = 20;
 
-enum class TypeFlag : u16 {
+enum class TypeFlag : u16 {	 // NOLINT
 	COMPACT = 1 << 0,
 	DATA_COMPRESSED = 1 << 1,
 };
 
 struct Header {
-	char magic[4];
+	char magic[4];	// NOLINT
 	u16 version;
 	u16 type;
 	u32 filesize;
