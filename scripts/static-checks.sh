@@ -86,7 +86,7 @@ else
 	echo "Checking files changed compared to ${MAIN_BRANCH}..."
 	mapfile -t files_to_check < <(
 		git diff --name-only "$MAIN_BRANCH"...HEAD -- "${@}" \
-		| grep -E "\.\(cpp\hpp\)$" || true
+		| grep -E "\.\(cpp\|hpp\)$" || true
 	)
 fi
 
