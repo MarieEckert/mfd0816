@@ -56,6 +56,7 @@ jobs:
         path: build/
     - name: run
       run: |
+        git fetch --all
         ln --symbolic "$(which clang-format-20)" /usr/local/bin/clang-format
         ln --symbolic "$(which clang-tidy-20)" /usr/local/bin/clang-tidy
         echo "===== Running static checks for mfdasm ====="

@@ -4,7 +4,7 @@
 # Configuration
 # ============================================================================ #
 readonly CLANG_TIDY_OPTIONS="-p build/ -warnings-as-errors=*"
-readonly MAIN_BRANCH="main"
+readonly MAIN_BRANCH="origin/main"
 
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
