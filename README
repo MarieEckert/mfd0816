@@ -30,6 +30,18 @@ DOCUMENTS
           storing/distributing programs
   ► [TODO] MFDASM – The specification for the MFD0816 assembler language
 
+VERSIONING
+────────────────────────────────────────────────────────────────────────────────
+
+  Within this project, there are three different version numbers:
+    1. Project version
+    2. mfdemu version
+    3. mfdasm version
+
+  Since this project is intended as a package of both the core emulator and the
+  assembler needed to develop software for it, there are not only releases of
+  these two components but also of the entire project as a package.
+
 REPOSITORY STRUCTURE
 ────────────────────────────────────────────────────────────────────────────────
 
