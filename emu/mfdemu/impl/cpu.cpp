@@ -545,16 +545,20 @@ void Cpu::execReset() {
 void Cpu::execHardInterrupt() {
 	switch(m_stateStep) {
 	case 0:
-		logDebug() << "starting interrupt acknowledge\n";
-		m_pinIRA = true;
+		logDebug() << "hardware interrupt buffer cycle\n";
 		m_stateStep = 1;
 		break;
 	case 1:
-		logDebug() << "setting IID\n";
-		m_regIID = m_ioBusInput & 0xFF;
+		logDebug() << "starting interrupt acknowledge\n";
+		m_pinIRA = true;
 		m_stateStep = 2;
 		break;
 	case 2:
+		logDebug() << "setting IID\n";
+		m_regIID = m_ioBusInput & 0xFF;
+		m_stateStep = 3;
+		break;
+	case 3:
 		logDebug() << "terminated interrupt acknowledge\n";
 		m_pinIRA = false;
 		finishState();
