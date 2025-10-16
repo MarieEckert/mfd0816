@@ -11,8 +11,8 @@ format_files=()
 
 if [ -n "$1" ]; then
 	mapfile -t format_files < <(
-		git diff --name-only origin/main...HEAD -- "${@}" \
-		| grep -E "\.\(cpp\|hpp\)$" || true
+		git diff --name-only origin/main...HEAD -- "${DIRECTORIES[@]}" \
+		| grep "\.\(cpp\|hpp\)$" || true
 	)
 else
 	mapfile -t format_files < <(
