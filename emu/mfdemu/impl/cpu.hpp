@@ -55,20 +55,6 @@ struct Operand {
 
 class Cpu {
    public:
-	void iclck();
-
-	bool irq{false};
-	bool reset{false};
-	bool ams() const { return m_pinAMS; }
-	bool gms() const { return m_pinGMS; }
-	bool clk() const { return m_pinCLK; }
-	bool ira() const { return m_pinIRA; }
-
-	void connectAddressDevice(std::shared_ptr<BaseBusDevice<u16>> device);
-
-	void connectIoDevice(std::shared_ptr<BaseBusDevice<u8>> device);
-
-   protected:
 	enum class CpuState : u8 {
 		ABUS_READ,
 		ABUS_READ_INDIRECT,
@@ -83,6 +69,20 @@ class Cpu {
 		INTERRUPT,
 	};
 
+	void iclck();
+
+	bool irq{false};
+	bool reset{false};
+	bool ams() const { return m_pinAMS; }
+	bool gms() const { return m_pinGMS; }
+	bool clk() const { return m_pinCLK; }
+	bool ira() const { return m_pinIRA; }
+
+	void connectAddressDevice(std::shared_ptr<BaseBusDevice<u16>> device);
+
+	void connectIoDevice(std::shared_ptr<BaseBusDevice<u8>> device);
+
+   protected:
 	/** general operations */
 
 	void abusRead();
