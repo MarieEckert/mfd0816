@@ -12,32 +12,9 @@
 #define DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS
 #include <doctest/doctest.h>
 
-using namespace mfdemu;
-using namespace mfdemu::impl;
+#include "test_cpu.hpp"
 
-namespace {
-class CpuTest : public Cpu {
-   public:
-	using CpuState = Cpu::CpuState;
-
-	void newState(CpuState state) { Cpu::newState(state); }
-
-	CpuState state() const { return m_state.top(); }
-
-	u16 &m_regACL = Cpu::m_regACL;
-	u16 &m_regBCL = Cpu::m_regBCL;
-	u16 &m_regCCL = Cpu::m_regCCL;
-	u16 &m_regDCL = Cpu::m_regDCL;
-	u16 &m_regSP = Cpu::m_regSP;
-	u16 &m_regIP = Cpu::m_regIP;
-	u16 &m_regAR = Cpu::m_regAR;
-	CpuFlags &m_regFL = Cpu::m_regFL;
-
-	u16 &m_ioBusInput = Cpu::m_ioBusInput;
-	u16 &m_ioBusOutput = Cpu::m_ioBusOutput;
-	u16 &m_ioBusAddress = Cpu::m_ioBusAddress;
-};
-
+namespace test::mfdemu {
 class AioTestDevice : public BaseBusDevice<u16> {
    public:
 	AioTestDevice() { m_data.resize(0xffff); }
@@ -235,7 +212,6 @@ void imulTest(i16 factor1, i16 factor2) {
 	CHECK_EQ(cpu.m_regFL.of, of_expected);
 	CHECK_EQ(cpu.m_regFL.cf, cf_expected);
 }
-}  // namespace
 
 TEST_SUITE("Arithmetic") {
 	TEST_CASE("div") {
@@ -272,3 +248,4 @@ TEST_SUITE("Arithmetic") {
 		imulTest(INT16_MAX, -2);
 	}
 }
+}  // namespace test::mfdemu

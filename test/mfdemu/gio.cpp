@@ -6,21 +6,9 @@
 #define DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS
 #include <doctest/doctest.h>
 
-using namespace mfdemu;
-using namespace mfdemu::impl;
+#include "test_cpu.hpp"
 
-namespace {
-class CpuTest : public Cpu {
-   public:
-	using CpuState = Cpu::CpuState;
-
-	void newState(CpuState state) { Cpu::newState(state); }
-
-	u16 &m_ioBusInput = Cpu::m_ioBusInput;
-	u16 &m_ioBusOutput = Cpu::m_ioBusOutput;
-	u16 &m_ioBusAddress = Cpu::m_ioBusAddress;
-};
-
+namespace test::mfdemu {
 class GioDeviceTest : public GioDevice {
    public:
 	GioDeviceTest() { m_data.resize(0xFFFF); }
@@ -40,7 +28,6 @@ class GioDeviceTest : public GioDevice {
 
 	std::vector<u8> m_data;
 };
-}  // namespace
 
 TEST_SUITE("GIO") {
 	TEST_CASE("gio write") {
@@ -83,3 +70,4 @@ TEST_SUITE("GIO") {
 		REQUIRE_EQ(cpu.m_ioBusInput, 0xfeed);
 	}
 }
+}  // namespace test::mfdemu
