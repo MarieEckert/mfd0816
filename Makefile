@@ -9,6 +9,9 @@ run-tests:
 	cd build && ctest --output-on-failure
 .PHONY: format
 format:
+	./scripts/run-clang-format.sh 1
+.PHONY: format-all
+format-all:
 	./scripts/run-clang-format.sh
 .PHONY: setup-clang
 setup-clang:
