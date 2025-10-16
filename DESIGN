@@ -499,16 +499,17 @@ CONTENTS
 
   Interrupt request:
 
-                  T1    ╷
-    ICLK  ┐      ┌──────┐      ┌
-          └──────┘      └──────┘
+                  T1    ╷      T2     ╷
+    ICLK  ┐      ┌──────┐      ┌──────┐
+          └──────┘      └──────┘      └─
 
     IRQ         ┌──────┐
-         ───────┘      └───────
+         ───────┘      └────────────────
 
   The CPU checks if the IRQ line is high at the ench of each clock cycle. So if
-  IRQ is high at the end of T1, an interrupt was requested. After this sequence,
-  the Acknowledge sequence is entered.
+  IRQ is high at the end of T1, an interrupt was requested.
+  During T2, the cpu is already in the process of accepting and processing
+  the interrupt. This cycle is called the "buffer cycle"
 
   Interrupt acknowledge:
 
@@ -523,10 +524,11 @@ CONTENTS
     GIO   ─────────────────────────────🮤 DATA  IN 🮥─
                                        🮡──────────🮠
 
-  As soon as the CPU is ready, it will set the IRA line high for two clock
-  pulses. During the first pulse, nothing else happens. During the second pulse
-  the CPU reads a byte of whatever data currently is on the I/O Bus. This data
-  is used as the interrupt id and written to the IID register.
+  In the next cycle after the buffer cycle, the cpu will set the IRA line high
+  for two clock pulses. During the first pulse, nothing else happens.
+  During the second pulse the CPU reads a byte of whatever data currently is on
+  the I/O Bus.
+  This data is used as the interrupt id and written to the IID register.
 
   After both sequences are completed, the CPU continues with the shared
   behaviour specified in chapter 6.
