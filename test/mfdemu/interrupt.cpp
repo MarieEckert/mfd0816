@@ -11,12 +11,12 @@ namespace test::mfdemu {
 TEST_SUITE("Interrupt") {
 	TEST_CASE("hardware interrupt") {
 		std::vector<u8> main_memory(64 * 1024);
-		main_memory[0x0000] = 0x10;
-		main_memory[0x0001] = 0x00;
-		main_memory[0x0002] = 0x00;
-		main_memory[0x0003] = 0x00;
-		main_memory[0xFFFC] = 0x00;
-		main_memory[0xFFFD] = 0x00;
+		main_memory[0x1234] = 0x10;
+		main_memory[0x1235] = 0x00;
+		main_memory[0x1236] = 0x00;
+		main_memory[0x1237] = 0x00;
+		main_memory[0xFFFC] = 0x12;
+		main_memory[0xFFFD] = 0x34;
 		main_memory[0xFFFE] = 0x00;
 		main_memory[0xFFFF] = 0x00;
 		auto main_memory_dev = std::make_shared<AioDevice>(false, 64 * 1024);
@@ -34,14 +34,29 @@ TEST_SUITE("Interrupt") {
 			cpu.iclck();
 		}
 
+		cpu.m_regFL.ie = true;
+
+		/* IRQ */
 		cpu.irq = true;
-		cpu.iclck(); /* initial cpu reaction time */
-		cpu.iclck(); /* buffer cycle */
-		cpu.iclck(); /* start of IRA (IRA T1) */
+		cpu.iclck();  // initial cpu reaction time
+		cpu.irq = false;
+
+		/* buffer cycle */
+		cpu.iclck();
+
+		/* IRA */
+		cpu.iclck();  // IRA T1
 		REQUIRE(cpu.ira());
-		cpu.iclck(); /* IRA T2 */
+		cpu.iclck();  // IRA T2
 		REQUIRE(cpu.ira());
-		cpu.iclck(); /* IRA done, internal interrupt processing */
+		cpu.iclck();  // IRA done, internal interrupt processing
+
+		// run until the cpu is about to enter the interrupt vector
+		while(cpu.m_regFL.ie) {
+			cpu.iclck();
+		}
+
+		REQUIRE_EQ(cpu.m_regIP, 0x1234);
 	}
 	TEST_CASE("software interrupt") {}
 }
