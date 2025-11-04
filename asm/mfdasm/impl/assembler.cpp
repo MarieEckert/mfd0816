@@ -499,7 +499,7 @@ Result<u32, AsmError> Parser::tryParseUnknownAt(u32 ix) {
 
 	if(const auto maybe_instruction = Instruction::kindFromString(token_value);
 	   maybe_instruction.has_value()) {
-		return this->tryParseInstruction(ix + 1, maybe_instruction.value());
+		return this->tryParseInstruction(ix, maybe_instruction.value());
 	}
 
 	return Err(AsmError(AsmError::SYNTAX_ERROR, token.lineno()));
@@ -509,7 +509,7 @@ Result<u32, AsmError> Parser::tryParseInstruction(u32 ix, Instruction::Kind kind
 	const Token &token = m_tokens[ix];
 	const std::vector<InstructionOperand> required_operands = InstructionOperand::operandsFor(kind);
 	const Result<std::pair<u32, Expressions>, AsmError> parse_operands_result =
-		this->tryParseOperands(ix);
+		this->tryParseOperands(ix + 1);
 
 	if(parse_operands_result.isErr()) {
 		return Err(parse_operands_result.unwrapErr());
