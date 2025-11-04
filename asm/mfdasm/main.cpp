@@ -15,10 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include <Arg3P/Arg3P.hpp>
 
 #include <shared/log.hpp>
 
@@ -26,13 +29,13 @@
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/mri/mri.hpp>
 
-#include <Arg3P/Arg3P.hpp>
+namespace {
 
 using namespace mfdasm;
 
-static constexpr const std::string_view VERSION = "v0.0 (develop)";
+constexpr const std::string_view VERSION = "v0.0 (develop)";
 
-[[noreturn]] static void licenses() {
+[[noreturn]] void licenses() {
 	std::cerr
 		<< "MFDASM -------------------------------------------------------------------------\n\n"
 		<< "Copyright (C) 2024  Marie Eckert\n"
@@ -47,9 +50,7 @@ static constexpr const std::string_view VERSION = "v0.0 (develop)";
 	std::exit(0);
 }
 
-int main(int argc, char **argv) {
-	shared::program_name = "mfdasm";
-
+int run(int argc, char **argv) {
 	auto arg_help = Arg3P::Arg<bool>::make('h', "help", "display a help text");
 	auto arg_verbosity =
 		Arg3P::Arg<std::string>::make('v', "verbosity", "debug/info/warn/error/panic");
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
 		{arg_verbosity, arg_licenses, arg_print_ast, arg_outfile, arg_infile, arg_padded}};
 	const std::optional<Arg3P::Error> error = parser(std::span<char *>(argv, argc).subspan(1));
 	if(arg_help->get().value_or(false)) {
-		std::cout << "SYNOPSIS: example-help " << parser.generateSynopsis() << "\n\n";
+		std::cout << "SYNOPSIS: mfdasm " << parser.generateSynopsis() << "\n\n";
 		std::cout << parser.generateHelp() << "\n";
 		return 0;
 	}
@@ -82,9 +83,12 @@ int main(int argc, char **argv) {
 
 	/* start */
 
-	std::cerr << "MFDASM, assembler for the mfd0816 fantasy architecture\n"
-			  << "Copyright (C) 2024  Marie Eckert\n\n";
+	std::cerr << "-- MFDASM, assembler for the mfd0816 fantasy architecture\n"
+			  << "-- Version " << VERSION << "\n"
+			  << "--\n"
+			  << "-- Copyright (C) 2024  Marie Eckert\n\n";
 
+	// NOLINTNEXTLINE(bugprone-unchecked-optional-access)
 	const std::string infile = arg_infile->get().value();
 
 	std::stringstream buffer;
@@ -128,4 +132,15 @@ int main(int argc, char **argv) {
 	}
 
 	return 0;
+}
+}  // namespace
+
+int main(int argc, char **argv) {
+	shared::program_name = "mfdasm";
+
+	try {
+		return run(argc, argv);
+	} catch(const std::exception &e) {
+		shared::panic(std::string("uncaught exception escaped to main: ").append(e.what()));
+	}
 }
