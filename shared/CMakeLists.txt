@@ -1,5 +1,4 @@
 set(SOURCES
-	cli/args.cpp
 	log.cpp
 	panic.cpp
 )
