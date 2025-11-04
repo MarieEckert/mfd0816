@@ -61,9 +61,10 @@ if [ "$current_branch" == "$MAIN_BRANCH" ]; then
 		files_to_check+=("${tmp[@]}")
 	done
 else
-	log_detail "Checking files changed compared to ${MAIN_BRANCH}..."
+	readonly compare_to="${BASE_BRANCH:-MAIN_BRANCH}"
+	log_detail "Checking files changed compared to ${compare_to}..."
 	mapfile -t files_to_check < <(
-		git diff --name-only "$MAIN_BRANCH"...HEAD -- "${@}" \
+		git diff --name-only "$compare_to"...HEAD -- "${@}" \
 		| grep "\.\(cpp\|hpp\)$" || true
 	)
 fi
