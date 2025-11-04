@@ -6,8 +6,8 @@ set(SOURCES
 	mfdemu/mri.cpp
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}")
-
 add_library(emu ${SOURCES})
+target_include_directories(emu PRIVATE ${MFD_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(mfdemu mfdemu/main.cpp)
 target_link_libraries(mfdemu emu shared)
+target_include_directories(mfdemu PRIVATE ${MFD_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})

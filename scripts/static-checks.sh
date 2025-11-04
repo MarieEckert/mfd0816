@@ -76,6 +76,11 @@ else
 	tidy_failed=0
 
 	for file in "${files_to_check[@]}"; do
+		if [ ! -f "${file}" ]; then
+			log_detail "file \"${file}\" does not exist, skipping..."
+			continue
+		fi
+
 		echo -n "  > Running clang-tidy: $file ... "
 		output=$(clang-tidy ${CLANG_TIDY_OPTIONS} "$file" 2>&1 || true)
 

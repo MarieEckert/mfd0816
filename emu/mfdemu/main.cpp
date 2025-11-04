@@ -20,18 +20,21 @@
 #include <iostream>
 #include <string>
 
-#include <shared/cli/args.hpp>
+#include <Arg3P/Arg3P.hpp>
+
 #include <shared/log.hpp>
 #include <shared/panic.hpp>
 
 #include <mfdemu/impl/system.hpp>
 #include <mfdemu/mri.hpp>
 
-#define VERSION "0.0 (develop)"
+namespace {
 
 using namespace mfdemu;
 
-[[noreturn]] static void licenses() {
+constexpr const std::string_view VERSION = "v0.0 (develop)";
+
+[[noreturn]] void licenses() {
 	std::cerr << "MFDEMU "
 				 "---------------------------------------------------------------"
 				 "----------\n\n"
@@ -41,40 +44,49 @@ using namespace mfdemu;
 	std::exit(0);
 }
 
-int main(int argc, char **argv) {
-	shared::program_name = "mfdemu";
+int run(int argc, char **argv) {
+	auto arg_help = Arg3P::Arg<bool>::make('h', "help", "show a help text");
+	auto arg_verbosity =
+		Arg3P::Arg<std::string>::make('v', "verbosity", "debug/info/warn/error/panic");
+	;
+	auto arg_licenses = Arg3P::Arg<bool>::make('l', "licenses", "list licenses");
+	auto arg_infile = Arg3P::Arg<std::string>::makeRequired('i');
+	auto arg_cycle_span =
+		Arg3P::Arg<u64>::make('c', "cycle-span", "specify the span of each cycle in nanoseconds");
 
-	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
-	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
-	shared::cli::Argument<std::string> arg_infile("-i");
-	shared::cli::Argument<u64> arg_cycle_span("-c", "--cycle-span");
-
-	shared::cli::ArgumentParser parser;
-	parser.addArgument(&arg_verbosity);
-	parser.addArgument(&arg_licenses);
-	parser.addArgument(&arg_infile);
-	parser.addArgument(&arg_cycle_span);
-	parser.parse(argc - 1, argv + 1);  // NOLINT
-
-	if(arg_licenses.get().value_or(false)) {
-		licenses();
+	Arg3P::Parser<char *> parser{
+		{arg_help, arg_verbosity, arg_licenses, arg_infile, arg_cycle_span}};
+	const std::optional<Arg3P::Error> error = parser(std::span<char *>(argv, argc).subspan(1));
+	if(arg_help->get().value_or(false)) {
+		std::cout << "SYNOPSIS: mfdemu " << parser.generateSynopsis() << "\n\n";
+		std::cout << parser.generateHelp() << "\n";
+		return 0;
 	}
 
-	shared::Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
-
-	constexpr u64 DEFAULT_CYCLE_SPAN = 1000; /* ~10MHz */
-	const u64 cycle_span = arg_cycle_span.get().value_or(DEFAULT_CYCLE_SPAN);
-
-	std::cerr << "MFDEMU, emulator for the mfd0816 fantasy architecture\n"
-			  << "Copyright (C) 2024  Marie Eckert\n\n";
-
-	const std::optional<std::string> infile = arg_infile.get();
-	if(!infile.has_value()) {
-		logError() << "no input file specified! specify using \"-i <file>\"\n";
+	if(error.has_value()) {
+		std::cerr << "Error parsing arguments: " << errorName(error.value().error) << ": "
+				  << error.value().message << "\n";
 		return 1;
 	}
 
-	std::ifstream stream(infile.value(), std::ios::in | std::ios::binary);
+	if(arg_licenses->get().value_or(false)) {
+		licenses();
+	}
+
+	shared::Logger::stringSetLogLevel(arg_verbosity->get().value_or(""));
+
+	constexpr u64 DEFAULT_CYCLE_SPAN = 1000; /* ~10MHz */
+	const u64 cycle_span = arg_cycle_span->get().value_or(DEFAULT_CYCLE_SPAN);
+
+	std::cerr << "-- MFDEMU, emulator for the mfd0816 fantasy architecture\n"
+			  << "-- Version " << VERSION << "\n"
+			  << "--\n"
+			  << "Copyright (C) 2024  Marie Eckert\n\n";
+
+	// NOLINTNEXTLINE(bugprone-unchecked-optional-access)
+	const std::string infile = arg_infile->get().value();
+
+	std::ifstream stream(infile, std::ios::in | std::ios::binary);
 	const std::vector<u8> contents(
 		(std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
@@ -83,4 +95,16 @@ int main(int argc, char **argv) {
 	the_system.run();
 
 	return 0;
+}
+
+}  // namespace
+
+int main(int argc, char **argv) {
+	shared::program_name = "mfdemu";
+
+	try {
+		return run(argc, argv);
+	} catch(const std::exception &e) {
+		shared::panic(std::string("uncaught exception escaped to main: ").append(e.what()));
+	}
 }

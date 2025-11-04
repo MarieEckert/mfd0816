@@ -15,23 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define VERSION "0.0 (develop)"
-
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-#include <shared/cli/args.hpp>
+#include <Arg3P/Arg3P.hpp>
+
 #include <shared/log.hpp>
 
 #include <mfdasm/impl/assembler.hpp>
 #include <mfdasm/impl/ast.hpp>
 #include <mfdasm/impl/mri/mri.hpp>
 
+namespace {
+
 using namespace mfdasm;
 
-[[noreturn]] static void licenses() {
+constexpr const std::string_view VERSION = "v0.0 (develop)";
+
+[[noreturn]] void licenses() {
 	std::cerr
 		<< "MFDASM -------------------------------------------------------------------------\n\n"
 		<< "Copyright (C) 2024  Marie Eckert\n"
@@ -46,44 +50,49 @@ using namespace mfdasm;
 	std::exit(0);
 }
 
-int main(int argc, char **argv) {
-	shared::program_name = "mfdasm";
+int run(int argc, char **argv) {
+	auto arg_help = Arg3P::Arg<bool>::make('h', "help", "display a help text");
+	auto arg_verbosity =
+		Arg3P::Arg<std::string>::make('v', "verbosity", "debug/info/warn/error/panic");
+	auto arg_licenses = Arg3P::Arg<bool>::make('l', "licenses", "list licenses");
+	auto arg_print_ast = Arg3P::Arg<bool>::make('a', "ast", "display the parsed AST");
+	auto arg_outfile = Arg3P::Arg<std::string>::makeRequired('o');
+	auto arg_infile = Arg3P::Arg<std::string>::makeRequired('i');
+	auto arg_padded = Arg3P::Arg<bool>::make('p', "padded", "write a padded MRI");
 
-	shared::cli::Argument<std::string> arg_verbosity("-v", "--verbosity");
-	shared::cli::Argument<bool> arg_licenses("-l", "--licenses", true);
-	shared::cli::Argument<bool> arg_print_ast("-a", "--ast", true);
-	shared::cli::Argument<std::string> arg_outfile("-o");
-	shared::cli::Argument<std::string> arg_infile("-i");
-	shared::cli::Argument<bool> arg_padded("-p", "--padded", true);
-
-	shared::cli::ArgumentParser parser;
-	parser.addArgument(&arg_verbosity);
-	parser.addArgument(&arg_licenses);
-	parser.addArgument(&arg_print_ast);
-	parser.addArgument(&arg_outfile);
-	parser.addArgument(&arg_infile);
-	parser.addArgument(&arg_padded);
-	parser.parse(argc - 1, argv + 1);  // NOLINT
-
-	if(arg_licenses.get().value_or(false)) {
-		licenses();
+	Arg3P::Parser<char *> parser{
+		{arg_verbosity, arg_licenses, arg_print_ast, arg_outfile, arg_infile, arg_padded}};
+	const std::optional<Arg3P::Error> error = parser(std::span<char *>(argv, argc).subspan(1));
+	if(arg_help->get().value_or(false)) {
+		std::cout << "SYNOPSIS: mfdasm " << parser.generateSynopsis() << "\n\n";
+		std::cout << parser.generateHelp() << "\n";
+		return 0;
 	}
 
-	shared::Logger::stringSetLogLevel(arg_verbosity.get().value_or(""));
-
-	/* start */
-
-	std::cerr << "MFDASM, assembler for the mfd0816 fantasy architecture\n"
-			  << "Copyright (C) 2024  Marie Eckert\n\n";
-
-	const std::optional<std::string> infile = arg_infile.get();
-	if(!infile.has_value()) {
-		logError() << "no input file specified! specify using \"-i <file>\"\n";
+	if(error.has_value()) {
+		std::cerr << "Error parsing arguments: " << errorName(error.value().error) << ": "
+				  << error.value().message << "\n";
 		return 1;
 	}
 
+	if(arg_licenses->get().value_or(false)) {
+		licenses();
+	}
+
+	shared::Logger::stringSetLogLevel(arg_verbosity->get().value_or(""));
+
+	/* start */
+
+	std::cerr << "-- MFDASM, assembler for the mfd0816 fantasy architecture\n"
+			  << "-- Version " << VERSION << "\n"
+			  << "--\n"
+			  << "-- Copyright (C) 2024  Marie Eckert\n\n";
+
+	// NOLINTNEXTLINE(bugprone-unchecked-optional-access)
+	const std::string infile = arg_infile->get().value();
+
 	std::stringstream buffer;
-	const std::ifstream instream(infile.value());
+	const std::ifstream instream(infile);
 
 	buffer << instream.rdbuf();
 
@@ -95,7 +104,7 @@ int main(int argc, char **argv) {
 		std::exit(1);
 	}
 
-	if(arg_print_ast.get().value_or(false)) {
+	if(arg_print_ast->get().value_or(false)) {
 		const std::optional<std::vector<impl::Statement>> maybe_ast = asem.ast();
 		if(!maybe_ast.has_value()) {
 			shared::panic("failed to retrieve asem's ast even though no error occured!");
@@ -114,13 +123,24 @@ int main(int argc, char **argv) {
 		std::exit(1);
 	}
 
-	const std::string outfile = arg_outfile.get().value_or(infile.value() + ".mri");
+	const std::string outfile = arg_outfile->get().value_or(infile + ".mri");
 
-	if(arg_padded.get().value_or(false)) {
+	if(arg_padded->get().value_or(false)) {
 		impl::mri::writePaddedMRI(outfile, bytes.unwrap(), false);
 	} else {
 		impl::mri::writeCompactMRI(outfile, bytes.unwrap(), false);
 	}
 
 	return 0;
+}
+}  // namespace
+
+int main(int argc, char **argv) {
+	shared::program_name = "mfdasm";
+
+	try {
+		return run(argc, argv);
+	} catch(const std::exception &e) {
+		shared::panic(std::string("uncaught exception escaped to main: ").append(e.what()));
+	}
 }
