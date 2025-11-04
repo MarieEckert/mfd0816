@@ -1,3 +1,6 @@
 [submodule "tests/3rdparty/doctest"]
 	path = 3rdparty/doctest
 	url = https://github.com/doctest/doctest
+[submodule "3rdparty/Arg3P"]
+	path = 3rdparty/Arg3P
+	url = https://github.com/MarieEckert/Arg3P
