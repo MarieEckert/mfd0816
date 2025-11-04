@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source $(dirname "$0")/helpers.sh
+source "$(dirname "$0")/helpers.sh"
 
 # ============================================================================ #
 # Configuration
