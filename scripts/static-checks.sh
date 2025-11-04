@@ -61,9 +61,10 @@ if [ "$current_branch" == "$MAIN_BRANCH" ]; then
 		files_to_check+=("${tmp[@]}")
 	done
 else
-	log_detail "Checking files changed compared to ${MAIN_BRANCH}..."
+	readonly compare_to="${BASE_BRANCH:-${MAIN_BRANCH}}"
+	log_detail "Checking files changed compared to ${compare_to}..."
 	mapfile -t files_to_check < <(
-		git diff --name-only "$MAIN_BRANCH"...HEAD -- "${@}" \
+		git diff --name-only "$compare_to"...HEAD -- "${@}" \
 		| grep "\.\(cpp\|hpp\)$" || true
 	)
 fi
@@ -75,7 +76,7 @@ else
 	tidy_failed=0
 
 	for file in "${files_to_check[@]}"; do
-		log_detail "Running clang-tidy: $file ... "
+		echo -n "  > Running clang-tidy: $file ... "
 		output=$(clang-tidy ${CLANG_TIDY_OPTIONS} "$file" 2>&1 || true)
 
 		if echo "$output" | grep -E "warning:|error:" | grep -v "/usr/include" >/dev/null; then

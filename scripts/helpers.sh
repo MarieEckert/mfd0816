@@ -4,19 +4,19 @@ readonly YELLOW='\033[1;33m'
 readonly NC='\033[0m'
 
 log_info() {
-	echo -e "${YELLOW}>>> ${@}${NC}"
+	echo -e "${YELLOW}>>> $*${NC}"
 }
 
 log_detail() {
-	echo -e "  > ${@}"
+	echo -e "  > $*"
 }
 
 log_success() {
-	echo -e "${GREEN}>>> ${@}${NC}"
+	echo -e "${GREEN}>>> $*${NC}"
 }
 
 log_error() {
-	echo -e "${RED}>>> ${@}${NC}"
+	echo -e "${RED}>>> $*${NC}"
 }
 
 print_status() {
