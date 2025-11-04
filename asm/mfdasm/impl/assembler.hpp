@@ -47,6 +47,8 @@ class Assembler {
 	std::vector<Statement> m_ast;
 };
 
+/// @todo rework this into a functor like class, so that
+/// it has an operator() overload, it shouldn't keep any state around.
 class Lexer {
    public:
 	static Result<std::vector<Token>, AsmError> process(const std::string &source);
@@ -56,6 +58,9 @@ class Lexer {
 	parseStringLiteral(const std::string &source, u32 &lineno, std::vector<Token> &tokens);
 };
 
+/// @todo rework this into a functor like class aswell. ideally the operator()
+/// continues on in the parsing process. Instructions and Directives would probably
+/// have to be restricted to single lines.
 class Parser {
    public:
 	static Result<Parser, AsmError> process(const std::vector<Token> &tokens);
