@@ -61,7 +61,8 @@ int run(int argc, char **argv) {
 	auto arg_padded = Arg3P::Arg<bool>::make('p', "padded", "write a padded MRI");
 
 	Arg3P::Parser<char *> parser{
-		{arg_verbosity, arg_licenses, arg_print_ast, arg_outfile, arg_infile, arg_padded}};
+		{arg_help, arg_verbosity, arg_licenses, arg_print_ast, arg_outfile, arg_infile,
+		 arg_padded}};
 	const std::optional<Arg3P::Error> error = parser(std::span<char *>(argv, argc).subspan(1));
 	if(arg_help->get().value_or(false)) {
 		std::cout << "SYNOPSIS: mfdasm " << parser.generateSynopsis() << "\n\n";
