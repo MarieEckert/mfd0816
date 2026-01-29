@@ -1071,11 +1071,32 @@ void Cpu::execInstINC() {
 	m_stateStep = EXEC_INST_STEP_INC_IP;
 }
 
-/** @todo: implement */
-void Cpu::execInstINT() {}
+void Cpu::execInstINT() {
+	if(!m_regFL.ie) {
+		finishState();
+		return;
+	}
+	m_regIID = m_operand1.value;
+	newState(CpuState::INTERRUPT);
+}
 
-/** @todo: implement */
-void Cpu::execInstIRET() {}
+void Cpu::execInstIRET() {
+	switch(m_stateStep) {
+	case 0:
+		m_regIID = 0;
+		m_addressBusAddress = m_regSP;
+		m_stateStep = 1;
+		newState(CpuState::ABUS_READ);
+		break;
+	case 1:
+		m_regSP += 2;
+		m_regIP = m_addressBusInput;
+		finishState();
+		break;
+	default:
+		shared::panic("invalid state: execInstIRET reached an invalid state step");
+	}
+}
 
 void Cpu::execInstJMP() {
 	constexpr u8 MOVE_TO_STASH = 16;
