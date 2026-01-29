@@ -24,5 +24,7 @@ class CpuTest : public Cpu {
 	u16 &m_ioBusInput = Cpu::m_ioBusInput;
 	u16 &m_ioBusOutput = Cpu::m_ioBusOutput;
 	u16 &m_ioBusAddress = Cpu::m_ioBusAddress;
+
+	std::stack<CpuState, std::vector<CpuState>> &m_state = Cpu::m_state;
 };
 }  // namespace test::mfdemu
