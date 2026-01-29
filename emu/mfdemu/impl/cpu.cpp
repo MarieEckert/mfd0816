@@ -70,6 +70,12 @@ void Cpu::iclck() {
 		this->gioWrite();
 		break;
 	case CpuState::INST_FETCH:
+		if(m_regFL.iq) {
+			this->newState(CpuState::HARD_INTERRUPT);
+			this->execHardInterrupt();
+			this->m_regFL.iq = false;
+			break;
+		}
 		this->fetchInst();
 		break;
 	case CpuState::INST_EXEC:
@@ -86,8 +92,9 @@ void Cpu::iclck() {
 		break;
 	}
 
+	// Let the current instruction finished before acknowledging the interrupt
 	if(irq && m_regFL.ie) {
-		newState(CpuState::HARD_INTERRUPT);
+		m_regFL.iq = true;
 	}
 }
 
@@ -531,6 +538,7 @@ void Cpu::execReset() {
 			.nf = false,
 			.ie = false,
 			.rt = false,
+			.iq = false,
 		};
 
 		logDebug() << "\nreset, IP = " << std::hex << m_regIP << std::dec << "\n";
@@ -545,20 +553,16 @@ void Cpu::execReset() {
 void Cpu::execHardInterrupt() {
 	switch(m_stateStep) {
 	case 0:
-		logDebug() << "hardware interrupt buffer cycle\n";
+		logDebug() << "starting interrupt acknowledge\n";
+		m_pinIRA = true;
 		m_stateStep = 1;
 		break;
 	case 1:
-		logDebug() << "starting interrupt acknowledge\n";
-		m_pinIRA = true;
+		logDebug() << "setting IID\n";
+		m_regIID = m_ioBusInput & 0xFF;
 		m_stateStep = 2;
 		break;
 	case 2:
-		logDebug() << "setting IID\n";
-		m_regIID = m_ioBusInput & 0xFF;
-		m_stateStep = 3;
-		break;
-	case 3:
 		logDebug() << "terminated interrupt acknowledge\n";
 		m_pinIRA = false;
 		finishState();
@@ -575,7 +579,7 @@ void Cpu::execInterrupt() {
 		logDebug() << "saving IP\n";
 		m_regSP -= 2;
 		m_addressBusAddress = m_regSP;
-		m_addressBusOutput = m_regIP;
+		m_addressBusOutput = NEXT_IP_VALUE;
 		m_stateStep = 1;
 		newState(CpuState::ABUS_WRITE);
 		break;
