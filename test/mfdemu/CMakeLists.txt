@@ -1,6 +1,7 @@
 add_executable(emu-test main.cpp
 						arithmetic.cpp
 						gio.cpp
+						interrupt.cpp
 )
 target_link_libraries(emu-test PRIVATE emu shared)
 

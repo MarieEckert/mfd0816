@@ -508,8 +508,10 @@ CONTENTS
 
   The CPU checks if the IRQ line is high at the ench of each clock cycle. So if
   IRQ is high at the end of T1, an interrupt was requested.
-  During T2, the cpu is already in the process of accepting and processing
-  the interrupt. This cycle is called the "buffer cycle"
+  After the CPU has received an interrupt request, it will set its internal IQ
+  flag and wait for the execution of the current instruction to finish. After
+  finishing, the IQ will be cleared and the Interrupt acknowledge sequence will
+  be started.
 
   Interrupt acknowledge:
 
@@ -524,7 +526,7 @@ CONTENTS
     GIO   ─────────────────────────────🮤 DATA  IN 🮥─
                                        🮡──────────🮠
 
-  In the next cycle after the buffer cycle, the cpu will set the IRA line high
+  In the first cycle of the IRA sequence, the cpu will set the IRA line high
   for two clock pulses. During the first pulse, nothing else happens.
   During the second pulse the CPU reads a byte of whatever data currently is on
   the I/O Bus.

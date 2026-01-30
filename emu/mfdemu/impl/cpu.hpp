@@ -38,6 +38,8 @@ struct CpuFlags {
 	bool nf;
 	bool ie;
 	bool rt;
+	/** @brief interrupt queued; not program-accessible. */
+	bool iq;
 };
 
 struct AddressingMode {
@@ -56,7 +58,7 @@ struct Operand {
 class Cpu {
    public:
 	enum class CpuState : u8 {
-		ABUS_READ,
+		ABUS_READ = 0,
 		ABUS_READ_INDIRECT,
 		ABUS_WRITE,
 		ABUS_WRITE_INDIRECT,
