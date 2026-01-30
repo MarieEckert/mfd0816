@@ -7,18 +7,15 @@ reference implementation of the MFD0816 and tools surrounding it.
 EMULATOR PROGRESS
 ────────────────────────────────────────────────────────────────────────────────
 
-  Instruction wise the emulator is nearly completed, only missing a few
-  instructions:
-    ► iret
-    ► int
-  Besides these instructions, the unit tests need to be expanded. After the
-  CPU is implemented and tested "enough", I plan on expanding the emulator
-  with a "device-plugin" system (more on that when I actually get to it).
+  All instruction are implemented, but the unit tests need to be expanded.
+  After the CPU is implemented and tested "enough", I plan on expanding
+  the emulator with a "device-plugin" system (more on that when I actually
+  get to it).
 
   Planned content for release "1.0.0-beta":
-    ► [ ] 100% implementation of the instruction set
+    ► [X] 100% implementation of the instruction set
     ► [ ] Basic terminal I/O
-    ► [ ] Finished interrupt support
+    ► [X] Finished interrupt support
     ► [X] Functional assembler
 
 DOCUMENTS
