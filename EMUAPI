@@ -1,0 +1,39 @@
+mfdemu/plugin/api.{hpp,cpp}
+	-> General API implementation
+		- Accessors to System, CPU, Config, etc.
+		- Plugin load method, returns devices
+mfdemu/plugin/config.{hpp,cpp}
+	-> Config
+mfdemu/plugin/device.{hpp,cpp}
+	-> PluginDevice
+		public:
+			::LoadDevice(API &api) virtual
+	-> PluginAioDevice : AioDevice, PluginDevice
+		protected:
+			::read(u16 addr) -> u16
+			::write(u16 addr, u16 val)
+	-> PluginGioDevice : GioDevice
+		protected:
+			::read(u16 addr) -> u16
+			::write(u16 addr, u8 val, bool low)
+mfdemu/plugin/internal/
+	loaded_mri
+		-> Contains the MRI given to the emulator, AIO Device
+	zero_AIO
+	zero_GIO
+		-> Initialised with 0, ignores writes if configured appropriately
+
+/* overriden from mfdemu::plugin::PluginAioDevice */
+ABC16::LoadDevice(API &api) {
+	ABC16Cfg cfg;
+	cfg.load(api.getConfig().getDevice("mfd_abc16"));
+}
+
+                     EMU
+					  |
+                    ABC16
+					  |
+	   +--------------+------------+
+	   |              |            |
+internal:zero internal:loaded_mri bmg
+									
